@@ -62,6 +62,39 @@ export type Database = {
         }
         Relationships: []
       }
+      departments: {
+        Row: {
+          accent: string
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          accent?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          accent?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       finance_clients: {
         Row: {
           accent: string
@@ -412,6 +445,48 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_links: {
+        Row: {
+          accent: string
+          active: boolean
+          category: string
+          created_at: string
+          description: string
+          href: string
+          icon: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          accent?: string
+          active?: boolean
+          category?: string
+          created_at?: string
+          description?: string
+          href?: string
+          icon?: string
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          accent?: string
+          active?: boolean
+          category?: string
+          created_at?: string
+          description?: string
+          href?: string
+          icon?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       people: {
         Row: {
           archived: boolean
@@ -550,6 +625,36 @@ export type Database = {
           sort_order?: number
           updated_at?: string
           url?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          display_name: string
+          email: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string
+          email?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          email?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -717,7 +822,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       app_category:
@@ -726,6 +837,7 @@ export type Database = {
         | "Rapportage"
         | "Externe systemen"
         | "Overig"
+      app_role: "admin" | "management" | "kantoor" | "monteur" | "zzper"
       kb_status: "active" | "draft" | "expired" | "archived"
       person_status:
         | "Beschikbaar"
@@ -884,6 +996,7 @@ export const Constants = {
         "Externe systemen",
         "Overig",
       ],
+      app_role: ["admin", "management", "kantoor", "monteur", "zzper"],
       kb_status: ["active", "draft", "expired", "archived"],
       person_status: [
         "Beschikbaar",
