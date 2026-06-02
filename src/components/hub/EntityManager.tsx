@@ -1,12 +1,14 @@
 import { useState, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2, X, Check } from "lucide-react";
+import { IconPicker } from "./IconPicker";
 
 export type Field =
   | { key: string; label: string; type: "text" | "url" | "date" }
   | { key: string; label: string; type: "textarea" }
   | { key: string; label: string; type: "select"; options: { value: string; label: string }[] }
   | { key: string; label: string; type: "bool" }
-  | { key: string; label: string; type: "image" };
+  | { key: string; label: string; type: "image" }
+  | { key: string; label: string; type: "icon" };
 
 type Row = Record<string, unknown> & { id: string };
 
@@ -210,6 +212,14 @@ function EditorCard({
                 />
                 <span className="font-medium text-foreground/80">{f.label}</span>
               </label>
+            );
+          }
+          if (f.type === "icon") {
+            return (
+              <div key={f.key} className="md:col-span-2 text-sm">
+                <span className="mb-1 block font-medium text-foreground/80">{f.label}</span>
+                <IconPicker value={(v as string) ?? ""} onChange={(name) => set(f.key, name)} />
+              </div>
             );
           }
           if (f.type === "image") {

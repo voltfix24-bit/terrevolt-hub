@@ -4,6 +4,7 @@ import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import { EntityManager, type Field } from "@/components/hub/EntityManager";
 import { useHubStore, type AppItem, type NewsItem, type PartnerLink, type QuickLink, type KnowledgeCategory } from "@/lib/hub-store";
+import { Icon } from "@/components/hub/Icon";
 import { RotateCcw } from "lucide-react";
 
 export const Route = createFileRoute("/instellingen")({
@@ -71,7 +72,7 @@ function AppsTab() {
   const { apps, addApp, updateApp, deleteApp, reorder } = useHubStore();
   const fields: Field[] = [
     { key: "name", label: "Naam", type: "text" },
-    { key: "icon", label: "Icoon (emoji)", type: "text" },
+    { key: "icon", label: "Icoon", type: "icon" },
     { key: "description", label: "Beschrijving", type: "textarea" },
     { key: "category", label: "Categorie", type: "text" },
     { key: "href", label: "URL", type: "url" },
@@ -90,7 +91,7 @@ function AppsTab() {
     { key: "newTab", label: "Openen in nieuw tabblad", type: "bool" },
   ];
   const empty: Omit<AppItem, "id"> = {
-    name: "", description: "", icon: "✨", category: "Algemeen", href: "/", featured: false, newTab: false, accent: "brand",
+    name: "", description: "", icon: "sparkles", category: "Algemeen", href: "/", featured: false, newTab: false, accent: "brand",
   };
   return (
     <EntityManager<AppItem>
@@ -100,7 +101,7 @@ function AppsTab() {
       onReorder={(f, t) => reorder("apps", f, t)}
       rowPreview={(a) => (
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-xl">{a.icon}</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-navy"><Icon name={a.icon} size={20} /></div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <div className="truncate font-medium text-navy">{a.name}</div>
@@ -182,10 +183,10 @@ function QuickLinksTab() {
   const { quickLinks, addQuickLink, updateQuickLink, deleteQuickLink, reorder } = useHubStore();
   const fields: Field[] = [
     { key: "name", label: "Naam", type: "text" },
-    { key: "icon", label: "Icoon (emoji)", type: "text" },
+    { key: "icon", label: "Icoon", type: "icon" },
     { key: "href", label: "URL", type: "url" },
   ];
-  const empty: Omit<QuickLink, "id"> = { name: "", href: "https://", icon: "🔗" };
+  const empty: Omit<QuickLink, "id"> = { name: "", href: "https://", icon: "link" };
   return (
     <EntityManager<QuickLink>
       title="Quick links" description="Snelkoppelingen in het welkomstvak."
@@ -194,7 +195,7 @@ function QuickLinksTab() {
       onReorder={(f, t) => reorder("quickLinks", f, t)}
       rowPreview={(q) => (
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-lg">{q.icon ?? "🔗"}</div>
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-navy"><Icon name={q.icon ?? "link"} size={18} /></div>
           <div className="min-w-0">
             <div className="font-medium text-navy">{q.name}</div>
             <div className="truncate text-xs text-muted-foreground">{q.href}</div>
@@ -211,10 +212,10 @@ function KnowledgeTab() {
   const fields: Field[] = [
     { key: "name", label: "Naam", type: "text" },
     { key: "slug", label: "Slug (URL-deel)", type: "text" },
-    { key: "icon", label: "Icoon (emoji)", type: "text" },
+    { key: "icon", label: "Icoon", type: "icon" },
     { key: "description", label: "Beschrijving", type: "textarea" },
   ];
-  const empty: Omit<KnowledgeCategory, "id"> = { name: "", slug: "", icon: "📚", description: "" };
+  const empty: Omit<KnowledgeCategory, "id"> = { name: "", slug: "", icon: "book-open", description: "" };
   return (
     <EntityManager<KnowledgeCategory>
       title="Kennisbank" description="Categorieën die op het dashboard verschijnen."
@@ -223,7 +224,7 @@ function KnowledgeTab() {
       onReorder={(f, t) => reorder("knowledge", f, t)}
       rowPreview={(k) => (
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-xl">{k.icon}</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-navy"><Icon name={k.icon} size={20} /></div>
           <div className="min-w-0">
             <div className="font-medium text-navy">{k.name}</div>
             <div className="truncate text-xs text-muted-foreground">/{k.slug} · {k.description}</div>

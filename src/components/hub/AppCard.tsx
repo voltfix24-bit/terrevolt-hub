@@ -1,5 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import type { AppItem } from "@/lib/hub-store";
+import { Icon } from "./Icon";
 
 const accentMap: Record<AppItem["accent"], string> = {
   brand: "from-brand/15 to-pastel/30",
@@ -21,11 +22,11 @@ function CardInner({ app, large }: { app: AppItem; large?: boolean }) {
       <div className="flex items-start justify-between">
         <div
           className={[
-            "flex h-12 w-12 items-center justify-center rounded-2xl text-2xl",
-            isDark ? "bg-white/10" : "bg-white/70 backdrop-blur",
+            "flex h-12 w-12 items-center justify-center rounded-2xl",
+            isDark ? "bg-white/10 text-white" : "bg-white/70 text-navy backdrop-blur",
           ].join(" ")}
         >
-          {app.icon}
+          <Icon name={app.icon} size={22} />
         </div>
         <ArrowUpRight
           className={[
