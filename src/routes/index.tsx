@@ -83,6 +83,7 @@ function Dashboard() {
             <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {others.map((app) => <AppCard key={app.id} app={app} />)}
             </div>
+          )}
           {!isLoading && apps.length === 0 && (
             <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
               Nog geen applicaties. Voeg er een toe via Instellingen.
