@@ -165,8 +165,9 @@ export const useHubStore = create<State & Actions>()(
         set((s) => ({ knowledge: s.knowledge.map((k) => (k.id === id ? { ...k, ...patch } : k)) })),
       deleteKnowledge: (id) => set((s) => ({ knowledge: s.knowledge.filter((k) => k.id !== id) })),
 
+      setRole: (role) => set(() => ({ role })),
       resetAll: () => set(() => ({ ...defaults })),
     }),
-    { name: "terrevolt-hub-store", version: 2, migrate: () => ({ ...defaults } as never) },
+    { name: "terrevolt-hub-store", version: 3, migrate: () => ({ ...defaults } as never) },
   ),
 );
