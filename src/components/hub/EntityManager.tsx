@@ -1,12 +1,14 @@
 import { useState, type ReactNode } from "react";
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2, X, Check } from "lucide-react";
+import { IconPicker } from "./IconPicker";
 
 export type Field =
   | { key: string; label: string; type: "text" | "url" | "date" }
   | { key: string; label: string; type: "textarea" }
   | { key: string; label: string; type: "select"; options: { value: string; label: string }[] }
   | { key: string; label: string; type: "bool" }
-  | { key: string; label: string; type: "image" };
+  | { key: string; label: string; type: "image" }
+  | { key: string; label: string; type: "icon" };
 
 type Row = Record<string, unknown> & { id: string };
 
