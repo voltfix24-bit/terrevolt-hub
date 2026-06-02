@@ -18,6 +18,7 @@ import { Route as KennisbankRouteImport } from './routes/kennisbank'
 import { Route as InstellingenRouteImport } from './routes/instellingen'
 import { Route as FinanceWikiRouteImport } from './routes/finance-wiki'
 import { Route as DocumentenRouteImport } from './routes/documenten'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ApplicatiesRouteImport } from './routes/applicaties'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SmoelenboekIdRouteImport } from './routes/smoelenboek.$id'
@@ -70,6 +71,11 @@ const DocumentenRoute = DocumentenRouteImport.update({
   path: '/documenten',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApplicatiesRoute = ApplicatiesRouteImport.update({
   id: '/applicaties',
   path: '/applicaties',
@@ -105,6 +111,7 @@ const KennisbankSlugArticleSlugRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/applicaties': typeof ApplicatiesRoute
+  '/auth': typeof AuthRoute
   '/documenten': typeof DocumentenRoute
   '/finance-wiki': typeof FinanceWikiRouteWithChildren
   '/instellingen': typeof InstellingenRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/applicaties': typeof ApplicatiesRoute
+  '/auth': typeof AuthRoute
   '/documenten': typeof DocumentenRoute
   '/finance-wiki': typeof FinanceWikiRouteWithChildren
   '/instellingen': typeof InstellingenRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/applicaties': typeof ApplicatiesRoute
+  '/auth': typeof AuthRoute
   '/documenten': typeof DocumentenRoute
   '/finance-wiki': typeof FinanceWikiRouteWithChildren
   '/instellingen': typeof InstellingenRoute
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/applicaties'
+    | '/auth'
     | '/documenten'
     | '/finance-wiki'
     | '/instellingen'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/applicaties'
+    | '/auth'
     | '/documenten'
     | '/finance-wiki'
     | '/instellingen'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/applicaties'
+    | '/auth'
     | '/documenten'
     | '/finance-wiki'
     | '/instellingen'
@@ -211,6 +223,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApplicatiesRoute: typeof ApplicatiesRoute
+  AuthRoute: typeof AuthRoute
   DocumentenRoute: typeof DocumentenRoute
   FinanceWikiRoute: typeof FinanceWikiRouteWithChildren
   InstellingenRoute: typeof InstellingenRoute
@@ -285,6 +298,13 @@ declare module '@tanstack/react-router' {
       path: '/documenten'
       fullPath: '/documenten'
       preLoaderRoute: typeof DocumentenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/applicaties': {
@@ -383,6 +403,7 @@ const SmoelenboekRouteWithChildren = SmoelenboekRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApplicatiesRoute: ApplicatiesRoute,
+  AuthRoute: AuthRoute,
   DocumentenRoute: DocumentenRoute,
   FinanceWikiRoute: FinanceWikiRouteWithChildren,
   InstellingenRoute: InstellingenRoute,
