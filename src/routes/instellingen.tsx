@@ -43,7 +43,8 @@ const TABS = [
   { id: "news", label: "Nieuws" },
   { id: "partners", label: "Partnerportalen" },
   { id: "quick", label: "Quick links" },
-  { id: "knowledge", label: "Kennisbank" },
+  { id: "kb-cats", label: "Kennisbank categorieën" },
+  { id: "kb-articles", label: "Kennisbank artikelen" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
