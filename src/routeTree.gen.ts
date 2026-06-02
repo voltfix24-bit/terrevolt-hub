@@ -15,10 +15,12 @@ import { Route as PartnerportalenRouteImport } from './routes/partnerportalen'
 import { Route as NieuwsRouteImport } from './routes/nieuws'
 import { Route as KennisbankRouteImport } from './routes/kennisbank'
 import { Route as InstellingenRouteImport } from './routes/instellingen'
+import { Route as FinanceWikiRouteImport } from './routes/finance-wiki'
 import { Route as DocumentenRouteImport } from './routes/documenten'
 import { Route as ApplicatiesRouteImport } from './routes/applicaties'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KennisbankSlugRouteImport } from './routes/kennisbank.$slug'
+import { Route as FinanceWikiSlugRouteImport } from './routes/finance-wiki.$slug'
 import { Route as KennisbankSlugArticleSlugRouteImport } from './routes/kennisbank.$slug.$articleSlug'
 
 const VraagbaakRoute = VraagbaakRouteImport.update({
@@ -51,6 +53,11 @@ const InstellingenRoute = InstellingenRouteImport.update({
   path: '/instellingen',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanceWikiRoute = FinanceWikiRouteImport.update({
+  id: '/finance-wiki',
+  path: '/finance-wiki',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocumentenRoute = DocumentenRouteImport.update({
   id: '/documenten',
   path: '/documenten',
@@ -71,6 +78,11 @@ const KennisbankSlugRoute = KennisbankSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => KennisbankRoute,
 } as any)
+const FinanceWikiSlugRoute = FinanceWikiSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => FinanceWikiRoute,
+} as any)
 const KennisbankSlugArticleSlugRoute =
   KennisbankSlugArticleSlugRouteImport.update({
     id: '/$articleSlug',
@@ -82,12 +94,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/applicaties': typeof ApplicatiesRoute
   '/documenten': typeof DocumentenRoute
+  '/finance-wiki': typeof FinanceWikiRouteWithChildren
   '/instellingen': typeof InstellingenRoute
   '/kennisbank': typeof KennisbankRouteWithChildren
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
   '/sharepoint': typeof SharepointRoute
   '/vraagbaak': typeof VraagbaakRoute
+  '/finance-wiki/$slug': typeof FinanceWikiSlugRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
   '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
@@ -95,12 +109,14 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/applicaties': typeof ApplicatiesRoute
   '/documenten': typeof DocumentenRoute
+  '/finance-wiki': typeof FinanceWikiRouteWithChildren
   '/instellingen': typeof InstellingenRoute
   '/kennisbank': typeof KennisbankRouteWithChildren
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
   '/sharepoint': typeof SharepointRoute
   '/vraagbaak': typeof VraagbaakRoute
+  '/finance-wiki/$slug': typeof FinanceWikiSlugRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
   '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
@@ -109,12 +125,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/applicaties': typeof ApplicatiesRoute
   '/documenten': typeof DocumentenRoute
+  '/finance-wiki': typeof FinanceWikiRouteWithChildren
   '/instellingen': typeof InstellingenRoute
   '/kennisbank': typeof KennisbankRouteWithChildren
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
   '/sharepoint': typeof SharepointRoute
   '/vraagbaak': typeof VraagbaakRoute
+  '/finance-wiki/$slug': typeof FinanceWikiSlugRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
   '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
@@ -124,12 +142,14 @@ export interface FileRouteTypes {
     | '/'
     | '/applicaties'
     | '/documenten'
+    | '/finance-wiki'
     | '/instellingen'
     | '/kennisbank'
     | '/nieuws'
     | '/partnerportalen'
     | '/sharepoint'
     | '/vraagbaak'
+    | '/finance-wiki/$slug'
     | '/kennisbank/$slug'
     | '/kennisbank/$slug/$articleSlug'
   fileRoutesByTo: FileRoutesByTo
@@ -137,12 +157,14 @@ export interface FileRouteTypes {
     | '/'
     | '/applicaties'
     | '/documenten'
+    | '/finance-wiki'
     | '/instellingen'
     | '/kennisbank'
     | '/nieuws'
     | '/partnerportalen'
     | '/sharepoint'
     | '/vraagbaak'
+    | '/finance-wiki/$slug'
     | '/kennisbank/$slug'
     | '/kennisbank/$slug/$articleSlug'
   id:
@@ -150,12 +172,14 @@ export interface FileRouteTypes {
     | '/'
     | '/applicaties'
     | '/documenten'
+    | '/finance-wiki'
     | '/instellingen'
     | '/kennisbank'
     | '/nieuws'
     | '/partnerportalen'
     | '/sharepoint'
     | '/vraagbaak'
+    | '/finance-wiki/$slug'
     | '/kennisbank/$slug'
     | '/kennisbank/$slug/$articleSlug'
   fileRoutesById: FileRoutesById
@@ -164,6 +188,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApplicatiesRoute: typeof ApplicatiesRoute
   DocumentenRoute: typeof DocumentenRoute
+  FinanceWikiRoute: typeof FinanceWikiRouteWithChildren
   InstellingenRoute: typeof InstellingenRoute
   KennisbankRoute: typeof KennisbankRouteWithChildren
   NieuwsRoute: typeof NieuwsRoute
@@ -216,6 +241,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InstellingenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/finance-wiki': {
+      id: '/finance-wiki'
+      path: '/finance-wiki'
+      fullPath: '/finance-wiki'
+      preLoaderRoute: typeof FinanceWikiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/documenten': {
       id: '/documenten'
       path: '/documenten'
@@ -244,6 +276,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KennisbankSlugRouteImport
       parentRoute: typeof KennisbankRoute
     }
+    '/finance-wiki/$slug': {
+      id: '/finance-wiki/$slug'
+      path: '/$slug'
+      fullPath: '/finance-wiki/$slug'
+      preLoaderRoute: typeof FinanceWikiSlugRouteImport
+      parentRoute: typeof FinanceWikiRoute
+    }
     '/kennisbank/$slug/$articleSlug': {
       id: '/kennisbank/$slug/$articleSlug'
       path: '/$articleSlug'
@@ -253,6 +292,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface FinanceWikiRouteChildren {
+  FinanceWikiSlugRoute: typeof FinanceWikiSlugRoute
+}
+
+const FinanceWikiRouteChildren: FinanceWikiRouteChildren = {
+  FinanceWikiSlugRoute: FinanceWikiSlugRoute,
+}
+
+const FinanceWikiRouteWithChildren = FinanceWikiRoute._addFileChildren(
+  FinanceWikiRouteChildren,
+)
 
 interface KennisbankSlugRouteChildren {
   KennisbankSlugArticleSlugRoute: typeof KennisbankSlugArticleSlugRoute
@@ -282,6 +333,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApplicatiesRoute: ApplicatiesRoute,
   DocumentenRoute: DocumentenRoute,
+  FinanceWikiRoute: FinanceWikiRouteWithChildren,
   InstellingenRoute: InstellingenRoute,
   KennisbankRoute: KennisbankRouteWithChildren,
   NieuwsRoute: NieuwsRoute,

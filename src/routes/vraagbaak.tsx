@@ -14,6 +14,7 @@ import {
   Clock,
   ArrowUpRight,
   History,
+  Wallet,
 } from "lucide-react";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
@@ -24,6 +25,11 @@ import {
   type KbArticle,
   type KbSection,
 } from "@/lib/knowledge";
+import {
+  useFinanceClients,
+  FINANCE_FIELDS,
+  type FinanceClient,
+} from "@/lib/finance";
 import { askVraagbaak, type VraagbaakAnswer } from "@/lib/vraagbaak.functions";
 import {
   FEEDBACK_LABELS,
@@ -33,6 +39,17 @@ import {
   useVraagbaakRecent,
   type VraagbaakFeedbackType,
 } from "@/lib/vraagbaak";
+
+const FIN_PREFIX = "fin:";
+
+function buildFinanceContent(c: FinanceClient): string {
+  const parts: string[] = [];
+  for (const { key, label } of FINANCE_FIELDS) {
+    const v = c[key];
+    if (v && v.trim()) parts.push(`${label}: ${v.trim()}`);
+  }
+  return parts.join("\n");
+}
 
 export const Route = createFileRoute("/vraagbaak")({
   head: () => ({
@@ -80,6 +97,7 @@ function VraagbaakPage() {
 
   const { data: sections = [] } = useKbSections();
   const { data: articles = [] } = useKbArticles();
+  const { data: financeClients = [] } = useFinanceClients();
   const { data: recent = [] } = useVraagbaakRecent(6);
 
   const saveAnswer = useSaveAnswer();
@@ -98,28 +116,45 @@ function VraagbaakPage() {
     return m;
   }, [articles]);
 
+  const financeById = useMemo(() => {
+    const m = new Map<string, FinanceClient>();
+    for (const c of financeClients) m.set(c.id, c);
+    return m;
+  }, [financeClients]);
+
+  const financeSources: FinanceClient[] = useMemo(() => {
+    if (!answer) return [];
+    return answer.source_ids
+      .filter((id) => id.startsWith(FIN_PREFIX))
+      .map((id) => financeById.get(id.slice(FIN_PREFIX.length)))
+      .filter((c): c is FinanceClient => !!c);
+  }, [answer, financeById]);
+
   const sources: ResolvedSource[] = useMemo(() => {
     if (!answer) return [];
     return answer.source_ids
+      .filter((id) => !id.startsWith(FIN_PREFIX))
       .map((id) => articleById.get(id))
       .filter((a): a is KbArticle => !!a)
       .map((a) => ({ article: a, section: sectionById.get(a.section_id ?? "") }));
   }, [answer, articleById, sectionById]);
 
   const related: KbArticle[] = useMemo(() => {
-    if (!answer || sources.length === 0) return [];
+    if (!answer || (sources.length === 0 && financeSources.length === 0)) return [];
     const sourceIds = new Set(answer.source_ids);
     const relatedSet = new Map<string, KbArticle>();
-    for (const s of sources) {
-      for (const rid of s.article.related_ids ?? []) {
+    const addRelated = (ids: string[] | undefined) => {
+      for (const rid of ids ?? []) {
         if (!sourceIds.has(rid) && !relatedSet.has(rid)) {
           const a = articleById.get(rid);
           if (a) relatedSet.set(rid, a);
         }
       }
-    }
+    };
+    for (const s of sources) addRelated(s.article.related_ids);
+    for (const c of financeSources) addRelated(c.related_ids);
     return Array.from(relatedSet.values()).slice(0, 4);
-  }, [answer, sources, articleById]);
+  }, [answer, sources, financeSources, articleById]);
 
   const submit = async (override?: string) => {
     const q = (override ?? question).trim();
@@ -158,29 +193,66 @@ function VraagbaakPage() {
         })
         .filter((s) => s.score > 0)
         .sort((a, b) => b.score - a.score)
-        .slice(0, 8)
+        .slice(0, 6)
         .map((s) => s.a);
 
-      const ctx = scored.map((a) => ({
-        id: a.id,
-        title: a.title,
-        section: sectionById.get(a.section_id ?? "")?.name,
-        client: a.client || undefined,
-        document_type: a.document_type,
-        summary: a.summary || undefined,
-        content: a.content.slice(0, 2000) || undefined,
-        valid_until: a.valid_until,
-        updated_at: a.updated_at,
-      }));
+      // Score finance clients (boost matches on factuur/factureer/factuur terms)
+      const financeTerms = ["factur", "factuur", "betal", "bijlag", "btw", "g-rekening", "po-nummer", "referent"];
+      const isFinanceQuery = financeTerms.some((t) => q.toLowerCase().includes(t));
+      const scoredFinance = financeClients
+        .filter((c) => !c.archived)
+        .map((c) => {
+          const hay = [c.name, c.short_description, buildFinanceContent(c)]
+            .join(" ")
+            .toLowerCase();
+          let score = 0;
+          for (const t of terms) if (hay.includes(t)) score += t.length;
+          if (isFinanceQuery) score += 2;
+          return { c, score };
+        })
+        .filter((s) => s.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3)
+        .map((s) => s.c);
+
+      const ctx = [
+        ...scored.map((a) => ({
+          id: a.id,
+          title: a.title,
+          section: sectionById.get(a.section_id ?? "")?.name,
+          client: a.client || undefined,
+          document_type: a.document_type,
+          summary: a.summary || undefined,
+          content: a.content.slice(0, 2000) || undefined,
+          valid_until: a.valid_until,
+          updated_at: a.updated_at,
+        })),
+        ...scoredFinance.map((c) => ({
+          id: `${FIN_PREFIX}${c.id}`,
+          title: `Hoe factureer ik ${c.name}?`,
+          section: "Finance Wiki",
+          client: c.name,
+          document_type: "finance-wiki",
+          summary: c.short_description || undefined,
+          content: buildFinanceContent(c) || undefined,
+          valid_until: null,
+          updated_at: c.updated_at,
+        })),
+      ];
 
       const res = await ask({ data: { question: q, context: ctx } });
       setAnswer(res);
       setAnswerForQuestion(q);
 
-      // Persist the Q&A
-      const resolved = res.source_ids
+      // Persist the Q&A — articles only, finance sources separately
+      const resolvedArticles = res.source_ids
+        .filter((id) => !id.startsWith(FIN_PREFIX))
         .map((id) => articleById.get(id))
         .filter((a): a is KbArticle => !!a);
+      const resolvedFinance = res.source_ids
+        .filter((id) => id.startsWith(FIN_PREFIX))
+        .map((id) => financeById.get(id.slice(FIN_PREFIX.length)))
+        .filter((c): c is FinanceClient => !!c);
 
       const persistedId = await saveAnswer.mutateAsync({
         question: q,
@@ -188,17 +260,31 @@ function VraagbaakPage() {
         steps: res.steps,
         summary: res.summary,
         follow_ups: res.follow_ups,
-        related_ids: resolved.flatMap((a) => a.related_ids ?? []).slice(0, 8),
+        related_ids: [
+          ...resolvedArticles.flatMap((a) => a.related_ids ?? []),
+          ...resolvedFinance.flatMap((c) => c.related_ids ?? []),
+        ].slice(0, 8),
         has_sources: res.has_sources,
-        sources: resolved.map((a) => ({
-          article_id: a.id,
-          title: a.title,
-          section_heading: sectionById.get(a.section_id ?? "")?.name ?? "",
-          page_number: null,
-          file_url: a.file_url || "",
-          external_url: a.external_url || "",
-          last_updated: a.updated_at ? a.updated_at.slice(0, 10) : null,
-        })),
+        sources: [
+          ...resolvedArticles.map((a) => ({
+            article_id: a.id,
+            title: a.title,
+            section_heading: sectionById.get(a.section_id ?? "")?.name ?? "",
+            page_number: null,
+            file_url: a.file_url || "",
+            external_url: a.external_url || "",
+            last_updated: a.updated_at ? a.updated_at.slice(0, 10) : null,
+          })),
+          ...resolvedFinance.map((c) => ({
+            article_id: null,
+            title: `Hoe factureer ik ${c.name}?`,
+            section_heading: "Finance Wiki",
+            page_number: null,
+            file_url: "",
+            external_url: `/finance-wiki/${c.slug}`,
+            last_updated: c.updated_at ? c.updated_at.slice(0, 10) : null,
+          })),
+        ],
       });
       setSavedQuestionId(persistedId);
     } catch (err) {
@@ -342,6 +428,7 @@ function VraagbaakPage() {
             answer={answer}
             question={answerForQuestion}
             sources={sources}
+            financeSources={financeSources}
             related={related}
             bookmarked={bookmarked}
             feedbackSent={feedbackSent}
@@ -394,6 +481,7 @@ function AnswerCard({
   answer,
   question,
   sources,
+  financeSources,
   related,
   bookmarked,
   feedbackSent,
@@ -405,6 +493,7 @@ function AnswerCard({
   answer: VraagbaakAnswer;
   question: string;
   sources: ResolvedSource[];
+  financeSources: FinanceClient[];
   related: KbArticle[];
   bookmarked: boolean;
   feedbackSent: VraagbaakFeedbackType | null;
@@ -414,6 +503,7 @@ function AnswerCard({
   canPersist: boolean;
 }) {
   const noSource = !answer.has_sources;
+  const totalSources = sources.length + financeSources.length;
 
   return (
     <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
@@ -475,12 +565,36 @@ function AnswerCard({
 
       {/* 3. Bronnen */}
       <Section title="Bronnen">
-        {sources.length === 0 ? (
+        {totalSources === 0 ? (
           <div className="text-sm text-muted-foreground">
             Geen bronnen gevonden in de kennisbank.
           </div>
         ) : (
           <ul className="space-y-2">
+            {financeSources.map((c) => (
+              <li key={`fin-${c.id}`}>
+                <Link
+                  to="/finance-wiki/$slug"
+                  params={{ slug: c.slug }}
+                  className="flex items-start gap-3 rounded-2xl border border-brand/30 bg-pastel/30 p-3.5 shadow-sm transition hover:border-brand/60 hover:bg-pastel/50"
+                >
+                  <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium text-navy">
+                      Hoe factureer ik {c.name}?
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      Finance Wiki · {c.name}
+                    </div>
+                    <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      Bijgewerkt {formatKbDate(c.updated_at)}
+                    </div>
+                  </div>
+                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              </li>
+            ))}
             {sources.map((s) => (
               <li key={s.article.id}>
                 <Link

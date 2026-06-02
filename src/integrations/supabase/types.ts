@@ -62,6 +62,78 @@ export type Database = {
         }
         Relationships: []
       }
+      finance_clients: {
+        Row: {
+          accent: string
+          archived: boolean
+          betaaltermijn: string
+          btw_verlegd: string
+          created_at: string
+          factuur_email: string
+          factuur_referenties: string
+          factuuradres: string
+          g_rekening: string
+          id: string
+          inkooporder_info: string
+          interne_opmerkingen: string
+          name: string
+          related_ids: string[]
+          short_description: string
+          slug: string
+          sort_order: number
+          updated_at: string
+          veelgemaakte_fouten: string
+          verplichte_bijlagen: string
+          voorbeeld_factuurtekst: string
+        }
+        Insert: {
+          accent?: string
+          archived?: boolean
+          betaaltermijn?: string
+          btw_verlegd?: string
+          created_at?: string
+          factuur_email?: string
+          factuur_referenties?: string
+          factuuradres?: string
+          g_rekening?: string
+          id?: string
+          inkooporder_info?: string
+          interne_opmerkingen?: string
+          name: string
+          related_ids?: string[]
+          short_description?: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+          veelgemaakte_fouten?: string
+          verplichte_bijlagen?: string
+          voorbeeld_factuurtekst?: string
+        }
+        Update: {
+          accent?: string
+          archived?: boolean
+          betaaltermijn?: string
+          btw_verlegd?: string
+          created_at?: string
+          factuur_email?: string
+          factuur_referenties?: string
+          factuuradres?: string
+          g_rekening?: string
+          id?: string
+          inkooporder_info?: string
+          interne_opmerkingen?: string
+          name?: string
+          related_ids?: string[]
+          short_description?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+          veelgemaakte_fouten?: string
+          verplichte_bijlagen?: string
+          voorbeeld_factuurtekst?: string
+        }
+        Relationships: []
+      }
       kb_articles: {
         Row: {
           attachments: Json
