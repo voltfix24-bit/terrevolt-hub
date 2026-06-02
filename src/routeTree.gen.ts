@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SharepointRouteImport } from './routes/sharepoint'
 import { Route as PartnerportalenRouteImport } from './routes/partnerportalen'
 import { Route as NieuwsRouteImport } from './routes/nieuws'
 import { Route as KennisbankRouteImport } from './routes/kennisbank'
@@ -19,6 +20,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as KennisbankSlugRouteImport } from './routes/kennisbank.$slug'
 import { Route as KennisbankSlugArticleSlugRouteImport } from './routes/kennisbank.$slug.$articleSlug'
 
+const SharepointRoute = SharepointRouteImport.update({
+  id: '/sharepoint',
+  path: '/sharepoint',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PartnerportalenRoute = PartnerportalenRouteImport.update({
   id: '/partnerportalen',
   path: '/partnerportalen',
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/kennisbank': typeof KennisbankRouteWithChildren
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
+  '/sharepoint': typeof SharepointRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
   '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/kennisbank': typeof KennisbankRouteWithChildren
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
+  '/sharepoint': typeof SharepointRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
   '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/kennisbank': typeof KennisbankRouteWithChildren
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
+  '/sharepoint': typeof SharepointRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
   '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/kennisbank'
     | '/nieuws'
     | '/partnerportalen'
+    | '/sharepoint'
     | '/kennisbank/$slug'
     | '/kennisbank/$slug/$articleSlug'
   fileRoutesByTo: FileRoutesByTo
@@ -121,6 +131,7 @@ export interface FileRouteTypes {
     | '/kennisbank'
     | '/nieuws'
     | '/partnerportalen'
+    | '/sharepoint'
     | '/kennisbank/$slug'
     | '/kennisbank/$slug/$articleSlug'
   id:
@@ -132,6 +143,7 @@ export interface FileRouteTypes {
     | '/kennisbank'
     | '/nieuws'
     | '/partnerportalen'
+    | '/sharepoint'
     | '/kennisbank/$slug'
     | '/kennisbank/$slug/$articleSlug'
   fileRoutesById: FileRoutesById
@@ -144,10 +156,18 @@ export interface RootRouteChildren {
   KennisbankRoute: typeof KennisbankRouteWithChildren
   NieuwsRoute: typeof NieuwsRoute
   PartnerportalenRoute: typeof PartnerportalenRoute
+  SharepointRoute: typeof SharepointRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sharepoint': {
+      id: '/sharepoint'
+      path: '/sharepoint'
+      fullPath: '/sharepoint'
+      preLoaderRoute: typeof SharepointRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/partnerportalen': {
       id: '/partnerportalen'
       path: '/partnerportalen'
@@ -246,7 +266,18 @@ const rootRouteChildren: RootRouteChildren = {
   KennisbankRoute: KennisbankRouteWithChildren,
   NieuwsRoute: NieuwsRoute,
   PartnerportalenRoute: PartnerportalenRoute,
+  SharepointRoute: SharepointRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
