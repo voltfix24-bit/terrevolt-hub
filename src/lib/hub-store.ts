@@ -120,6 +120,7 @@ const defaults: State = {
     { id: uid(), slug: "uren-boeken", name: "Uren boeken", description: "Handleidingen en tips.", icon: "clock" },
     { id: uid(), slug: "bedrijfsprocessen", name: "Bedrijfsprocessen", description: "Interne workflows en afspraken.", icon: "building-2" },
   ],
+  role: "Directeur",
 };
 
 function move<T>(arr: T[], from: number, to: number): T[] {
