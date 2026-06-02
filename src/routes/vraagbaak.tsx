@@ -192,29 +192,66 @@ function VraagbaakPage() {
         })
         .filter((s) => s.score > 0)
         .sort((a, b) => b.score - a.score)
-        .slice(0, 8)
+        .slice(0, 6)
         .map((s) => s.a);
 
-      const ctx = scored.map((a) => ({
-        id: a.id,
-        title: a.title,
-        section: sectionById.get(a.section_id ?? "")?.name,
-        client: a.client || undefined,
-        document_type: a.document_type,
-        summary: a.summary || undefined,
-        content: a.content.slice(0, 2000) || undefined,
-        valid_until: a.valid_until,
-        updated_at: a.updated_at,
-      }));
+      // Score finance clients (boost matches on factuur/factureer/factuur terms)
+      const financeTerms = ["factur", "factuur", "betal", "bijlag", "btw", "g-rekening", "po-nummer", "referent"];
+      const isFinanceQuery = financeTerms.some((t) => q.toLowerCase().includes(t));
+      const scoredFinance = financeClients
+        .filter((c) => !c.archived)
+        .map((c) => {
+          const hay = [c.name, c.short_description, buildFinanceContent(c)]
+            .join(" ")
+            .toLowerCase();
+          let score = 0;
+          for (const t of terms) if (hay.includes(t)) score += t.length;
+          if (isFinanceQuery) score += 2;
+          return { c, score };
+        })
+        .filter((s) => s.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 3)
+        .map((s) => s.c);
+
+      const ctx = [
+        ...scored.map((a) => ({
+          id: a.id,
+          title: a.title,
+          section: sectionById.get(a.section_id ?? "")?.name,
+          client: a.client || undefined,
+          document_type: a.document_type,
+          summary: a.summary || undefined,
+          content: a.content.slice(0, 2000) || undefined,
+          valid_until: a.valid_until,
+          updated_at: a.updated_at,
+        })),
+        ...scoredFinance.map((c) => ({
+          id: `${FIN_PREFIX}${c.id}`,
+          title: `Hoe factureer ik ${c.name}?`,
+          section: "Finance Wiki",
+          client: c.name,
+          document_type: "finance-wiki",
+          summary: c.short_description || undefined,
+          content: buildFinanceContent(c) || undefined,
+          valid_until: null,
+          updated_at: c.updated_at,
+        })),
+      ];
 
       const res = await ask({ data: { question: q, context: ctx } });
       setAnswer(res);
       setAnswerForQuestion(q);
 
-      // Persist the Q&A
-      const resolved = res.source_ids
+      // Persist the Q&A — articles only, finance sources separately
+      const resolvedArticles = res.source_ids
+        .filter((id) => !id.startsWith(FIN_PREFIX))
         .map((id) => articleById.get(id))
         .filter((a): a is KbArticle => !!a);
+      const resolvedFinance = res.source_ids
+        .filter((id) => id.startsWith(FIN_PREFIX))
+        .map((id) => financeById.get(id.slice(FIN_PREFIX.length)))
+        .filter((c): c is FinanceClient => !!c);
 
       const persistedId = await saveAnswer.mutateAsync({
         question: q,
@@ -222,17 +259,31 @@ function VraagbaakPage() {
         steps: res.steps,
         summary: res.summary,
         follow_ups: res.follow_ups,
-        related_ids: resolved.flatMap((a) => a.related_ids ?? []).slice(0, 8),
+        related_ids: [
+          ...resolvedArticles.flatMap((a) => a.related_ids ?? []),
+          ...resolvedFinance.flatMap((c) => c.related_ids ?? []),
+        ].slice(0, 8),
         has_sources: res.has_sources,
-        sources: resolved.map((a) => ({
-          article_id: a.id,
-          title: a.title,
-          section_heading: sectionById.get(a.section_id ?? "")?.name ?? "",
-          page_number: null,
-          file_url: a.file_url || "",
-          external_url: a.external_url || "",
-          last_updated: a.updated_at ? a.updated_at.slice(0, 10) : null,
-        })),
+        sources: [
+          ...resolvedArticles.map((a) => ({
+            article_id: a.id,
+            title: a.title,
+            section_heading: sectionById.get(a.section_id ?? "")?.name ?? "",
+            page_number: null,
+            file_url: a.file_url || "",
+            external_url: a.external_url || "",
+            last_updated: a.updated_at ? a.updated_at.slice(0, 10) : null,
+          })),
+          ...resolvedFinance.map((c) => ({
+            article_id: null,
+            title: `Hoe factureer ik ${c.name}?`,
+            section_heading: "Finance Wiki",
+            page_number: null,
+            file_url: "",
+            external_url: `/finance-wiki/${c.slug}`,
+            last_updated: c.updated_at ? c.updated_at.slice(0, 10) : null,
+          })),
+        ],
       });
       setSavedQuestionId(persistedId);
     } catch (err) {
