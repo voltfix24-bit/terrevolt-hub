@@ -210,13 +210,12 @@ const WIDGETS: Record<Role, Widget[]> = {
       icon: "users",
       title: "Personeelsdossiers",
       description: "Status en attentiepunten",
-      items: [],
       stats: [
         { label: "Medewerkers", value: "84" },
         { label: "Aflopende certificaten", value: "6", delta: "≤ 60 dgn", trend: "down" },
         { label: "Open verlofaanvragen", value: "9" },
       ],
-    } as unknown as Widget,
+    },
   ],
 };
 
