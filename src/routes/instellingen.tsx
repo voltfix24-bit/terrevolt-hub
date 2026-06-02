@@ -3,7 +3,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import { EntityManager, type Field } from "@/components/hub/EntityManager";
-import { useHubStore, type AppItem, type NewsItem, type PartnerLink, type QuickLink, type KnowledgeCategory } from "@/lib/hub-store";
+import { useHubStore, type NewsItem, type PartnerLink, type QuickLink, type KnowledgeCategory } from "@/lib/hub-store";
+import {
+  useApplications,
+  useAppMutations,
+  APP_CATEGORIES,
+  type Application,
+  type ApplicationInput,
+} from "@/lib/applications";
 import { Icon } from "@/components/hub/Icon";
 import { RotateCcw } from "lucide-react";
 
