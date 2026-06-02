@@ -96,6 +96,7 @@ function VraagbaakPage() {
 
   const { data: sections = [] } = useKbSections();
   const { data: articles = [] } = useKbArticles();
+  const { data: financeClients = [] } = useFinanceClients();
   const { data: recent = [] } = useVraagbaakRecent(6);
 
   const saveAnswer = useSaveAnswer();
