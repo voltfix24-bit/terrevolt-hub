@@ -66,41 +66,89 @@ export type Database = {
         Row: {
           attachments: Json
           author: string
-          category_id: string
+          category_id: string | null
+          client: string
           content: string
           created_at: string
+          document_date: string | null
+          document_type: string
+          external_url: string
+          file_name: string
+          file_size: number
+          file_url: string
           id: string
+          important_notes: string
+          owner: string
           related_ids: string[]
+          section_id: string | null
           slug: string
           sort_order: number
+          status: Database["public"]["Enums"]["kb_status"]
+          summary: string
+          tags: string[]
           title: string
           updated_at: string
+          valid_from: string | null
+          valid_until: string | null
+          version: string
         }
         Insert: {
           attachments?: Json
           author?: string
-          category_id: string
+          category_id?: string | null
+          client?: string
           content?: string
           created_at?: string
+          document_date?: string | null
+          document_type?: string
+          external_url?: string
+          file_name?: string
+          file_size?: number
+          file_url?: string
           id?: string
+          important_notes?: string
+          owner?: string
           related_ids?: string[]
+          section_id?: string | null
           slug: string
           sort_order?: number
+          status?: Database["public"]["Enums"]["kb_status"]
+          summary?: string
+          tags?: string[]
           title: string
           updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+          version?: string
         }
         Update: {
           attachments?: Json
           author?: string
-          category_id?: string
+          category_id?: string | null
+          client?: string
           content?: string
           created_at?: string
+          document_date?: string | null
+          document_type?: string
+          external_url?: string
+          file_name?: string
+          file_size?: number
+          file_url?: string
           id?: string
+          important_notes?: string
+          owner?: string
           related_ids?: string[]
+          section_id?: string | null
           slug?: string
           sort_order?: number
+          status?: Database["public"]["Enums"]["kb_status"]
+          summary?: string
+          tags?: string[]
           title?: string
           updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+          version?: string
         }
         Relationships: [
           {
@@ -108,6 +156,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "kb_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_articles_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "kb_sections"
             referencedColumns: ["id"]
           },
         ]
@@ -144,6 +199,98 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      kb_sections: {
+        Row: {
+          accent: string
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          accent?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          accent?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      kb_versions: {
+        Row: {
+          article_id: string
+          author: string
+          content: string
+          created_at: string
+          document_date: string | null
+          external_url: string
+          file_name: string
+          file_url: string
+          id: string
+          note: string
+          summary: string
+          title: string
+          version: string
+        }
+        Insert: {
+          article_id: string
+          author?: string
+          content?: string
+          created_at?: string
+          document_date?: string | null
+          external_url?: string
+          file_name?: string
+          file_url?: string
+          id?: string
+          note?: string
+          summary?: string
+          title: string
+          version: string
+        }
+        Update: {
+          article_id?: string
+          author?: string
+          content?: string
+          created_at?: string
+          document_date?: string | null
+          external_url?: string
+          file_name?: string
+          file_url?: string
+          id?: string
+          note?: string
+          summary?: string
+          title?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_versions_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "kb_articles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       news: {
         Row: {
@@ -267,6 +414,7 @@ export type Database = {
         | "Rapportage"
         | "Externe systemen"
         | "Overig"
+      kb_status: "active" | "draft" | "expired" | "archived"
       sharepoint_kind: "link" | "folder"
     }
     CompositeTypes: {
@@ -402,6 +550,7 @@ export const Constants = {
         "Externe systemen",
         "Overig",
       ],
+      kb_status: ["active", "draft", "expired", "archived"],
       sharepoint_kind: ["link", "folder"],
     },
   },
