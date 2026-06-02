@@ -38,12 +38,16 @@ export type KnowledgeCategory = {
   icon: string;
 };
 
+export const ROLES = ["Directeur", "Werkvoorbereider", "Monteur", "Administratie"] as const;
+export type Role = (typeof ROLES)[number];
+
 type State = {
   apps: AppItem[];
   news: NewsItem[];
   partners: PartnerLink[];
   quickLinks: QuickLink[];
   knowledge: KnowledgeCategory[];
+  role: Role;
 };
 
 type Actions = {
