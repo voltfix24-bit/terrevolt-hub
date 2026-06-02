@@ -8,6 +8,12 @@ import { useHubStore } from "@/lib/hub-store";
 import { useActiveApplications } from "@/lib/applications";
 import { usePublishedNews } from "@/lib/news";
 import { useKbCategories } from "@/lib/knowledge";
+import {
+  useRecentSharePointLinks,
+  useFavoriteSharePointFolders,
+  useFavoriteSharePointLinks,
+  useSharePointMutations,
+} from "@/lib/sharepoint";
 import { ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -35,6 +41,10 @@ function Dashboard() {
   const partners = useHubStore((s) => s.partners);
   const quickLinks = useHubStore((s) => s.quickLinks);
   const { data: knowledge = [] } = useKbCategories();
+  const { data: spRecent = [] } = useRecentSharePointLinks(6);
+  const { data: spFavFolders = [] } = useFavoriteSharePointFolders();
+  const { data: spQuickAccess = [] } = useFavoriteSharePointLinks();
+  const { touch: spTouch } = useSharePointMutations();
 
   const featured = apps.filter((a) => a.featured);
   const others = apps.filter((a) => !a.featured);
@@ -123,6 +133,103 @@ function Dashboard() {
             ))}
           </div>
         </section>
+
+        {/* SharePoint */}
+        {(spRecent.length > 0 || spFavFolders.length > 0 || spQuickAccess.length > 0) && (
+          <section>
+            <SectionHeader
+              title="SharePoint"
+              subtitle="Recente links, favoriete mappen en snelle toegang."
+              action={
+                <a href="/sharepoint" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline">
+                  Beheren <ArrowUpRight className="h-4 w-4" />
+                </a>
+              }
+            />
+
+            {spQuickAccess.length > 0 && (
+              <div className="mb-5 flex flex-wrap gap-2">
+                {spQuickAccess.map((q) => (
+                  <a
+                    key={q.id}
+                    href={q.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => spTouch.mutate(q.id)}
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3.5 py-1.5 text-sm font-medium text-navy shadow-sm transition-all hover:border-brand/40 hover:bg-accent"
+                  >
+                    <Icon name={q.icon} size={16} className="text-brand" />
+                    {q.name}
+                  </a>
+                ))}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+              {spRecent.length > 0 && (
+                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                  <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-navy">
+                    <Icon name="link" size={16} className="text-brand" /> Recente SharePoint links
+                  </div>
+                  <ul className="divide-y divide-border">
+                    {spRecent.map((item) => (
+                      <li key={item.id}>
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => spTouch.mutate(item.id)}
+                          className="group flex items-center gap-3 py-2.5"
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-navy">
+                            <Icon name={item.icon} size={16} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate text-sm font-medium text-navy">{item.name}</div>
+                            {item.description && (
+                              <div className="truncate text-xs text-muted-foreground">{item.description}</div>
+                            )}
+                          </div>
+                          <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {spFavFolders.length > 0 && (
+                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                  <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-navy">
+                    <Icon name="folder" size={16} className="text-brand" /> Favoriete mappen
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {spFavFolders.map((f) => (
+                      <a
+                        key={f.id}
+                        href={f.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => spTouch.mutate(f.id)}
+                        className="group flex items-start gap-3 rounded-xl border border-border bg-background p-3 transition-all hover:border-brand/40 hover:bg-accent"
+                      >
+                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-navy">
+                          <Icon name={f.icon} size={18} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-medium text-navy">{f.name}</div>
+                          {f.description && (
+                            <div className="truncate text-xs text-muted-foreground">{f.description}</div>
+                          )}
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Knowledge base */}
         <section className="pb-8">

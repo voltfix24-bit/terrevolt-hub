@@ -193,6 +193,66 @@ export type Database = {
         }
         Relationships: []
       }
+      sharepoint_config: {
+        Row: {
+          base_url: string
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          base_url?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          base_url?: string
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sharepoint_items: {
+        Row: {
+          created_at: string
+          description: string
+          favorite: boolean
+          icon: string
+          id: string
+          kind: Database["public"]["Enums"]["sharepoint_kind"]
+          last_opened_at: string | null
+          name: string
+          sort_order: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          favorite?: boolean
+          icon?: string
+          id?: string
+          kind: Database["public"]["Enums"]["sharepoint_kind"]
+          last_opened_at?: string | null
+          name: string
+          sort_order?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          favorite?: boolean
+          icon?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["sharepoint_kind"]
+          last_opened_at?: string | null
+          name?: string
+          sort_order?: number
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -207,6 +267,7 @@ export type Database = {
         | "Rapportage"
         | "Externe systemen"
         | "Overig"
+      sharepoint_kind: "link" | "folder"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -341,6 +402,7 @@ export const Constants = {
         "Externe systemen",
         "Overig",
       ],
+      sharepoint_kind: ["link", "folder"],
     },
   },
 } as const

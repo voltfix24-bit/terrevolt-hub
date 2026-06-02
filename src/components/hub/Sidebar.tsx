@@ -6,6 +6,7 @@ import {
   BookOpen,
   FileText,
   ExternalLink,
+  Cloud,
   Settings,
 } from "lucide-react";
 
@@ -14,6 +15,7 @@ const items = [
   { label: "Applicaties", to: "/applicaties", icon: AppWindow },
   { label: "Nieuws", to: "/nieuws", icon: Newspaper },
   { label: "Kennisbank", to: "/kennisbank", icon: BookOpen },
+  { label: "SharePoint", to: "/sharepoint", icon: Cloud },
   { label: "Documenten", to: "/documenten", icon: FileText },
   { label: "Partnerportalen", to: "/partnerportalen", icon: ExternalLink },
   { label: "Instellingen", to: "/instellingen", icon: Settings },
