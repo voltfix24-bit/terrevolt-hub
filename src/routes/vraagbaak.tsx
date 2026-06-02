@@ -24,6 +24,11 @@ import {
   type KbArticle,
   type KbSection,
 } from "@/lib/knowledge";
+import {
+  useFinanceClients,
+  FINANCE_FIELDS,
+  type FinanceClient,
+} from "@/lib/finance";
 import { askVraagbaak, type VraagbaakAnswer } from "@/lib/vraagbaak.functions";
 import {
   FEEDBACK_LABELS,
@@ -33,6 +38,17 @@ import {
   useVraagbaakRecent,
   type VraagbaakFeedbackType,
 } from "@/lib/vraagbaak";
+
+const FIN_PREFIX = "fin:";
+
+function buildFinanceContent(c: FinanceClient): string {
+  const parts: string[] = [];
+  for (const { key, label } of FINANCE_FIELDS) {
+    const v = c[key];
+    if (v && v.trim()) parts.push(`${label}: ${v.trim()}`);
+  }
+  return parts.join("\n");
+}
 
 export const Route = createFileRoute("/vraagbaak")({
   head: () => ({
