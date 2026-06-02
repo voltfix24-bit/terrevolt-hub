@@ -6,6 +6,7 @@ import { SectionHeader } from "@/components/hub/SectionHeader";
 import { Icon } from "@/components/hub/Icon";
 import { useHubStore } from "@/lib/hub-store";
 import { useActiveApplications } from "@/lib/applications";
+import { usePublishedNews } from "@/lib/news";
 import { ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
