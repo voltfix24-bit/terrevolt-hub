@@ -400,6 +400,165 @@ export type Database = {
         }
         Relationships: []
       }
+      vraagbaak_feedback: {
+        Row: {
+          created_at: string
+          feedback_type: Database["public"]["Enums"]["vraagbaak_feedback_type"]
+          given_by: string
+          id: string
+          note: string
+          question_id: string
+        }
+        Insert: {
+          created_at?: string
+          feedback_type: Database["public"]["Enums"]["vraagbaak_feedback_type"]
+          given_by?: string
+          id?: string
+          note?: string
+          question_id: string
+        }
+        Update: {
+          created_at?: string
+          feedback_type?: Database["public"]["Enums"]["vraagbaak_feedback_type"]
+          given_by?: string
+          id?: string
+          note?: string
+          question_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vraagbaak_feedback_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "vraagbaak_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vraagbaak_questions: {
+        Row: {
+          asked_by: string
+          created_at: string
+          follow_ups: Json
+          has_sources: boolean
+          id: string
+          question: string
+          related_ids: string[]
+          short_answer: string
+          steps: Json
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          asked_by?: string
+          created_at?: string
+          follow_ups?: Json
+          has_sources?: boolean
+          id?: string
+          question: string
+          related_ids?: string[]
+          short_answer?: string
+          steps?: Json
+          summary?: string
+          updated_at?: string
+        }
+        Update: {
+          asked_by?: string
+          created_at?: string
+          follow_ups?: Json
+          has_sources?: boolean
+          id?: string
+          question?: string
+          related_ids?: string[]
+          short_answer?: string
+          steps?: Json
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      vraagbaak_saved: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          question_id: string
+          saved_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string
+          question_id: string
+          saved_by?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          question_id?: string
+          saved_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vraagbaak_saved_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "vraagbaak_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vraagbaak_sources: {
+        Row: {
+          article_id: string | null
+          created_at: string
+          external_url: string
+          file_url: string
+          id: string
+          last_updated: string | null
+          page_number: number | null
+          question_id: string
+          section_heading: string
+          sort_order: number
+          title: string
+        }
+        Insert: {
+          article_id?: string | null
+          created_at?: string
+          external_url?: string
+          file_url?: string
+          id?: string
+          last_updated?: string | null
+          page_number?: number | null
+          question_id: string
+          section_heading?: string
+          sort_order?: number
+          title?: string
+        }
+        Update: {
+          article_id?: string | null
+          created_at?: string
+          external_url?: string
+          file_url?: string
+          id?: string
+          last_updated?: string | null
+          page_number?: number | null
+          question_id?: string
+          section_heading?: string
+          sort_order?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vraagbaak_sources_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "vraagbaak_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -416,6 +575,11 @@ export type Database = {
         | "Overig"
       kb_status: "active" | "draft" | "expired" | "archived"
       sharepoint_kind: "link" | "folder"
+      vraagbaak_feedback_type:
+        | "correct"
+        | "unclear"
+        | "missing_source"
+        | "outdated"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -552,6 +716,12 @@ export const Constants = {
       ],
       kb_status: ["active", "draft", "expired", "archived"],
       sharepoint_kind: ["link", "folder"],
+      vraagbaak_feedback_type: [
+        "correct",
+        "unclear",
+        "missing_source",
+        "outdated",
+      ],
     },
   },
 } as const
