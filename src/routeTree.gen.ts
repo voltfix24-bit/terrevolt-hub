@@ -17,6 +17,7 @@ import { Route as DocumentenRouteImport } from './routes/documenten'
 import { Route as ApplicatiesRouteImport } from './routes/applicaties'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KennisbankSlugRouteImport } from './routes/kennisbank.$slug'
+import { Route as KennisbankSlugArticleSlugRouteImport } from './routes/kennisbank.$slug.$articleSlug'
 
 const PartnerportalenRoute = PartnerportalenRouteImport.update({
   id: '/partnerportalen',
@@ -58,6 +59,12 @@ const KennisbankSlugRoute = KennisbankSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => KennisbankRoute,
 } as any)
+const KennisbankSlugArticleSlugRoute =
+  KennisbankSlugArticleSlugRouteImport.update({
+    id: '/$articleSlug',
+    path: '/$articleSlug',
+    getParentRoute: () => KennisbankSlugRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -67,7 +74,8 @@ export interface FileRoutesByFullPath {
   '/kennisbank': typeof KennisbankRouteWithChildren
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
-  '/kennisbank/$slug': typeof KennisbankSlugRoute
+  '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
+  '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -77,7 +85,8 @@ export interface FileRoutesByTo {
   '/kennisbank': typeof KennisbankRouteWithChildren
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
-  '/kennisbank/$slug': typeof KennisbankSlugRoute
+  '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
+  '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -88,7 +97,8 @@ export interface FileRoutesById {
   '/kennisbank': typeof KennisbankRouteWithChildren
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
-  '/kennisbank/$slug': typeof KennisbankSlugRoute
+  '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
+  '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
     | '/nieuws'
     | '/partnerportalen'
     | '/kennisbank/$slug'
+    | '/kennisbank/$slug/$articleSlug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/nieuws'
     | '/partnerportalen'
     | '/kennisbank/$slug'
+    | '/kennisbank/$slug/$articleSlug'
   id:
     | '__root__'
     | '/'
@@ -121,6 +133,7 @@ export interface FileRouteTypes {
     | '/nieuws'
     | '/partnerportalen'
     | '/kennisbank/$slug'
+    | '/kennisbank/$slug/$articleSlug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -191,15 +204,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KennisbankSlugRouteImport
       parentRoute: typeof KennisbankRoute
     }
+    '/kennisbank/$slug/$articleSlug': {
+      id: '/kennisbank/$slug/$articleSlug'
+      path: '/$articleSlug'
+      fullPath: '/kennisbank/$slug/$articleSlug'
+      preLoaderRoute: typeof KennisbankSlugArticleSlugRouteImport
+      parentRoute: typeof KennisbankSlugRoute
+    }
   }
 }
 
+interface KennisbankSlugRouteChildren {
+  KennisbankSlugArticleSlugRoute: typeof KennisbankSlugArticleSlugRoute
+}
+
+const KennisbankSlugRouteChildren: KennisbankSlugRouteChildren = {
+  KennisbankSlugArticleSlugRoute: KennisbankSlugArticleSlugRoute,
+}
+
+const KennisbankSlugRouteWithChildren = KennisbankSlugRoute._addFileChildren(
+  KennisbankSlugRouteChildren,
+)
+
 interface KennisbankRouteChildren {
-  KennisbankSlugRoute: typeof KennisbankSlugRoute
+  KennisbankSlugRoute: typeof KennisbankSlugRouteWithChildren
 }
 
 const KennisbankRouteChildren: KennisbankRouteChildren = {
-  KennisbankSlugRoute: KennisbankSlugRoute,
+  KennisbankSlugRoute: KennisbankSlugRouteWithChildren,
 }
 
 const KennisbankRouteWithChildren = KennisbankRoute._addFileChildren(

@@ -7,6 +7,7 @@ import { Icon } from "@/components/hub/Icon";
 import { useHubStore } from "@/lib/hub-store";
 import { useActiveApplications } from "@/lib/applications";
 import { usePublishedNews } from "@/lib/news";
+import { useKbCategories } from "@/lib/knowledge";
 import { ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -33,7 +34,7 @@ function Dashboard() {
   const { data: news = [] } = usePublishedNews();
   const partners = useHubStore((s) => s.partners);
   const quickLinks = useHubStore((s) => s.quickLinks);
-  const knowledge = useHubStore((s) => s.knowledge);
+  const { data: knowledge = [] } = useKbCategories();
 
   const featured = apps.filter((a) => a.featured);
   const others = apps.filter((a) => !a.featured);
