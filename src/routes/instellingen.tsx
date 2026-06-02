@@ -3,7 +3,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import { EntityManager, type Field } from "@/components/hub/EntityManager";
-import { useHubStore, type AppItem, type NewsItem, type PartnerLink, type QuickLink, type KnowledgeCategory } from "@/lib/hub-store";
+import { useHubStore, type NewsItem, type PartnerLink, type QuickLink, type KnowledgeCategory } from "@/lib/hub-store";
+import {
+  useApplications,
+  useAppMutations,
+  APP_CATEGORIES,
+  type Application,
+  type ApplicationInput,
+} from "@/lib/applications";
 import { Icon } from "@/components/hub/Icon";
 import { RotateCcw } from "lucide-react";
 
@@ -69,13 +76,20 @@ function SettingsPage() {
 
 /* ---------------- Apps ---------------- */
 function AppsTab() {
-  const { apps, addApp, updateApp, deleteApp, reorder } = useHubStore();
+  const { data: apps = [], isLoading } = useApplications();
+  const { add, update, remove, reorder } = useAppMutations();
+
   const fields: Field[] = [
     { key: "name", label: "Naam", type: "text" },
     { key: "icon", label: "Icoon", type: "icon" },
     { key: "description", label: "Beschrijving", type: "textarea" },
-    { key: "category", label: "Categorie", type: "text" },
-    { key: "href", label: "URL", type: "url" },
+    {
+      key: "category",
+      label: "Categorie",
+      type: "select",
+      options: APP_CATEGORIES.map((c) => ({ value: c, label: c })),
+    },
+    { key: "url", label: "URL", type: "url" },
     {
       key: "accent",
       label: "Accentkleur",
@@ -87,31 +101,69 @@ function AppsTab() {
         { value: "navy", label: "Donker" },
       ],
     },
-    { key: "featured", label: "Uitgelicht", type: "bool" },
-    { key: "newTab", label: "Openen in nieuw tabblad", type: "bool" },
+    { key: "featured", label: "Uitgelicht (grote kaart)", type: "bool" },
+    { key: "new_tab", label: "Openen in nieuw tabblad", type: "bool" },
+    { key: "active", label: "Actief (zichtbaar op homepage)", type: "bool" },
   ];
-  const empty: Omit<AppItem, "id"> = {
-    name: "", description: "", icon: "sparkles", category: "Algemeen", href: "/", featured: false, newTab: false, accent: "brand",
+
+  const empty: ApplicationInput = {
+    name: "",
+    description: "",
+    icon: "sparkles",
+    category: "Overig",
+    url: "/",
+    new_tab: false,
+    featured: false,
+    active: true,
+    accent: "brand",
   };
+
   return (
-    <EntityManager<AppItem>
-      title="Applicaties" description="Tools die op het dashboard verschijnen."
-      items={apps} fields={fields} emptyItem={empty}
-      onAdd={addApp} onUpdate={updateApp} onDelete={deleteApp}
-      onReorder={(f, t) => reorder("apps", f, t)}
-      rowPreview={(a) => (
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-navy"><Icon name={a.icon} size={20} /></div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <div className="truncate font-medium text-navy">{a.name}</div>
-              {a.featured && <span className="rounded-full bg-brand/15 px-2 py-0.5 text-xs font-medium text-brand">Uitgelicht</span>}
+    <>
+      {isLoading && <div className="text-sm text-muted-foreground">Laden…</div>}
+      <EntityManager<Application>
+        title="Applicaties"
+        description="Tools die op het dashboard verschijnen. Uitgelichte apps krijgen een grote kaart."
+        items={apps}
+        fields={fields}
+        emptyItem={empty as Omit<Application, "id">}
+        onAdd={(item) => add.mutate(item as ApplicationInput)}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<Application> })}
+        onDelete={(id) => remove.mutate(id)}
+        onReorder={(from, to) => {
+          if (from === to) return;
+          const next = apps.slice();
+          const [m] = next.splice(from, 1);
+          next.splice(to, 0, m);
+          reorder.mutate({ items: next });
+        }}
+        rowPreview={(a) => (
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-navy">
+              <Icon name={a.icon} size={20} />
             </div>
-            <div className="truncate text-xs text-muted-foreground">{a.category} · {a.href}</div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="truncate font-medium text-navy">{a.name}</div>
+                {a.featured && (
+                  <span className="rounded-full bg-brand/15 px-2 py-0.5 text-xs font-medium text-brand">
+                    Uitgelicht
+                  </span>
+                )}
+                {!a.active && (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                    Inactief
+                  </span>
+                )}
+              </div>
+              <div className="truncate text-xs text-muted-foreground">
+                {a.category} · {a.url}
+              </div>
+            </div>
           </div>
-        </div>
-      )}
-    />
+        )}
+      />
+    </>
   );
 }
 

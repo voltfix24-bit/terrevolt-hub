@@ -5,6 +5,7 @@ import { NewsCard } from "@/components/hub/NewsCard";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import { Icon } from "@/components/hub/Icon";
 import { useHubStore } from "@/lib/hub-store";
+import { useActiveApplications } from "@/lib/applications";
 import { ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -27,7 +28,7 @@ function getGreeting() {
 }
 
 function Dashboard() {
-  const apps = useHubStore((s) => s.apps);
+  const { data: apps = [], isLoading } = useActiveApplications();
   const news = useHubStore((s) => s.news);
   const partners = useHubStore((s) => s.partners);
   const quickLinks = useHubStore((s) => s.quickLinks);
@@ -81,6 +82,11 @@ function Dashboard() {
           {others.length > 0 && (
             <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {others.map((app) => <AppCard key={app.id} app={app} />)}
+            </div>
+          )}
+          {!isLoading && apps.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+              Nog geen applicaties. Voeg er een toe via Instellingen.
             </div>
           )}
         </section>
