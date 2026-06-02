@@ -8,10 +8,12 @@ import {
   ExternalLink,
   Cloud,
   Settings,
+  Sparkles,
 } from "lucide-react";
 
 const items = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard },
+  { label: "Vraagbaak", to: "/vraagbaak", icon: Sparkles },
   { label: "Applicaties", to: "/applicaties", icon: AppWindow },
   { label: "Nieuws", to: "/nieuws", icon: Newspaper },
   { label: "Kennisbank", to: "/kennisbank", icon: BookOpen },
