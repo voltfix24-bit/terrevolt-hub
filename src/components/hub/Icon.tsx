@@ -1,4 +1,5 @@
-import { DynamicIcon, type IconName } from "lucide-react/dynamic";
+import * as Lucide from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 type Props = {
   name: string;
@@ -7,26 +8,22 @@ type Props = {
   strokeWidth?: number;
 };
 
+function toPascal(name: string) {
+  return (name || "circle")
+    .split(/[-_\s]+/)
+    .map((s) => s.charAt(0).toUpperCase() + s.slice(1))
+    .join("");
+}
+
 /**
  * Unified icon for the whole app.
- * Always uses Lucide (outline, rounded join, consistent stroke).
- * Accepts kebab-case names like "calendar-days", "shield-check".
+ * Lucide outline, rounded join, consistent stroke.
+ * Accepts kebab-case names like "calendar-days".
  */
 export function Icon({ name, className, size = 20, strokeWidth = 1.75 }: Props) {
-  return (
-    <DynamicIcon
-      name={(name || "circle") as IconName}
-      className={className}
-      size={size}
-      strokeWidth={strokeWidth}
-      absoluteStrokeWidth
-      fallback={() => (
-        <span
-          aria-hidden
-          style={{ width: size, height: size }}
-          className="inline-block rounded-md bg-current/10"
-        />
-      )}
-    />
-  );
+  const key = toPascal(name);
+  const Comp =
+    ((Lucide as unknown as Record<string, LucideIcon>)[key] ??
+      Lucide.Circle) as LucideIcon;
+  return <Comp className={className} size={size} strokeWidth={strokeWidth} />;
 }
