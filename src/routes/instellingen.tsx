@@ -23,15 +23,28 @@ import {
   useKbCategoryMutations,
   useKbArticles,
   useKbArticleMutations,
+  useKbSections,
+  useKbSectionMutations,
+  uploadKbDocument,
   slugify,
+  emptyArticleInput,
+  KB_STATUSES,
+  KB_DOCUMENT_TYPES,
+  statusLabel,
+  documentTypeLabel,
+  formatFileSize,
   type KbCategory,
   type KbCategoryInput,
+  type KbSection,
+  type KbSectionInput,
   type KbArticle,
   type KbArticleInput,
   type KbAttachment,
+  type KbStatus,
+  type KbDocumentType,
 } from "@/lib/knowledge";
 import { Icon } from "@/components/hub/Icon";
-import { RotateCcw } from "lucide-react";
+import { RotateCcw, Upload, X, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/instellingen")({
   head: () => ({ meta: [{ title: "Instellingen — TerreVolt Hub" }] }),
@@ -43,8 +56,9 @@ const TABS = [
   { id: "news", label: "Nieuws" },
   { id: "partners", label: "Partnerportalen" },
   { id: "quick", label: "Quick links" },
-  { id: "kb-cats", label: "Kennisbank categorieën" },
-  { id: "kb-articles", label: "Kennisbank artikelen" },
+  { id: "kb-sections", label: "KB secties" },
+  { id: "kb-cats", label: "KB sub-categorieën" },
+  { id: "kb-articles", label: "KB kennisitems" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
@@ -88,10 +102,62 @@ function SettingsPage() {
         {tab === "news" && <NewsTab />}
         {tab === "partners" && <PartnersTab />}
         {tab === "quick" && <QuickLinksTab />}
+        {tab === "kb-sections" && <KbSectionsTab />}
         {tab === "kb-cats" && <KbCategoriesTab />}
         {tab === "kb-articles" && <KbArticlesTab />}
       </div>
     </HubLayout>
+  );
+}
+
+/* ---------------- Knowledge sections ---------------- */
+function KbSectionsTab() {
+  const { data: sections = [], isLoading } = useKbSections();
+  const { add, update, remove } = useKbSectionMutations();
+  const fields: Field[] = [
+    { key: "name", label: "Naam", type: "text" },
+    { key: "slug", label: "Slug (URL-deel)", type: "text" },
+    { key: "icon", label: "Icoon", type: "icon" },
+    { key: "description", label: "Beschrijving", type: "textarea" },
+  ];
+  const empty: KbSectionInput = {
+    name: "",
+    slug: "",
+    icon: "book-open",
+    accent: "brand",
+    description: "",
+  };
+  return (
+    <>
+      {isLoading && <div className="text-sm text-muted-foreground">Laden…</div>}
+      <EntityManager<KbSection>
+        title="Kennisbank hoofdsecties"
+        description="De vijf hoofdsecties die de kennisbank structureren."
+        items={sections}
+        fields={fields}
+        emptyItem={empty as Omit<KbSection, "id">}
+        onAdd={(item) => {
+          const i = item as KbSectionInput;
+          add.mutate({ ...i, slug: i.slug || slugify(i.name) });
+        }}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<KbSection> })}
+        onDelete={(id) => remove.mutate(id)}
+        onReorder={() => undefined}
+        rowPreview={(s) => (
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-brand-foreground">
+              <Icon name={s.icon} size={20} />
+            </div>
+            <div className="min-w-0">
+              <div className="font-medium text-navy">{s.name}</div>
+              <div className="truncate text-xs text-muted-foreground">
+                /{s.slug} · {s.description}
+              </div>
+            </div>
+          </div>
+        )}
+      />
+    </>
   );
 }
 
