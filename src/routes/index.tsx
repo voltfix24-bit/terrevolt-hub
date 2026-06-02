@@ -5,6 +5,7 @@ import { NewsCard } from "@/components/hub/NewsCard";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import { Icon } from "@/components/hub/Icon";
 import { RoleWidgets } from "@/components/hub/RoleWidgets";
+import { PeopleSearchWidget } from "@/components/hub/PeopleSearchWidget";
 import { useHubStore } from "@/lib/hub-store";
 import { useActiveApplications } from "@/lib/applications";
 import { usePublishedNews } from "@/lib/news";
