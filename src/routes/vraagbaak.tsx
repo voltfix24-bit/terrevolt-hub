@@ -252,9 +252,8 @@ function VraagbaakPage() {
   return (
     <HubLayout>
       <SectionHeader
-        eyebrow="TerreVolt Vraagbaak"
         title="Stel je vraag — de kennisbank antwoordt"
-        description="Vraag iets over procedures, opdrachtgevers, veiligheid of finance. De Vraagbaak antwoordt op basis van bronnen uit de TerreVolt kennisbank."
+        subtitle="Vraag iets over procedures, opdrachtgevers, veiligheid of finance. De Vraagbaak antwoordt op basis van bronnen uit de TerreVolt kennisbank."
       />
 
       {/* Question input */}
