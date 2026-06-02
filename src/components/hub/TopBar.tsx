@@ -1,10 +1,13 @@
-import { Bell, ChevronDown, Search } from "lucide-react";
+import { Bell, ChevronDown, Search, LogOut, LogIn } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { useHubStore, ROLES, type Role } from "@/lib/hub-store";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useSession, useCurrentRole, signOut } from "@/lib/auth";
+import { roleLabel } from "@/lib/userRoles";
 
 export function TopBar() {
-  const role = useHubStore((s) => s.role);
-  const setRole = useHubStore((s) => s.setRole);
+  const navigate = useNavigate();
+  const { user } = useSession();
+  const { data: role } = useCurrentRole(user);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -15,6 +18,13 @@ export function TopBar() {
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
+
+  const displayName =
+    role?.display_name ||
+    (user?.user_metadata?.display_name as string | undefined) ||
+    user?.email?.split("@")[0] ||
+    "";
+  const initial = (displayName || "?").charAt(0).toUpperCase();
 
   return (
     <header className="sticky top-0 z-10 flex items-center gap-4 border-b border-border bg-background/80 px-6 py-4 backdrop-blur">
@@ -36,50 +46,55 @@ export function TopBar() {
         <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-brand" />
       </button>
 
-      <div className="relative" ref={ref}>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="flex items-center gap-3 rounded-xl border border-border bg-card pl-1 pr-3 py-1 hover:bg-accent"
+      {!user ? (
+        <Link
+          to="/auth"
+          className="inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground shadow-sm hover:opacity-90"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-pastel text-sm font-semibold text-white">
-            H
-          </div>
-          <div className="hidden sm:block leading-tight text-left">
-            <div className="text-sm font-medium">Hassan</div>
-            <div className="text-xs text-muted-foreground">{role}</div>
-          </div>
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-        </button>
+          <LogIn className="h-4 w-4" />
+          Inloggen
+        </Link>
+      ) : (
+        <div className="relative" ref={ref}>
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className="flex items-center gap-3 rounded-xl border border-border bg-card pl-1 pr-3 py-1 hover:bg-accent"
+          >
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-pastel text-sm font-semibold text-white">
+              {initial}
+            </div>
+            <div className="hidden sm:block leading-tight text-left">
+              <div className="text-sm font-medium">{displayName}</div>
+              <div className="text-xs text-muted-foreground">
+                {role ? roleLabel(role.role) : "Gebruiker"}
+              </div>
+            </div>
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          </button>
 
-        {open && (
-          <div className="absolute right-0 mt-2 w-60 rounded-2xl border border-border bg-card p-2 shadow-lg">
-            <div className="px-3 py-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Rol wisselen
+          {open && (
+            <div className="absolute right-0 mt-2 w-60 rounded-2xl border border-border bg-card p-2 shadow-lg">
+              <div className="px-3 py-2">
+                <div className="text-sm font-medium text-navy">{displayName}</div>
+                <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+              </div>
+              <div className="my-1 h-px bg-border" />
+              <button
+                onClick={async () => {
+                  await signOut();
+                  setOpen(false);
+                  navigate({ to: "/" });
+                }}
+                className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-foreground/80 hover:bg-accent"
+              >
+                <LogOut className="h-4 w-4" />
+                Uitloggen
+              </button>
             </div>
-            <div className="space-y-0.5">
-              {ROLES.map((r) => (
-                <button
-                  key={r}
-                  onClick={() => {
-                    setRole(r as Role);
-                    setOpen(false);
-                  }}
-                  className={[
-                    "flex w-full items-center justify-between rounded-xl px-3 py-2 text-sm transition-colors",
-                    role === r
-                      ? "bg-brand text-brand-foreground"
-                      : "text-foreground/80 hover:bg-accent",
-                  ].join(" ")}
-                >
-                  <span>{r}</span>
-                  {role === r && <span className="h-1.5 w-1.5 rounded-full bg-current" />}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </header>
   );
 }
