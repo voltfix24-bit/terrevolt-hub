@@ -86,13 +86,18 @@ function Dashboard() {
           </div>
         </section>
 
-        {/* Role widgets */}
-        <section>
-          <SectionHeader
-            title={`Jouw ${role.toLowerCase()}-dashboard`}
-            subtitle="Widgets afgestemd op jouw rol. Wissel van rol via je profiel rechtsboven."
-          />
-          <RoleWidgets />
+        {/* Role widgets + people search */}
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
+          <div>
+            <SectionHeader
+              title={`Jouw ${role.toLowerCase()}-dashboard`}
+              subtitle="Widgets afgestemd op jouw rol. Wissel van rol via je profiel rechtsboven."
+            />
+            <RoleWidgets />
+          </div>
+          <div className="lg:pt-9">
+            <PeopleSearchWidget />
+          </div>
         </section>
 
         {/* Applications */}
