@@ -4,6 +4,7 @@ import { AppCard } from "@/components/hub/AppCard";
 import { NewsCard } from "@/components/hub/NewsCard";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import { Icon } from "@/components/hub/Icon";
+import { RoleWidgets } from "@/components/hub/RoleWidgets";
 import { useHubStore } from "@/lib/hub-store";
 import { useActiveApplications } from "@/lib/applications";
 import { usePublishedNews } from "@/lib/news";
@@ -36,6 +37,7 @@ function getGreeting() {
 }
 
 function Dashboard() {
+  const role = useHubStore((s) => s.role);
   const { data: apps = [], isLoading } = useActiveApplications();
   const { data: news = [] } = usePublishedNews();
   const partners = useHubStore((s) => s.partners);
@@ -62,7 +64,7 @@ function Dashboard() {
               {greeting} Hassan
             </h1>
             <p className="mt-3 text-base text-foreground/70">
-              Welkom terug in TerreVolt Hub
+              Welkom terug — je werkt als <span className="font-semibold text-navy">{role}</span>.
             </p>
             {quickLinks.length > 0 && (
               <div className="mt-6 flex flex-wrap gap-2">
@@ -81,6 +83,15 @@ function Dashboard() {
               </div>
             )}
           </div>
+        </section>
+
+        {/* Role widgets */}
+        <section>
+          <SectionHeader
+            title={`Jouw ${role.toLowerCase()}-dashboard`}
+            subtitle="Widgets afgestemd op jouw rol. Wissel van rol via je profiel rechtsboven."
+          />
+          <RoleWidgets />
         </section>
 
         {/* Applications */}
