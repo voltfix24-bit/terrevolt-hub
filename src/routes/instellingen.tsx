@@ -435,41 +435,50 @@ function KbCategoriesTab() {
   );
 }
 
-/* ---------------- Knowledge articles ---------------- */
+/* ---------------- Knowledge items ---------------- */
 function KbArticlesTab() {
+  const { data: sections = [] } = useKbSections();
   const { data: categories = [] } = useKbCategories();
   const { data: articles = [], isLoading } = useKbArticles();
   const { add, update, remove } = useKbArticleMutations();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
-
-  const emptyDraft: KbArticleInput = {
-    category_id: categories[0]?.id ?? "",
-    slug: "",
-    title: "",
-    content: "",
-    attachments: [],
-    related_ids: [],
-    author: "",
-  };
-  const [draft, setDraft] = useState<KbArticleInput>(emptyDraft);
+  const [draft, setDraft] = useState<KbArticleInput>(emptyArticleInput());
+  const [filterSection, setFilterSection] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<string>("");
 
   const startAdd = () => {
     setAdding(true);
     setEditingId(null);
-    setDraft({ ...emptyDraft, category_id: categories[0]?.id ?? "" });
+    setDraft(emptyArticleInput(sections[0]?.id));
   };
   const startEdit = (a: KbArticle) => {
     setAdding(false);
     setEditingId(a.id);
     setDraft({
+      section_id: a.section_id,
       category_id: a.category_id,
       slug: a.slug,
       title: a.title,
+      summary: a.summary,
       content: a.content,
+      important_notes: a.important_notes,
+      owner: a.owner,
+      author: a.author,
+      client: a.client,
+      document_type: a.document_type,
+      version: a.version,
+      document_date: a.document_date,
+      valid_from: a.valid_from,
+      valid_until: a.valid_until,
+      tags: a.tags,
+      file_url: a.file_url,
+      file_name: a.file_name,
+      file_size: a.file_size,
+      external_url: a.external_url,
       attachments: a.attachments,
       related_ids: a.related_ids,
-      author: a.author,
+      status: a.status,
     });
   };
   const cancel = () => {
@@ -481,42 +490,78 @@ function KbArticlesTab() {
       ...draft,
       slug: draft.slug || slugify(draft.title),
     };
-    if (!payload.title.trim() || !payload.category_id) return;
+    if (!payload.title.trim() || !payload.section_id) return;
     if (adding) add.mutate(payload);
-    else if (editingId) update.mutate({ id: editingId, patch: payload as Partial<KbArticle> });
+    else if (editingId)
+      update.mutate({ id: editingId, patch: payload as Partial<KbArticle> });
     cancel();
   };
 
-  const catName = (id: string) => categories.find((c) => c.id === id)?.name ?? "—";
+  const sectionName = (id: string | null) =>
+    sections.find((s) => s.id === id)?.name ?? "—";
+
+  const visible = articles.filter((a) => {
+    if (filterSection && a.section_id !== filterSection) return false;
+    if (filterStatus && a.status !== filterStatus) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-5">
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight text-navy">Kennisbank artikelen</h2>
+          <h2 className="text-xl font-semibold tracking-tight text-navy">Kennisitems</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Schrijf artikelen, voeg bijlagen toe en koppel gerelateerde artikelen.
+            Beheer documenten, wiki-artikelen en externe links met versiegeschiedenis en geldigheidsdata.
           </p>
         </div>
         <button
           onClick={startAdd}
-          disabled={categories.length === 0}
+          disabled={sections.length === 0}
           className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm font-medium text-brand-foreground shadow-sm hover:opacity-90 disabled:opacity-50"
         >
-          Nieuw artikel
+          Nieuw kennisitem
         </button>
       </div>
 
-      {categories.length === 0 && (
+      {sections.length === 0 && (
         <div className="rounded-2xl border border-dashed border-border bg-card/50 p-6 text-sm text-muted-foreground">
-          Maak eerst een categorie aan op het tabblad "Kennisbank categorieën".
+          Maak eerst een hoofdsectie aan op het tabblad "KB secties".
         </div>
       )}
+
+      <div className="flex flex-wrap gap-2 text-xs">
+        <select
+          value={filterSection}
+          onChange={(e) => setFilterSection(e.target.value)}
+          className="rounded-xl border border-border bg-card px-3 py-2"
+        >
+          <option value="">Alle secties</option>
+          {sections.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name}
+            </option>
+          ))}
+        </select>
+        <select
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          className="rounded-xl border border-border bg-card px-3 py-2"
+        >
+          <option value="">Alle statussen</option>
+          {KB_STATUSES.map((s) => (
+            <option key={s} value={s}>
+              {statusLabel(s)}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {(adding || editingId) && (
         <ArticleEditor
           draft={draft}
           setDraft={setDraft}
+          sections={sections}
           categories={categories}
           articles={articles}
           excludeId={editingId}
@@ -528,12 +573,12 @@ function KbArticlesTab() {
       {isLoading && <div className="text-sm text-muted-foreground">Laden…</div>}
 
       <div className="space-y-2">
-        {articles.length === 0 && !adding && (
+        {visible.length === 0 && !adding && (
           <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
-            Nog geen artikelen.
+            Geen kennisitems.
           </div>
         )}
-        {articles.map((a) => {
+        {visible.map((a) => {
           if (editingId === a.id) return null;
           return (
             <div
@@ -544,13 +589,20 @@ function KbArticlesTab() {
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="truncate font-medium text-navy">{a.title}</div>
                   <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-navy">
-                    {catName(a.category_id)}
+                    {sectionName(a.section_id)}
+                  </span>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-foreground/70">
+                    {statusLabel(a.status)}
+                  </span>
+                  <span className="rounded-full bg-pastel/40 px-2 py-0.5 text-xs font-medium text-navy">
+                    {documentTypeLabel(a.document_type)} v{a.version}
                   </span>
                 </div>
                 <div className="truncate text-xs text-muted-foreground">
-                  /{a.slug} · {a.attachments.length} bijlagen ·{" "}
-                  {a.related_ids.length} gerelateerd
-                  {a.author ? ` · ${a.author}` : ""}
+                  /{a.slug}
+                  {a.client ? ` · ${a.client}` : ""}
+                  {a.owner ? ` · eigenaar ${a.owner}` : ""}
+                  {a.file_name ? ` · ${a.file_name}` : ""}
                 </div>
               </div>
               <button
@@ -561,7 +613,7 @@ function KbArticlesTab() {
               </button>
               <button
                 onClick={() => {
-                  if (confirm("Artikel verwijderen?")) remove.mutate(a.id);
+                  if (confirm("Kennisitem verwijderen?")) remove.mutate(a.id);
                 }}
                 className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-sm text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
               >
@@ -578,6 +630,7 @@ function KbArticlesTab() {
 function ArticleEditor({
   draft,
   setDraft,
+  sections,
   categories,
   articles,
   excludeId,
@@ -586,6 +639,7 @@ function ArticleEditor({
 }: {
   draft: KbArticleInput;
   setDraft: (d: KbArticleInput) => void;
+  sections: KbSection[];
   categories: KbCategory[];
   articles: KbArticle[];
   excludeId: string | null;
@@ -594,6 +648,8 @@ function ArticleEditor({
 }) {
   const set = <K extends keyof KbArticleInput>(k: K, v: KbArticleInput[K]) =>
     setDraft({ ...draft, [k]: v });
+  const [uploading, setUploading] = useState(false);
+  const [tagInput, setTagInput] = useState("");
 
   const setAttachment = (i: number, patch: Partial<KbAttachment>) => {
     const next = draft.attachments.slice();
@@ -612,62 +668,294 @@ function ArticleEditor({
     set("related_ids", Array.from(cur));
   };
 
+  const addTag = () => {
+    const t = tagInput.trim().toLowerCase();
+    if (!t) return;
+    if (draft.tags.includes(t)) return;
+    set("tags", [...draft.tags, t]);
+    setTagInput("");
+  };
+  const removeTag = (t: string) =>
+    set(
+      "tags",
+      draft.tags.filter((x) => x !== t),
+    );
+
+  const handleFile = async (file: File | null) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const res = await uploadKbDocument(file);
+      const ext = (file.name.split(".").pop() ?? "").toLowerCase();
+      const docType: KbDocumentType =
+        ext === "pdf"
+          ? "pdf"
+          : ["doc", "docx"].includes(ext)
+            ? "word"
+            : ["xls", "xlsx", "csv"].includes(ext)
+              ? "excel"
+              : ["png", "jpg", "jpeg", "gif", "webp"].includes(ext)
+                ? "afbeelding"
+                : "overig";
+      setDraft({
+        ...draft,
+        file_url: res.url,
+        file_name: res.name,
+        file_size: res.size,
+        document_type: draft.document_type === "wiki" ? docType : draft.document_type,
+      });
+    } catch (err) {
+      console.error(err);
+      alert("Uploaden mislukt.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const selectableArticles = articles.filter((a) => a.id !== excludeId);
+  const subCats = categories;
 
   return (
     <div className="space-y-5 rounded-2xl border border-brand/40 bg-card p-5 shadow-sm">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <label className="text-sm md:col-span-2">
-          <span className="mb-1 block font-medium text-foreground/80">Titel</span>
+      {/* Basics */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Field label="Titel" full>
           <input
             value={draft.title}
             onChange={(e) => set("title", e.target.value)}
             className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
           />
-        </label>
-        <label className="text-sm">
-          <span className="mb-1 block font-medium text-foreground/80">Categorie</span>
+        </Field>
+        <Field label="Hoofdsectie">
           <select
-            value={draft.category_id}
-            onChange={(e) => set("category_id", e.target.value)}
+            value={draft.section_id ?? ""}
+            onChange={(e) => set("section_id", e.target.value || null)}
             className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
           >
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+            <option value="">— Kies —</option>
+            {sections.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
             ))}
           </select>
-        </label>
-        <label className="text-sm">
-          <span className="mb-1 block font-medium text-foreground/80">Slug (URL-deel)</span>
+        </Field>
+        <Field label="Sub-categorie (optioneel)">
+          <select
+            value={draft.category_id ?? ""}
+            onChange={(e) => set("category_id", e.target.value || null)}
+            className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+          >
+            <option value="">— Geen —</option>
+            {subCats.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Slug (URL-deel)">
           <input
             value={draft.slug}
             onChange={(e) => set("slug", e.target.value)}
             placeholder="auto op basis van titel"
             className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
           />
-        </label>
-        <label className="text-sm md:col-span-2">
-          <span className="mb-1 block font-medium text-foreground/80">Auteur</span>
+        </Field>
+        <Field label="Status">
+          <select
+            value={draft.status}
+            onChange={(e) => set("status", e.target.value as KbStatus)}
+            className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+          >
+            {KB_STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {statusLabel(s)}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Documenttype">
+          <select
+            value={draft.document_type}
+            onChange={(e) => set("document_type", e.target.value as KbDocumentType)}
+            className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+          >
+            {KB_DOCUMENT_TYPES.map((t) => (
+              <option key={t} value={t}>
+                {documentTypeLabel(t)}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Versie">
+          <input
+            value={draft.version}
+            onChange={(e) => set("version", e.target.value)}
+            placeholder="bijv. 1.0"
+            className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+          />
+        </Field>
+        <Field label="Opdrachtgever">
+          <input
+            value={draft.client}
+            onChange={(e) => set("client", e.target.value)}
+            placeholder="bijv. Liander, Stedin, intern"
+            className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+          />
+        </Field>
+        <Field label="Eigenaar">
+          <input
+            value={draft.owner}
+            onChange={(e) => set("owner", e.target.value)}
+            className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+          />
+        </Field>
+        <Field label="Auteur">
           <input
             value={draft.author}
             onChange={(e) => set("author", e.target.value)}
             className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
           />
-        </label>
-        <label className="text-sm md:col-span-2">
-          <span className="mb-1 block font-medium text-foreground/80">Inhoud</span>
-          <textarea
-            rows={12}
-            value={draft.content}
-            onChange={(e) => set("content", e.target.value)}
-            className="w-full rounded-xl border border-border bg-background p-3 font-mono text-[13px] leading-6 outline-none focus:ring-2 focus:ring-brand/40"
+        </Field>
+        <Field label="Documentdatum">
+          <input
+            type="date"
+            value={draft.document_date ?? ""}
+            onChange={(e) => set("document_date", e.target.value || null)}
+            className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
           />
-        </label>
+        </Field>
+        <Field label="Geldig vanaf">
+          <input
+            type="date"
+            value={draft.valid_from ?? ""}
+            onChange={(e) => set("valid_from", e.target.value || null)}
+            className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+          />
+        </Field>
+        <Field label="Geldig tot">
+          <input
+            type="date"
+            value={draft.valid_until ?? ""}
+            onChange={(e) => set("valid_until", e.target.value || null)}
+            className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+          />
+        </Field>
       </div>
 
+      {/* Summary, important notes, content */}
+      <Field label="Korte beschrijving" full>
+        <textarea
+          rows={2}
+          value={draft.summary}
+          onChange={(e) => set("summary", e.target.value)}
+          className="w-full rounded-xl border border-border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-brand/40"
+        />
+      </Field>
+      <Field label="Belangrijke notities" full>
+        <textarea
+          rows={2}
+          value={draft.important_notes}
+          onChange={(e) => set("important_notes", e.target.value)}
+          placeholder="Wordt prominent getoond bovenaan het document."
+          className="w-full rounded-xl border border-border bg-background p-3 text-sm outline-none focus:ring-2 focus:ring-brand/40"
+        />
+      </Field>
+      <Field label="Inhoud (wiki / samenvatting)" full>
+        <textarea
+          rows={10}
+          value={draft.content}
+          onChange={(e) => set("content", e.target.value)}
+          className="w-full rounded-xl border border-border bg-background p-3 font-mono text-[13px] leading-6 outline-none focus:ring-2 focus:ring-brand/40"
+        />
+      </Field>
+
+      {/* File + external link */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div>
+          <div className="mb-1 text-sm font-medium text-foreground/80">Document</div>
+          <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-background p-6 text-sm text-muted-foreground hover:border-brand/40">
+            {uploading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Upload className="h-5 w-5" />
+            )}
+            {draft.file_name ? (
+              <span className="text-navy">
+                {draft.file_name}
+                {draft.file_size > 0 ? ` · ${formatFileSize(draft.file_size)}` : ""}
+              </span>
+            ) : (
+              <span>PDF, Word of Excel uploaden</span>
+            )}
+            <input
+              type="file"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.webp"
+              className="hidden"
+              onChange={(e) => handleFile(e.target.files?.[0] ?? null)}
+            />
+          </label>
+          {draft.file_url && (
+            <button
+              type="button"
+              onClick={() =>
+                setDraft({ ...draft, file_url: "", file_name: "", file_size: 0 })
+              }
+              className="mt-1 text-xs font-medium text-muted-foreground hover:text-destructive"
+            >
+              Bestand verwijderen
+            </button>
+          )}
+        </div>
+        <Field label="Externe URL (bijv. SharePoint)">
+          <input
+            value={draft.external_url}
+            onChange={(e) => set("external_url", e.target.value)}
+            placeholder="https://terrevolt.sharepoint.com/…"
+            className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+          />
+        </Field>
+      </div>
+
+      {/* Tags */}
+      <div>
+        <div className="mb-2 text-sm font-medium text-foreground/80">Tags</div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {draft.tags.map((t) => (
+            <span
+              key={t}
+              className="inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-navy"
+            >
+              #{t}
+              <button
+                type="button"
+                onClick={() => removeTag(t)}
+                className="text-muted-foreground hover:text-destructive"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+          <input
+            value={tagInput}
+            onChange={(e) => setTagInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === ",") {
+                e.preventDefault();
+                addTag();
+              }
+            }}
+            placeholder="tag toevoegen…"
+            className="rounded-lg border border-border bg-background px-2.5 py-1 text-sm outline-none focus:ring-2 focus:ring-brand/40"
+          />
+        </div>
+      </div>
+
+      {/* Extra attachments */}
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <span className="text-sm font-medium text-foreground/80">Bijlagen</span>
+          <span className="text-sm font-medium text-foreground/80">Aanvullende bijlagen</span>
           <button
             onClick={addAttachment}
             className="text-sm font-medium text-brand hover:underline"
@@ -677,7 +965,7 @@ function ArticleEditor({
         </div>
         {draft.attachments.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground">
-            Geen bijlagen.
+            Geen aanvullende bijlagen.
           </div>
         ) : (
           <div className="space-y-2">
@@ -707,18 +995,20 @@ function ArticleEditor({
         )}
       </div>
 
+      {/* Related */}
       <div>
         <div className="mb-2 text-sm font-medium text-foreground/80">
-          Gerelateerde artikelen ({draft.related_ids.length})
+          Gerelateerde documenten ({draft.related_ids.length})
         </div>
         {selectableArticles.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground">
-            Geen andere artikelen om te koppelen.
+            Geen andere documenten om te koppelen.
           </div>
         ) : (
           <div className="max-h-48 space-y-1 overflow-y-auto rounded-xl border border-border p-2">
             {selectableArticles.map((a) => {
               const checked = draft.related_ids.includes(a.id);
+              const sec = sections.find((s) => s.id === a.section_id);
               return (
                 <label
                   key={a.id}
@@ -731,9 +1021,7 @@ function ArticleEditor({
                     className="h-4 w-4 accent-[color:var(--brand)]"
                   />
                   <span className="font-medium text-navy">{a.title}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {categories.find((c) => c.id === a.category_id)?.name}
-                  </span>
+                  <span className="text-xs text-muted-foreground">{sec?.name}</span>
                 </label>
               );
             })}
@@ -758,3 +1046,21 @@ function ArticleEditor({
     </div>
   );
 }
+
+function Field({
+  label,
+  children,
+  full,
+}: {
+  label: string;
+  children: React.ReactNode;
+  full?: boolean;
+}) {
+  return (
+    <label className={`text-sm ${full ? "md:col-span-3" : ""}`}>
+      <span className="mb-1 block font-medium text-foreground/80">{label}</span>
+      {children}
+    </label>
+  );
+}
+
