@@ -214,6 +214,14 @@ function EditorCard({
               </label>
             );
           }
+          if (f.type === "icon") {
+            return (
+              <div key={f.key} className="md:col-span-2 text-sm">
+                <span className="mb-1 block font-medium text-foreground/80">{f.label}</span>
+                <IconPicker value={(v as string) ?? ""} onChange={(name) => set(f.key, name)} />
+              </div>
+            );
+          }
           if (f.type === "image") {
             return (
               <label key={f.key} className="md:col-span-2 text-sm">
