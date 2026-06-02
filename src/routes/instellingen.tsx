@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import { EntityManager, type Field } from "@/components/hub/EntityManager";
-import { useHubStore, type PartnerLink, type QuickLink, type KnowledgeCategory } from "@/lib/hub-store";
+import { useHubStore, type PartnerLink, type QuickLink } from "@/lib/hub-store";
 import {
   useApplications,
   useAppMutations,
@@ -18,6 +18,18 @@ import {
   type NewsArticle,
   type NewsInput,
 } from "@/lib/news";
+import {
+  useKbCategories,
+  useKbCategoryMutations,
+  useKbArticles,
+  useKbArticleMutations,
+  slugify,
+  type KbCategory,
+  type KbCategoryInput,
+  type KbArticle,
+  type KbArticleInput,
+  type KbAttachment,
+} from "@/lib/knowledge";
 import { Icon } from "@/components/hub/Icon";
 import { RotateCcw } from "lucide-react";
 
