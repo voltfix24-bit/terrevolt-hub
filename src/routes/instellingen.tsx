@@ -88,7 +88,8 @@ function SettingsPage() {
         {tab === "news" && <NewsTab />}
         {tab === "partners" && <PartnersTab />}
         {tab === "quick" && <QuickLinksTab />}
-        {tab === "knowledge" && <KnowledgeTab />}
+        {tab === "kb-cats" && <KbCategoriesTab />}
+        {tab === "kb-articles" && <KbArticlesTab />}
       </div>
     </HubLayout>
   );
