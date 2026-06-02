@@ -73,6 +73,8 @@ type Actions = {
   addKnowledge: (item: Omit<KnowledgeCategory, "id">) => void;
   updateKnowledge: (id: string, patch: Partial<KnowledgeCategory>) => void;
   deleteKnowledge: (id: string) => void;
+  // role
+  setRole: (role: Role) => void;
   // reset
   resetAll: () => void;
 };
