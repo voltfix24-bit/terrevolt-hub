@@ -37,6 +37,7 @@ function getGreeting() {
 }
 
 function Dashboard() {
+  const role = useHubStore((s) => s.role);
   const { data: apps = [], isLoading } = useActiveApplications();
   const { data: news = [] } = usePublishedNews();
   const partners = useHubStore((s) => s.partners);
