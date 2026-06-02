@@ -9,6 +9,7 @@ import {
   Cloud,
   Settings,
   Sparkles,
+  Wallet,
 } from "lucide-react";
 
 const items = [
@@ -17,6 +18,7 @@ const items = [
   { label: "Applicaties", to: "/applicaties", icon: AppWindow },
   { label: "Nieuws", to: "/nieuws", icon: Newspaper },
   { label: "Kennisbank", to: "/kennisbank", icon: BookOpen },
+  { label: "Finance Wiki", to: "/finance-wiki", icon: Wallet },
   { label: "SharePoint", to: "/sharepoint", icon: Cloud },
   { label: "Documenten", to: "/documenten", icon: FileText },
   { label: "Partnerportalen", to: "/partnerportalen", icon: ExternalLink },

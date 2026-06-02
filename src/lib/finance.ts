@@ -94,7 +94,7 @@ export function useFinanceClients() {
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true });
       if (error) throw error;
-      return (data ?? []).map((r) => normalize(r as Record<string, unknown>));
+      return (data ?? []).map((r: Record<string, unknown>) => normalize(r));
     },
   });
 }
