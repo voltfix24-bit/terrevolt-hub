@@ -3,6 +3,7 @@ import { HubLayout } from "@/components/hub/HubLayout";
 import { AppCard } from "@/components/hub/AppCard";
 import { NewsCard } from "@/components/hub/NewsCard";
 import { SectionHeader } from "@/components/hub/SectionHeader";
+import { Icon } from "@/components/hub/Icon";
 import { useHubStore } from "@/lib/hub-store";
 import { ArrowUpRight } from "lucide-react";
 
