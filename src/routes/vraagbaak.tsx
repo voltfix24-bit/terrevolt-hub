@@ -564,12 +564,36 @@ function AnswerCard({
 
       {/* 3. Bronnen */}
       <Section title="Bronnen">
-        {sources.length === 0 ? (
+        {totalSources === 0 ? (
           <div className="text-sm text-muted-foreground">
             Geen bronnen gevonden in de kennisbank.
           </div>
         ) : (
           <ul className="space-y-2">
+            {financeSources.map((c) => (
+              <li key={`fin-${c.id}`}>
+                <Link
+                  to="/finance-wiki/$slug"
+                  params={{ slug: c.slug }}
+                  className="flex items-start gap-3 rounded-2xl border border-brand/30 bg-pastel/30 p-3.5 shadow-sm transition hover:border-brand/60 hover:bg-pastel/50"
+                >
+                  <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium text-navy">
+                      Hoe factureer ik {c.name}?
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      Finance Wiki · {c.name}
+                    </div>
+                    <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      Bijgewerkt {formatKbDate(c.updated_at)}
+                    </div>
+                  </div>
+                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              </li>
+            ))}
             {sources.map((s) => (
               <li key={s.article.id}>
                 <Link
