@@ -14,6 +14,7 @@ import {
   Clock,
   ArrowUpRight,
   History,
+  Wallet,
 } from "lucide-react";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
