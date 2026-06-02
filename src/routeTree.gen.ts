@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VraagbaakRouteImport } from './routes/vraagbaak'
 import { Route as SharepointRouteImport } from './routes/sharepoint'
 import { Route as PartnerportalenRouteImport } from './routes/partnerportalen'
 import { Route as NieuwsRouteImport } from './routes/nieuws'
@@ -20,6 +21,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as KennisbankSlugRouteImport } from './routes/kennisbank.$slug'
 import { Route as KennisbankSlugArticleSlugRouteImport } from './routes/kennisbank.$slug.$articleSlug'
 
+const VraagbaakRoute = VraagbaakRouteImport.update({
+  id: '/vraagbaak',
+  path: '/vraagbaak',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SharepointRoute = SharepointRouteImport.update({
   id: '/sharepoint',
   path: '/sharepoint',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
   '/sharepoint': typeof SharepointRoute
+  '/vraagbaak': typeof VraagbaakRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
   '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
   '/sharepoint': typeof SharepointRoute
+  '/vraagbaak': typeof VraagbaakRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
   '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
   '/sharepoint': typeof SharepointRoute
+  '/vraagbaak': typeof VraagbaakRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
   '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/nieuws'
     | '/partnerportalen'
     | '/sharepoint'
+    | '/vraagbaak'
     | '/kennisbank/$slug'
     | '/kennisbank/$slug/$articleSlug'
   fileRoutesByTo: FileRoutesByTo
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/nieuws'
     | '/partnerportalen'
     | '/sharepoint'
+    | '/vraagbaak'
     | '/kennisbank/$slug'
     | '/kennisbank/$slug/$articleSlug'
   id:
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/nieuws'
     | '/partnerportalen'
     | '/sharepoint'
+    | '/vraagbaak'
     | '/kennisbank/$slug'
     | '/kennisbank/$slug/$articleSlug'
   fileRoutesById: FileRoutesById
@@ -157,10 +169,18 @@ export interface RootRouteChildren {
   NieuwsRoute: typeof NieuwsRoute
   PartnerportalenRoute: typeof PartnerportalenRoute
   SharepointRoute: typeof SharepointRoute
+  VraagbaakRoute: typeof VraagbaakRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/vraagbaak': {
+      id: '/vraagbaak'
+      path: '/vraagbaak'
+      fullPath: '/vraagbaak'
+      preLoaderRoute: typeof VraagbaakRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sharepoint': {
       id: '/sharepoint'
       path: '/sharepoint'
@@ -267,6 +287,7 @@ const rootRouteChildren: RootRouteChildren = {
   NieuwsRoute: NieuwsRoute,
   PartnerportalenRoute: PartnerportalenRoute,
   SharepointRoute: SharepointRoute,
+  VraagbaakRoute: VraagbaakRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
