@@ -1,0 +1,600 @@
+import { useMemo, useRef, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  Sparkles,
+  Send,
+  Loader2,
+  BookOpen,
+  Bookmark,
+  BookmarkCheck,
+  CheckCircle2,
+  HelpCircle,
+  AlertTriangle,
+  Clock,
+  ArrowUpRight,
+  History,
+} from "lucide-react";
+import { HubLayout } from "@/components/hub/HubLayout";
+import { SectionHeader } from "@/components/hub/SectionHeader";
+import {
+  useKbArticles,
+  useKbSections,
+  formatKbDate,
+  type KbArticle,
+  type KbSection,
+} from "@/lib/knowledge";
+import { askVraagbaak, type VraagbaakAnswer } from "@/lib/vraagbaak.functions";
+import {
+  FEEDBACK_LABELS,
+  useFeedbackMutation,
+  useSaveAnswer,
+  useSaveBookmark,
+  useVraagbaakRecent,
+  type VraagbaakFeedbackType,
+} from "@/lib/vraagbaak";
+
+export const Route = createFileRoute("/vraagbaak")({
+  head: () => ({
+    meta: [
+      { title: "Vraagbaak — TerreVolt Hub" },
+      {
+        name: "description",
+        content:
+          "Stel een vraag over procedures, documenten, opdrachtgevers en veiligheid. De Vraagbaak antwoordt op basis van de TerreVolt kennisbank.",
+      },
+    ],
+  }),
+  component: VraagbaakPage,
+});
+
+const EXAMPLE_QUESTIONS = [
+  "Hoe factureer ik Van Gelder?",
+  "Welke bijlagen moet ik meesturen bij Hanab?",
+  "Wat zijn de Liander eisen voor montage?",
+  "Welke documenten heb ik nodig voor aarding?",
+  "Waar vind ik de BEI instructies?",
+  "Hoe boek ik uren?",
+  "Wat moet ik doen bij verlopen certificaten?",
+];
+
+const NO_SOURCE_TEXT =
+  "Ik kan dit niet met zekerheid vinden in de kennisbank. Controleer de originele documenten of vraag dit na bij de verantwoordelijke.";
+
+type ResolvedSource = {
+  article: KbArticle;
+  section: KbSection | undefined;
+};
+
+function VraagbaakPage() {
+  const [question, setQuestion] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [answer, setAnswer] = useState<VraagbaakAnswer | null>(null);
+  const [answerForQuestion, setAnswerForQuestion] = useState("");
+  const [savedQuestionId, setSavedQuestionId] = useState<string | null>(null);
+  const [bookmarked, setBookmarked] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState<VraagbaakFeedbackType | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const ask = useServerFn(askVraagbaak);
+
+  const { data: sections = [] } = useKbSections();
+  const { data: articles = [] } = useKbArticles();
+  const { data: recent = [] } = useVraagbaakRecent(6);
+
+  const saveAnswer = useSaveAnswer();
+  const bookmark = useSaveBookmark();
+  const feedback = useFeedbackMutation();
+
+  const sectionById = useMemo(() => {
+    const m = new Map<string, KbSection>();
+    for (const s of sections) m.set(s.id, s);
+    return m;
+  }, [sections]);
+
+  const articleById = useMemo(() => {
+    const m = new Map<string, KbArticle>();
+    for (const a of articles) m.set(a.id, a);
+    return m;
+  }, [articles]);
+
+  const sources: ResolvedSource[] = useMemo(() => {
+    if (!answer) return [];
+    return answer.source_ids
+      .map((id) => articleById.get(id))
+      .filter((a): a is KbArticle => !!a)
+      .map((a) => ({ article: a, section: sectionById.get(a.section_id ?? "") }));
+  }, [answer, articleById, sectionById]);
+
+  const related: KbArticle[] = useMemo(() => {
+    if (!answer || sources.length === 0) return [];
+    const sourceIds = new Set(answer.source_ids);
+    const relatedSet = new Map<string, KbArticle>();
+    for (const s of sources) {
+      for (const rid of s.article.related_ids ?? []) {
+        if (!sourceIds.has(rid) && !relatedSet.has(rid)) {
+          const a = articleById.get(rid);
+          if (a) relatedSet.set(rid, a);
+        }
+      }
+    }
+    return Array.from(relatedSet.values()).slice(0, 4);
+  }, [answer, sources, articleById]);
+
+  const submit = async (override?: string) => {
+    const q = (override ?? question).trim();
+    if (!q || loading) return;
+    setQuestion(q);
+    setLoading(true);
+    setAnswer(null);
+    setSavedQuestionId(null);
+    setBookmarked(false);
+    setFeedbackSent(null);
+
+    try {
+      // Naive ranking by keyword overlap with title/summary/tags/content
+      const terms = q
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter((t) => t.length > 2);
+
+      const scored = articles
+        .filter((a) => a.status !== "archived")
+        .map((a) => {
+          const hay = [
+            a.title,
+            a.summary,
+            a.client,
+            a.owner,
+            (a.tags ?? []).join(" "),
+            a.content.slice(0, 4000),
+          ]
+            .join(" ")
+            .toLowerCase();
+          let score = 0;
+          for (const t of terms) if (hay.includes(t)) score += t.length;
+          if (a.status === "active") score += 1;
+          return { a, score };
+        })
+        .filter((s) => s.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 8)
+        .map((s) => s.a);
+
+      const ctx = scored.map((a) => ({
+        id: a.id,
+        title: a.title,
+        section: sectionById.get(a.section_id ?? "")?.name,
+        client: a.client || undefined,
+        document_type: a.document_type,
+        summary: a.summary || undefined,
+        content: a.content.slice(0, 2000) || undefined,
+        valid_until: a.valid_until,
+        updated_at: a.updated_at,
+      }));
+
+      const res = await ask({ data: { question: q, context: ctx } });
+      setAnswer(res);
+      setAnswerForQuestion(q);
+
+      // Persist the Q&A
+      const resolved = res.source_ids
+        .map((id) => articleById.get(id))
+        .filter((a): a is KbArticle => !!a);
+
+      const persistedId = await saveAnswer.mutateAsync({
+        question: q,
+        short_answer: res.short_answer,
+        steps: res.steps,
+        summary: res.summary,
+        follow_ups: res.follow_ups,
+        related_ids: resolved.flatMap((a) => a.related_ids ?? []).slice(0, 8),
+        has_sources: res.has_sources,
+        sources: resolved.map((a) => ({
+          article_id: a.id,
+          title: a.title,
+          section_heading: sectionById.get(a.section_id ?? "")?.name ?? "",
+          page_number: null,
+          file_url: a.file_url || "",
+          external_url: a.external_url || "",
+          last_updated: a.updated_at ? a.updated_at.slice(0, 10) : null,
+        })),
+      });
+      setSavedQuestionId(persistedId);
+    } catch (err) {
+      console.error(err);
+      setAnswer({
+        short_answer:
+          "Er ging iets mis bij het ophalen van het antwoord. Probeer het later opnieuw.",
+        steps: [],
+        summary: "",
+        follow_ups: [],
+        source_ids: [],
+        has_sources: false,
+      });
+      setAnswerForQuestion(q);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onExample = (ex: string) => {
+    setQuestion(ex);
+    void submit(ex);
+    inputRef.current?.focus();
+  };
+
+  const onFeedback = async (type: VraagbaakFeedbackType) => {
+    if (!savedQuestionId || feedbackSent) return;
+    setFeedbackSent(type);
+    try {
+      await feedback.mutateAsync({ question_id: savedQuestionId, feedback_type: type });
+    } catch (e) {
+      console.error(e);
+      setFeedbackSent(null);
+    }
+  };
+
+  const onBookmark = async () => {
+    if (!savedQuestionId || bookmarked) return;
+    setBookmarked(true);
+    try {
+      await bookmark.mutateAsync({
+        question_id: savedQuestionId,
+        label: answerForQuestion.slice(0, 80),
+      });
+    } catch (e) {
+      console.error(e);
+      setBookmarked(false);
+    }
+  };
+
+  return (
+    <HubLayout>
+      <SectionHeader
+        eyebrow="TerreVolt Vraagbaak"
+        title="Stel je vraag — de kennisbank antwoordt"
+        description="Vraag iets over procedures, opdrachtgevers, veiligheid of finance. De Vraagbaak antwoordt op basis van bronnen uit de TerreVolt kennisbank."
+      />
+
+      {/* Question input */}
+      <div className="relative overflow-hidden rounded-3xl border border-brand/30 bg-gradient-to-br from-pastel/50 via-card to-lime-soft/40 p-6 shadow-sm md:p-8">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand text-brand-foreground shadow-sm">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="font-semibold text-navy">Vraagbaak assistent</div>
+            <div className="text-xs text-foreground/70">
+              Antwoorden zijn altijd voorzien van bronnen uit de kennisbank.
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card shadow-sm">
+          <textarea
+            ref={inputRef}
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                void submit();
+              }
+            }}
+            rows={2}
+            placeholder="Bijv. Welke bijlagen moet ik meesturen bij Hanab?"
+            className="block w-full resize-none rounded-2xl bg-transparent px-5 py-4 text-base outline-none placeholder:text-muted-foreground"
+          />
+          <div className="flex items-center justify-between gap-3 border-t border-border/60 px-3 py-2.5">
+            <div className="px-2 text-xs text-muted-foreground">
+              Enter om te vragen · Shift+Enter voor nieuwe regel
+            </div>
+            <button
+              onClick={() => void submit()}
+              disabled={loading || !question.trim()}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow-sm transition hover:opacity-90 disabled:opacity-50"
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+              Vraag
+            </button>
+          </div>
+        </div>
+
+        {/* Examples */}
+        {!answer && !loading && (
+          <div className="mt-6">
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Voorbeeldvragen
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {EXAMPLE_QUESTIONS.map((ex) => (
+                <button
+                  key={ex}
+                  onClick={() => onExample(ex)}
+                  className="rounded-full border border-border bg-card px-3.5 py-1.5 text-xs font-medium text-foreground/80 shadow-sm transition hover:border-brand/40 hover:bg-pastel/40 hover:text-navy"
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Loading skeleton */}
+      {loading && (
+        <div className="mt-6 space-y-3 rounded-3xl border border-border bg-card p-6 shadow-sm">
+          <div className="h-4 w-32 animate-pulse rounded-full bg-muted" />
+          <div className="h-6 w-3/4 animate-pulse rounded-full bg-muted" />
+          <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+          <div className="h-4 w-5/6 animate-pulse rounded-full bg-muted" />
+        </div>
+      )}
+
+      {/* Answer */}
+      {answer && !loading && (
+        <div className="mt-6 space-y-6">
+          <AnswerCard
+            answer={answer}
+            question={answerForQuestion}
+            sources={sources}
+            related={related}
+            bookmarked={bookmarked}
+            feedbackSent={feedbackSent}
+            onBookmark={onBookmark}
+            onFeedback={onFeedback}
+            onFollowUp={(q) => {
+              setQuestion(q);
+              void submit(q);
+            }}
+            canPersist={!!savedQuestionId}
+          />
+        </div>
+      )}
+
+      {/* Recent */}
+      {recent.length > 0 && (
+        <div className="mt-10">
+          <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-navy">
+            <History className="h-4 w-4 text-brand" />
+            Recente vragen
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {recent.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => onExample(r.question)}
+                className="group flex items-start justify-between gap-3 rounded-2xl border border-border bg-card p-4 text-left shadow-sm transition hover:border-brand/40 hover:bg-pastel/30"
+              >
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium text-navy">
+                    {r.question}
+                  </div>
+                  <div className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+                    {r.short_answer}
+                  </div>
+                </div>
+                <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:text-brand" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </HubLayout>
+  );
+}
+
+/* -------------------------- Answer card -------------------------- */
+
+function AnswerCard({
+  answer,
+  question,
+  sources,
+  related,
+  bookmarked,
+  feedbackSent,
+  onBookmark,
+  onFeedback,
+  onFollowUp,
+  canPersist,
+}: {
+  answer: VraagbaakAnswer;
+  question: string;
+  sources: ResolvedSource[];
+  related: KbArticle[];
+  bookmarked: boolean;
+  feedbackSent: VraagbaakFeedbackType | null;
+  onBookmark: () => void;
+  onFeedback: (t: VraagbaakFeedbackType) => void;
+  onFollowUp: (q: string) => void;
+  canPersist: boolean;
+}) {
+  const noSource = !answer.has_sources;
+
+  return (
+    <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-4 border-b border-border/60 px-6 py-5">
+        <div className="min-w-0">
+          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Jouw vraag
+          </div>
+          <div className="mt-1 text-base font-medium text-navy">{question}</div>
+        </div>
+        <button
+          onClick={onBookmark}
+          disabled={!canPersist || bookmarked}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground/80 shadow-sm transition hover:border-brand/40 hover:text-navy disabled:opacity-60"
+        >
+          {bookmarked ? (
+            <>
+              <BookmarkCheck className="h-4 w-4 text-brand" /> Opgeslagen
+            </>
+          ) : (
+            <>
+              <Bookmark className="h-4 w-4" /> Opslaan
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* 1. Kort antwoord */}
+      <Section title="Kort antwoord">
+        {noSource ? (
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-300/60 bg-amber-50/70 p-4 text-sm text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <div>{NO_SOURCE_TEXT}</div>
+          </div>
+        ) : (
+          <p className="text-[15px] leading-7 text-foreground/90">{answer.short_answer}</p>
+        )}
+        {answer.summary && !noSource && (
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">{answer.summary}</p>
+        )}
+      </Section>
+
+      {/* 2. Stappenplan */}
+      {answer.steps.length > 0 && (
+        <Section title="Stappenplan">
+          <ol className="space-y-2">
+            {answer.steps.map((s, i) => (
+              <li key={i} className="flex items-start gap-3 text-sm leading-6 text-foreground/90">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand/15 text-xs font-semibold text-brand">
+                  {i + 1}
+                </span>
+                <span>{s}</span>
+              </li>
+            ))}
+          </ol>
+        </Section>
+      )}
+
+      {/* 3. Bronnen */}
+      <Section title="Bronnen">
+        {sources.length === 0 ? (
+          <div className="text-sm text-muted-foreground">
+            Geen bronnen gevonden in de kennisbank.
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {sources.map((s) => (
+              <li key={s.article.id}>
+                <Link
+                  to="/kennisbank/$slug/$articleSlug"
+                  params={{
+                    slug: s.section?.slug ?? "item",
+                    articleSlug: s.article.slug,
+                  }}
+                  className="flex items-start gap-3 rounded-2xl border border-border bg-background p-3.5 shadow-sm transition hover:border-brand/40 hover:bg-pastel/30"
+                >
+                  <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium text-navy">
+                      {s.article.title}
+                    </div>
+                    <div className="mt-0.5 text-xs text-muted-foreground">
+                      {[s.section?.name, s.article.client, `v${s.article.version}`]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </div>
+                    <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Clock className="h-3 w-3" />
+                      Bijgewerkt {formatKbDate(s.article.updated_at)}
+                    </div>
+                  </div>
+                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
+
+      {/* 4. Gerelateerde documenten */}
+      {related.length > 0 && (
+        <Section title="Gerelateerde documenten">
+          <div className="grid gap-2 sm:grid-cols-2">
+            {related.map((a) => {
+              const sec = a.section_id;
+              const section = sources.find((s) => s.section?.id === sec)?.section;
+              return (
+                <Link
+                  key={a.id}
+                  to="/kennisbank/$slug/$articleSlug"
+                  params={{
+                    slug: section?.slug ?? "item",
+                    articleSlug: a.slug,
+                  }}
+                  className="flex items-center justify-between gap-2 rounded-2xl border border-border bg-background p-3 text-sm shadow-sm transition hover:border-brand/40 hover:bg-pastel/30"
+                >
+                  <span className="truncate text-foreground/90">{a.title}</span>
+                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </Link>
+              );
+            })}
+          </div>
+        </Section>
+      )}
+
+      {/* Follow-ups */}
+      {answer.follow_ups.length > 0 && (
+        <Section title="Vervolgvragen">
+          <div className="flex flex-wrap gap-2">
+            {answer.follow_ups.map((f) => (
+              <button
+                key={f}
+                onClick={() => onFollowUp(f)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3.5 py-1.5 text-xs font-medium text-foreground/80 shadow-sm transition hover:border-brand/40 hover:bg-pastel/40 hover:text-navy"
+              >
+                <HelpCircle className="h-3.5 w-3.5 text-brand" />
+                {f}
+              </button>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Feedback */}
+      <div className="border-t border-border/60 bg-muted/30 px-6 py-4">
+        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Feedback
+        </div>
+        {feedbackSent ? (
+          <div className="inline-flex items-center gap-2 rounded-full bg-brand/10 px-3 py-1.5 text-xs font-medium text-brand">
+            <CheckCircle2 className="h-4 w-4" />
+            Bedankt — “{FEEDBACK_LABELS[feedbackSent]}” geregistreerd.
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {(Object.keys(FEEDBACK_LABELS) as VraagbaakFeedbackType[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => onFeedback(t)}
+                disabled={!canPersist}
+                className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground/80 shadow-sm transition hover:border-brand/40 hover:text-navy disabled:opacity-50"
+              >
+                {FEEDBACK_LABELS[t]}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="px-6 py-5">
+      <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+}
