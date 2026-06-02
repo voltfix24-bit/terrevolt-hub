@@ -20,6 +20,7 @@ import { Route as FinanceWikiRouteImport } from './routes/finance-wiki'
 import { Route as DocumentenRouteImport } from './routes/documenten'
 import { Route as ApplicatiesRouteImport } from './routes/applicaties'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SmoelenboekIdRouteImport } from './routes/smoelenboek.$id'
 import { Route as KennisbankSlugRouteImport } from './routes/kennisbank.$slug'
 import { Route as FinanceWikiSlugRouteImport } from './routes/finance-wiki.$slug'
 import { Route as KennisbankSlugArticleSlugRouteImport } from './routes/kennisbank.$slug.$articleSlug'
@@ -79,6 +80,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SmoelenboekIdRoute = SmoelenboekIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => SmoelenboekRoute,
+} as any)
 const KennisbankSlugRoute = KennisbankSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -106,10 +112,11 @@ export interface FileRoutesByFullPath {
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
   '/sharepoint': typeof SharepointRoute
-  '/smoelenboek': typeof SmoelenboekRoute
+  '/smoelenboek': typeof SmoelenboekRouteWithChildren
   '/vraagbaak': typeof VraagbaakRoute
   '/finance-wiki/$slug': typeof FinanceWikiSlugRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
+  '/smoelenboek/$id': typeof SmoelenboekIdRoute
   '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
 export interface FileRoutesByTo {
@@ -122,10 +129,11 @@ export interface FileRoutesByTo {
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
   '/sharepoint': typeof SharepointRoute
-  '/smoelenboek': typeof SmoelenboekRoute
+  '/smoelenboek': typeof SmoelenboekRouteWithChildren
   '/vraagbaak': typeof VraagbaakRoute
   '/finance-wiki/$slug': typeof FinanceWikiSlugRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
+  '/smoelenboek/$id': typeof SmoelenboekIdRoute
   '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
 export interface FileRoutesById {
@@ -139,10 +147,11 @@ export interface FileRoutesById {
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
   '/sharepoint': typeof SharepointRoute
-  '/smoelenboek': typeof SmoelenboekRoute
+  '/smoelenboek': typeof SmoelenboekRouteWithChildren
   '/vraagbaak': typeof VraagbaakRoute
   '/finance-wiki/$slug': typeof FinanceWikiSlugRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
+  '/smoelenboek/$id': typeof SmoelenboekIdRoute
   '/kennisbank/$slug/$articleSlug': typeof KennisbankSlugArticleSlugRoute
 }
 export interface FileRouteTypes {
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/vraagbaak'
     | '/finance-wiki/$slug'
     | '/kennisbank/$slug'
+    | '/smoelenboek/$id'
     | '/kennisbank/$slug/$articleSlug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/vraagbaak'
     | '/finance-wiki/$slug'
     | '/kennisbank/$slug'
+    | '/smoelenboek/$id'
     | '/kennisbank/$slug/$articleSlug'
   id:
     | '__root__'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/vraagbaak'
     | '/finance-wiki/$slug'
     | '/kennisbank/$slug'
+    | '/smoelenboek/$id'
     | '/kennisbank/$slug/$articleSlug'
   fileRoutesById: FileRoutesById
 }
@@ -206,7 +218,7 @@ export interface RootRouteChildren {
   NieuwsRoute: typeof NieuwsRoute
   PartnerportalenRoute: typeof PartnerportalenRoute
   SharepointRoute: typeof SharepointRoute
-  SmoelenboekRoute: typeof SmoelenboekRoute
+  SmoelenboekRoute: typeof SmoelenboekRouteWithChildren
   VraagbaakRoute: typeof VraagbaakRoute
 }
 
@@ -289,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/smoelenboek/$id': {
+      id: '/smoelenboek/$id'
+      path: '/$id'
+      fullPath: '/smoelenboek/$id'
+      preLoaderRoute: typeof SmoelenboekIdRouteImport
+      parentRoute: typeof SmoelenboekRoute
+    }
     '/kennisbank/$slug': {
       id: '/kennisbank/$slug'
       path: '/$slug'
@@ -349,6 +368,18 @@ const KennisbankRouteWithChildren = KennisbankRoute._addFileChildren(
   KennisbankRouteChildren,
 )
 
+interface SmoelenboekRouteChildren {
+  SmoelenboekIdRoute: typeof SmoelenboekIdRoute
+}
+
+const SmoelenboekRouteChildren: SmoelenboekRouteChildren = {
+  SmoelenboekIdRoute: SmoelenboekIdRoute,
+}
+
+const SmoelenboekRouteWithChildren = SmoelenboekRoute._addFileChildren(
+  SmoelenboekRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApplicatiesRoute: ApplicatiesRoute,
@@ -359,7 +390,7 @@ const rootRouteChildren: RootRouteChildren = {
   NieuwsRoute: NieuwsRoute,
   PartnerportalenRoute: PartnerportalenRoute,
   SharepointRoute: SharepointRoute,
-  SmoelenboekRoute: SmoelenboekRoute,
+  SmoelenboekRoute: SmoelenboekRouteWithChildren,
   VraagbaakRoute: VraagbaakRoute,
 }
 export const routeTree = rootRouteImport
