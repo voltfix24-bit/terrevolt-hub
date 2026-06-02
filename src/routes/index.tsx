@@ -5,6 +5,7 @@ import { NewsCard } from "@/components/hub/NewsCard";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import { Icon } from "@/components/hub/Icon";
 import { RoleWidgets } from "@/components/hub/RoleWidgets";
+import { PeopleSearchWidget } from "@/components/hub/PeopleSearchWidget";
 import { useHubStore } from "@/lib/hub-store";
 import { useActiveApplications } from "@/lib/applications";
 import { usePublishedNews } from "@/lib/news";
@@ -85,13 +86,18 @@ function Dashboard() {
           </div>
         </section>
 
-        {/* Role widgets */}
-        <section>
-          <SectionHeader
-            title={`Jouw ${role.toLowerCase()}-dashboard`}
-            subtitle="Widgets afgestemd op jouw rol. Wissel van rol via je profiel rechtsboven."
-          />
-          <RoleWidgets />
+        {/* Role widgets + people search */}
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
+          <div>
+            <SectionHeader
+              title={`Jouw ${role.toLowerCase()}-dashboard`}
+              subtitle="Widgets afgestemd op jouw rol. Wissel van rol via je profiel rechtsboven."
+            />
+            <RoleWidgets />
+          </div>
+          <div className="lg:pt-9">
+            <PeopleSearchWidget />
+          </div>
         </section>
 
         {/* Applications */}
