@@ -2,11 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { AppCard } from "@/components/hub/AppCard";
 import { SectionHeader } from "@/components/hub/SectionHeader";
-import { apps } from "@/lib/hub-data";
+import { useHubStore } from "@/lib/hub-store";
 
 export const Route = createFileRoute("/applicaties")({
   head: () => ({ meta: [{ title: "Applicaties — TerreVolt Hub" }] }),
-  component: () => (
+  component: Page,
+});
+
+function Page() {
+  const apps = useHubStore((s) => s.apps);
+  return (
     <HubLayout>
       <div className="mx-auto max-w-7xl">
         <SectionHeader title="Applicaties" subtitle="Alle interne tools op één plek." />
@@ -15,5 +20,5 @@ export const Route = createFileRoute("/applicaties")({
         </div>
       </div>
     </HubLayout>
-  ),
-});
+  );
+}

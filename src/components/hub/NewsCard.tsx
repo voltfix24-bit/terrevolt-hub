@@ -1,4 +1,4 @@
-import type { NewsItem } from "@/lib/hub-data";
+import type { NewsItem } from "@/lib/hub-store";
 
 export function NewsCard({ item }: { item: NewsItem }) {
   return (
@@ -18,6 +18,11 @@ export function NewsCard({ item }: { item: NewsItem }) {
           <span className="inline-flex items-center rounded-full bg-accent px-2.5 py-1 font-medium text-navy">
             {item.category}
           </span>
+          {item.important && (
+            <span className="inline-flex items-center rounded-full bg-brand px-2.5 py-1 font-medium text-brand-foreground">
+              Belangrijk
+            </span>
+          )}
           <span className="text-muted-foreground">{item.date}</span>
         </div>
         <h3 className="mt-3 text-lg font-semibold tracking-tight text-navy">
