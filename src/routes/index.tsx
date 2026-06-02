@@ -41,6 +41,10 @@ function Dashboard() {
   const partners = useHubStore((s) => s.partners);
   const quickLinks = useHubStore((s) => s.quickLinks);
   const { data: knowledge = [] } = useKbCategories();
+  const { data: spRecent = [] } = useRecentSharePointLinks(6);
+  const { data: spFavFolders = [] } = useFavoriteSharePointFolders();
+  const { data: spQuickAccess = [] } = useFavoriteSharePointLinks();
+  const { touch: spTouch } = useSharePointMutations();
 
   const featured = apps.filter((a) => a.featured);
   const others = apps.filter((a) => !a.featured);
