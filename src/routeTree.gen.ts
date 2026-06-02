@@ -15,6 +15,7 @@ import { Route as PartnerportalenRouteImport } from './routes/partnerportalen'
 import { Route as NieuwsRouteImport } from './routes/nieuws'
 import { Route as KennisbankRouteImport } from './routes/kennisbank'
 import { Route as InstellingenRouteImport } from './routes/instellingen'
+import { Route as FinanceWikiRouteImport } from './routes/finance-wiki'
 import { Route as DocumentenRouteImport } from './routes/documenten'
 import { Route as ApplicatiesRouteImport } from './routes/applicaties'
 import { Route as IndexRouteImport } from './routes/index'
@@ -51,6 +52,11 @@ const InstellingenRoute = InstellingenRouteImport.update({
   path: '/instellingen',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinanceWikiRoute = FinanceWikiRouteImport.update({
+  id: '/finance-wiki',
+  path: '/finance-wiki',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DocumentenRoute = DocumentenRouteImport.update({
   id: '/documenten',
   path: '/documenten',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/applicaties': typeof ApplicatiesRoute
   '/documenten': typeof DocumentenRoute
+  '/finance-wiki': typeof FinanceWikiRoute
   '/instellingen': typeof InstellingenRoute
   '/kennisbank': typeof KennisbankRouteWithChildren
   '/nieuws': typeof NieuwsRoute
@@ -95,6 +102,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/applicaties': typeof ApplicatiesRoute
   '/documenten': typeof DocumentenRoute
+  '/finance-wiki': typeof FinanceWikiRoute
   '/instellingen': typeof InstellingenRoute
   '/kennisbank': typeof KennisbankRouteWithChildren
   '/nieuws': typeof NieuwsRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/applicaties': typeof ApplicatiesRoute
   '/documenten': typeof DocumentenRoute
+  '/finance-wiki': typeof FinanceWikiRoute
   '/instellingen': typeof InstellingenRoute
   '/kennisbank': typeof KennisbankRouteWithChildren
   '/nieuws': typeof NieuwsRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/'
     | '/applicaties'
     | '/documenten'
+    | '/finance-wiki'
     | '/instellingen'
     | '/kennisbank'
     | '/nieuws'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/'
     | '/applicaties'
     | '/documenten'
+    | '/finance-wiki'
     | '/instellingen'
     | '/kennisbank'
     | '/nieuws'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/'
     | '/applicaties'
     | '/documenten'
+    | '/finance-wiki'
     | '/instellingen'
     | '/kennisbank'
     | '/nieuws'
@@ -164,6 +176,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApplicatiesRoute: typeof ApplicatiesRoute
   DocumentenRoute: typeof DocumentenRoute
+  FinanceWikiRoute: typeof FinanceWikiRoute
   InstellingenRoute: typeof InstellingenRoute
   KennisbankRoute: typeof KennisbankRouteWithChildren
   NieuwsRoute: typeof NieuwsRoute
@@ -214,6 +227,13 @@ declare module '@tanstack/react-router' {
       path: '/instellingen'
       fullPath: '/instellingen'
       preLoaderRoute: typeof InstellingenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance-wiki': {
+      id: '/finance-wiki'
+      path: '/finance-wiki'
+      fullPath: '/finance-wiki'
+      preLoaderRoute: typeof FinanceWikiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/documenten': {
@@ -282,6 +302,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApplicatiesRoute: ApplicatiesRoute,
   DocumentenRoute: DocumentenRoute,
+  FinanceWikiRoute: FinanceWikiRoute,
   InstellingenRoute: InstellingenRoute,
   KennisbankRoute: KennisbankRouteWithChildren,
   NieuwsRoute: NieuwsRoute,
@@ -292,3 +313,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
