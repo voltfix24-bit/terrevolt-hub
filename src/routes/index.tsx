@@ -64,7 +64,7 @@ function Dashboard() {
               {greeting} Hassan
             </h1>
             <p className="mt-3 text-base text-foreground/70">
-              Welkom terug in TerreVolt Hub
+              Welkom terug — je werkt als <span className="font-semibold text-navy">{role}</span>.
             </p>
             {quickLinks.length > 0 && (
               <div className="mt-6 flex flex-wrap gap-2">
