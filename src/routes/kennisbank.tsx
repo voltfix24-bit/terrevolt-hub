@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
+import { Icon } from "@/components/hub/Icon";
 import { useHubStore } from "@/lib/hub-store";
 
 export const Route = createFileRoute("/kennisbank")({
@@ -18,7 +19,7 @@ function Page() {
           {knowledge.map((cat) => (
             <a key={cat.id} href={`/kennisbank/${cat.slug}`}
                className="group flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-xl">{cat.icon}</div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-navy"><Icon name={cat.icon} size={20} /></div>
               <div>
                 <div className="font-semibold text-navy">{cat.name}</div>
                 <div className="mt-1 text-xs text-muted-foreground">{cat.description}</div>
