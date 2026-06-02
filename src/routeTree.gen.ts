@@ -9,38 +9,174 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PartnerportalenRouteImport } from './routes/partnerportalen'
+import { Route as NieuwsRouteImport } from './routes/nieuws'
+import { Route as KennisbankRouteImport } from './routes/kennisbank'
+import { Route as InstellingenRouteImport } from './routes/instellingen'
+import { Route as DocumentenRouteImport } from './routes/documenten'
+import { Route as ApplicatiesRouteImport } from './routes/applicaties'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as KennisbankSlugRouteImport } from './routes/kennisbank.$slug'
 
+const PartnerportalenRoute = PartnerportalenRouteImport.update({
+  id: '/partnerportalen',
+  path: '/partnerportalen',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NieuwsRoute = NieuwsRouteImport.update({
+  id: '/nieuws',
+  path: '/nieuws',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KennisbankRoute = KennisbankRouteImport.update({
+  id: '/kennisbank',
+  path: '/kennisbank',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstellingenRoute = InstellingenRouteImport.update({
+  id: '/instellingen',
+  path: '/instellingen',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentenRoute = DocumentenRouteImport.update({
+  id: '/documenten',
+  path: '/documenten',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApplicatiesRoute = ApplicatiesRouteImport.update({
+  id: '/applicaties',
+  path: '/applicaties',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KennisbankSlugRoute = KennisbankSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => KennisbankRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/applicaties': typeof ApplicatiesRoute
+  '/documenten': typeof DocumentenRoute
+  '/instellingen': typeof InstellingenRoute
+  '/kennisbank': typeof KennisbankRouteWithChildren
+  '/nieuws': typeof NieuwsRoute
+  '/partnerportalen': typeof PartnerportalenRoute
+  '/kennisbank/$slug': typeof KennisbankSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/applicaties': typeof ApplicatiesRoute
+  '/documenten': typeof DocumentenRoute
+  '/instellingen': typeof InstellingenRoute
+  '/kennisbank': typeof KennisbankRouteWithChildren
+  '/nieuws': typeof NieuwsRoute
+  '/partnerportalen': typeof PartnerportalenRoute
+  '/kennisbank/$slug': typeof KennisbankSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/applicaties': typeof ApplicatiesRoute
+  '/documenten': typeof DocumentenRoute
+  '/instellingen': typeof InstellingenRoute
+  '/kennisbank': typeof KennisbankRouteWithChildren
+  '/nieuws': typeof NieuwsRoute
+  '/partnerportalen': typeof PartnerportalenRoute
+  '/kennisbank/$slug': typeof KennisbankSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/applicaties'
+    | '/documenten'
+    | '/instellingen'
+    | '/kennisbank'
+    | '/nieuws'
+    | '/partnerportalen'
+    | '/kennisbank/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/applicaties'
+    | '/documenten'
+    | '/instellingen'
+    | '/kennisbank'
+    | '/nieuws'
+    | '/partnerportalen'
+    | '/kennisbank/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/applicaties'
+    | '/documenten'
+    | '/instellingen'
+    | '/kennisbank'
+    | '/nieuws'
+    | '/partnerportalen'
+    | '/kennisbank/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApplicatiesRoute: typeof ApplicatiesRoute
+  DocumentenRoute: typeof DocumentenRoute
+  InstellingenRoute: typeof InstellingenRoute
+  KennisbankRoute: typeof KennisbankRouteWithChildren
+  NieuwsRoute: typeof NieuwsRoute
+  PartnerportalenRoute: typeof PartnerportalenRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/partnerportalen': {
+      id: '/partnerportalen'
+      path: '/partnerportalen'
+      fullPath: '/partnerportalen'
+      preLoaderRoute: typeof PartnerportalenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nieuws': {
+      id: '/nieuws'
+      path: '/nieuws'
+      fullPath: '/nieuws'
+      preLoaderRoute: typeof NieuwsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kennisbank': {
+      id: '/kennisbank'
+      path: '/kennisbank'
+      fullPath: '/kennisbank'
+      preLoaderRoute: typeof KennisbankRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instellingen': {
+      id: '/instellingen'
+      path: '/instellingen'
+      fullPath: '/instellingen'
+      preLoaderRoute: typeof InstellingenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documenten': {
+      id: '/documenten'
+      path: '/documenten'
+      fullPath: '/documenten'
+      preLoaderRoute: typeof DocumentenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/applicaties': {
+      id: '/applicaties'
+      path: '/applicaties'
+      fullPath: '/applicaties'
+      preLoaderRoute: typeof ApplicatiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +184,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kennisbank/$slug': {
+      id: '/kennisbank/$slug'
+      path: '/$slug'
+      fullPath: '/kennisbank/$slug'
+      preLoaderRoute: typeof KennisbankSlugRouteImport
+      parentRoute: typeof KennisbankRoute
+    }
   }
 }
 
+interface KennisbankRouteChildren {
+  KennisbankSlugRoute: typeof KennisbankSlugRoute
+}
+
+const KennisbankRouteChildren: KennisbankRouteChildren = {
+  KennisbankSlugRoute: KennisbankSlugRoute,
+}
+
+const KennisbankRouteWithChildren = KennisbankRoute._addFileChildren(
+  KennisbankRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApplicatiesRoute: ApplicatiesRoute,
+  DocumentenRoute: DocumentenRoute,
+  InstellingenRoute: InstellingenRoute,
+  KennisbankRoute: KennisbankRouteWithChildren,
+  NieuwsRoute: NieuwsRoute,
+  PartnerportalenRoute: PartnerportalenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
