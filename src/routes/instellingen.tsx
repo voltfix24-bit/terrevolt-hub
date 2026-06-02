@@ -3,7 +3,28 @@ import { createFileRoute } from "@tanstack/react-router";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import { EntityManager, type Field } from "@/components/hub/EntityManager";
-import { useHubStore, type PartnerLink, type QuickLink } from "@/lib/hub-store";
+import { useHubStore, type QuickLink } from "@/lib/hub-store";
+import {
+  usePartnerLinks,
+  usePartnerLinkMutations,
+  PARTNER_CATEGORIES,
+  type PartnerLink,
+  type PartnerLinkInput,
+} from "@/lib/partners";
+import {
+  useDepartments,
+  useDepartmentMutations,
+  type Department,
+  type DepartmentInput,
+} from "@/lib/departments";
+import {
+  useUserRoles,
+  useUserRoleMutations,
+  APP_ROLES,
+  roleLabel,
+  type UserRole,
+  type UserRoleInput,
+} from "@/lib/userRoles";
 import {
   useApplications,
   useAppMutations,
@@ -56,6 +77,8 @@ const TABS = [
   { id: "news", label: "Nieuws" },
   { id: "partners", label: "Partnerportalen" },
   { id: "quick", label: "Quick links" },
+  { id: "departments", label: "Afdelingen" },
+  { id: "roles", label: "Rollen" },
   { id: "kb-sections", label: "KB secties" },
   { id: "kb-cats", label: "KB sub-categorieën" },
   { id: "kb-articles", label: "KB kennisitems" },
@@ -102,6 +125,8 @@ function SettingsPage() {
         {tab === "news" && <NewsTab />}
         {tab === "partners" && <PartnersTab />}
         {tab === "quick" && <QuickLinksTab />}
+        {tab === "departments" && <DepartmentsTab />}
+        {tab === "roles" && <RolesTab />}
         {tab === "kb-sections" && <KbSectionsTab />}
         {tab === "kb-cats" && <KbCategoriesTab />}
         {tab === "kb-articles" && <KbArticlesTab />}
