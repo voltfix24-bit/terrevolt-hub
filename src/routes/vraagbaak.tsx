@@ -115,28 +115,45 @@ function VraagbaakPage() {
     return m;
   }, [articles]);
 
+  const financeById = useMemo(() => {
+    const m = new Map<string, FinanceClient>();
+    for (const c of financeClients) m.set(c.id, c);
+    return m;
+  }, [financeClients]);
+
+  const financeSources: FinanceClient[] = useMemo(() => {
+    if (!answer) return [];
+    return answer.source_ids
+      .filter((id) => id.startsWith(FIN_PREFIX))
+      .map((id) => financeById.get(id.slice(FIN_PREFIX.length)))
+      .filter((c): c is FinanceClient => !!c);
+  }, [answer, financeById]);
+
   const sources: ResolvedSource[] = useMemo(() => {
     if (!answer) return [];
     return answer.source_ids
+      .filter((id) => !id.startsWith(FIN_PREFIX))
       .map((id) => articleById.get(id))
       .filter((a): a is KbArticle => !!a)
       .map((a) => ({ article: a, section: sectionById.get(a.section_id ?? "") }));
   }, [answer, articleById, sectionById]);
 
   const related: KbArticle[] = useMemo(() => {
-    if (!answer || sources.length === 0) return [];
+    if (!answer || (sources.length === 0 && financeSources.length === 0)) return [];
     const sourceIds = new Set(answer.source_ids);
     const relatedSet = new Map<string, KbArticle>();
-    for (const s of sources) {
-      for (const rid of s.article.related_ids ?? []) {
+    const addRelated = (ids: string[] | undefined) => {
+      for (const rid of ids ?? []) {
         if (!sourceIds.has(rid) && !relatedSet.has(rid)) {
           const a = articleById.get(rid);
           if (a) relatedSet.set(rid, a);
         }
       }
-    }
+    };
+    for (const s of sources) addRelated(s.article.related_ids);
+    for (const c of financeSources) addRelated(c.related_ids);
     return Array.from(relatedSet.values()).slice(0, 4);
-  }, [answer, sources, articleById]);
+  }, [answer, sources, financeSources, articleById]);
 
   const submit = async (override?: string) => {
     const q = (override ?? question).trim();
