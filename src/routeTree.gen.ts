@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VraagbaakRouteImport } from './routes/vraagbaak'
+import { Route as SmoelenboekRouteImport } from './routes/smoelenboek'
 import { Route as SharepointRouteImport } from './routes/sharepoint'
 import { Route as PartnerportalenRouteImport } from './routes/partnerportalen'
 import { Route as NieuwsRouteImport } from './routes/nieuws'
@@ -26,6 +27,11 @@ import { Route as KennisbankSlugArticleSlugRouteImport } from './routes/kennisba
 const VraagbaakRoute = VraagbaakRouteImport.update({
   id: '/vraagbaak',
   path: '/vraagbaak',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SmoelenboekRoute = SmoelenboekRouteImport.update({
+  id: '/smoelenboek',
+  path: '/smoelenboek',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SharepointRoute = SharepointRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
   '/sharepoint': typeof SharepointRoute
+  '/smoelenboek': typeof SmoelenboekRoute
   '/vraagbaak': typeof VraagbaakRoute
   '/finance-wiki/$slug': typeof FinanceWikiSlugRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
   '/sharepoint': typeof SharepointRoute
+  '/smoelenboek': typeof SmoelenboekRoute
   '/vraagbaak': typeof VraagbaakRoute
   '/finance-wiki/$slug': typeof FinanceWikiSlugRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
@@ -131,6 +139,7 @@ export interface FileRoutesById {
   '/nieuws': typeof NieuwsRoute
   '/partnerportalen': typeof PartnerportalenRoute
   '/sharepoint': typeof SharepointRoute
+  '/smoelenboek': typeof SmoelenboekRoute
   '/vraagbaak': typeof VraagbaakRoute
   '/finance-wiki/$slug': typeof FinanceWikiSlugRoute
   '/kennisbank/$slug': typeof KennisbankSlugRouteWithChildren
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
     | '/nieuws'
     | '/partnerportalen'
     | '/sharepoint'
+    | '/smoelenboek'
     | '/vraagbaak'
     | '/finance-wiki/$slug'
     | '/kennisbank/$slug'
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/nieuws'
     | '/partnerportalen'
     | '/sharepoint'
+    | '/smoelenboek'
     | '/vraagbaak'
     | '/finance-wiki/$slug'
     | '/kennisbank/$slug'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/nieuws'
     | '/partnerportalen'
     | '/sharepoint'
+    | '/smoelenboek'
     | '/vraagbaak'
     | '/finance-wiki/$slug'
     | '/kennisbank/$slug'
@@ -194,6 +206,7 @@ export interface RootRouteChildren {
   NieuwsRoute: typeof NieuwsRoute
   PartnerportalenRoute: typeof PartnerportalenRoute
   SharepointRoute: typeof SharepointRoute
+  SmoelenboekRoute: typeof SmoelenboekRoute
   VraagbaakRoute: typeof VraagbaakRoute
 }
 
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       path: '/vraagbaak'
       fullPath: '/vraagbaak'
       preLoaderRoute: typeof VraagbaakRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/smoelenboek': {
+      id: '/smoelenboek'
+      path: '/smoelenboek'
+      fullPath: '/smoelenboek'
+      preLoaderRoute: typeof SmoelenboekRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sharepoint': {
@@ -339,8 +359,19 @@ const rootRouteChildren: RootRouteChildren = {
   NieuwsRoute: NieuwsRoute,
   PartnerportalenRoute: PartnerportalenRoute,
   SharepointRoute: SharepointRoute,
+  SmoelenboekRoute: SmoelenboekRoute,
   VraagbaakRoute: VraagbaakRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
