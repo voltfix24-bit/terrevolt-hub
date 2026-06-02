@@ -8,7 +8,7 @@ import { RoleWidgets } from "@/components/hub/RoleWidgets";
 import { useHubStore } from "@/lib/hub-store";
 import { useActiveApplications } from "@/lib/applications";
 import { usePublishedNews } from "@/lib/news";
-import { useKbCategories } from "@/lib/knowledge";
+import { useKbSections } from "@/lib/knowledge";
 import {
   useRecentSharePointLinks,
   useFavoriteSharePointFolders,
@@ -42,7 +42,7 @@ function Dashboard() {
   const { data: news = [] } = usePublishedNews();
   const partners = useHubStore((s) => s.partners);
   const quickLinks = useHubStore((s) => s.quickLinks);
-  const { data: knowledge = [] } = useKbCategories();
+  const { data: knowledge = [] } = useKbSections();
   const { data: spRecent = [] } = useRecentSharePointLinks(6);
   const { data: spFavFolders = [] } = useFavoriteSharePointFolders();
   const { data: spQuickAccess = [] } = useFavoriteSharePointLinks();
