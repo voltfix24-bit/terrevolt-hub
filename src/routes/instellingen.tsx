@@ -357,27 +357,173 @@ function NewsTab() {
   );
 }
 
-/* ---------------- Partners ---------------- */
+/* ---------------- Partners (DB-backed) ---------------- */
 function PartnersTab() {
-  const { partners, addPartner, updatePartner, deletePartner, reorder } = useHubStore();
+  const { data: partners = [], isLoading } = usePartnerLinks();
+  const { add, update, remove, reorder } = usePartnerLinkMutations();
   const fields: Field[] = [
     { key: "name", label: "Naam", type: "text" },
+    { key: "description", label: "Beschrijving", type: "textarea" },
     { key: "href", label: "URL", type: "url" },
+    { key: "icon", label: "Icoon", type: "icon" },
+    {
+      key: "category",
+      label: "Categorie",
+      type: "select",
+      options: PARTNER_CATEGORIES.map((c) => ({ value: c, label: c })),
+    },
+    { key: "active", label: "Actief (zichtbaar)", type: "bool" },
   ];
-  const empty: Omit<PartnerLink, "id"> = { name: "", href: "https://" };
+  const empty: PartnerLinkInput = {
+    name: "",
+    href: "https://",
+    description: "",
+    icon: "globe",
+    accent: "brand",
+    category: "Opdrachtgever",
+    active: true,
+  };
   return (
-    <EntityManager<PartnerLink>
-      title="Partnerportalen" description="Externe links als pillen op het dashboard."
-      items={partners} fields={fields} emptyItem={empty}
-      onAdd={addPartner} onUpdate={updatePartner} onDelete={deletePartner}
-      onReorder={(f, t) => reorder("partners", f, t)}
-      rowPreview={(p) => (
-        <div>
-          <div className="font-medium text-navy">{p.name}</div>
-          <div className="truncate text-xs text-muted-foreground">{p.href}</div>
-        </div>
-      )}
-    />
+    <>
+      {isLoading && <div className="text-sm text-muted-foreground">Laden…</div>}
+      <EntityManager<PartnerLink>
+        title="Partnerportalen"
+        description="Externe portalen van opdrachtgevers, leveranciers en onderaannemers."
+        items={partners}
+        fields={fields}
+        emptyItem={empty as Omit<PartnerLink, "id">}
+        onAdd={(item) => add.mutate(item as PartnerLinkInput)}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<PartnerLink> })}
+        onDelete={(id) => remove.mutate(id)}
+        onReorder={(from, to) => {
+          if (from === to) return;
+          const next = partners.slice();
+          const [m] = next.splice(from, 1);
+          next.splice(to, 0, m);
+          reorder.mutate({ items: next });
+        }}
+        rowPreview={(p) => (
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-navy">
+              <Icon name={p.icon} size={20} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="truncate font-medium text-navy">{p.name}</div>
+                <span className="rounded-full bg-accent px-2 py-0.5 text-xs text-foreground/70">
+                  {p.category}
+                </span>
+                {!p.active && (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                    Inactief
+                  </span>
+                )}
+              </div>
+              <div className="truncate text-xs text-muted-foreground">{p.href}</div>
+            </div>
+          </div>
+        )}
+      />
+    </>
+  );
+}
+
+/* ---------------- Departments ---------------- */
+function DepartmentsTab() {
+  const { data: departments = [], isLoading } = useDepartments();
+  const { add, update, remove } = useDepartmentMutations();
+  const fields: Field[] = [
+    { key: "name", label: "Naam", type: "text" },
+    { key: "description", label: "Beschrijving", type: "textarea" },
+    { key: "icon", label: "Icoon", type: "icon" },
+  ];
+  const empty: DepartmentInput = { name: "", description: "", icon: "users", accent: "brand" };
+  return (
+    <>
+      {isLoading && <div className="text-sm text-muted-foreground">Laden…</div>}
+      <EntityManager<Department>
+        title="Afdelingen"
+        description="Organisatie-eenheden voor het Smoelenboek en de kennisbank."
+        items={departments}
+        fields={fields}
+        emptyItem={empty as Omit<Department, "id">}
+        onAdd={(item) => add.mutate(item as DepartmentInput)}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<Department> })}
+        onDelete={(id) => remove.mutate(id)}
+        onReorder={() => undefined}
+        rowPreview={(d) => (
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-navy">
+              <Icon name={d.icon} size={20} />
+            </div>
+            <div className="min-w-0">
+              <div className="font-medium text-navy">{d.name}</div>
+              <div className="truncate text-xs text-muted-foreground">{d.description}</div>
+            </div>
+          </div>
+        )}
+      />
+    </>
+  );
+}
+
+/* ---------------- Roles ---------------- */
+function RolesTab() {
+  const { data: roles = [], isLoading } = useUserRoles();
+  const { add, update, remove } = useUserRoleMutations();
+  const fields: Field[] = [
+    { key: "display_name", label: "Naam", type: "text" },
+    { key: "email", label: "E-mail", type: "text" },
+    { key: "user_id", label: "Gebruikers-ID (UUID)", type: "text" },
+    {
+      key: "role",
+      label: "Rol",
+      type: "select",
+      options: APP_ROLES.map((r) => ({ value: r.value, label: `${r.label} — ${r.description}` })),
+    },
+  ];
+  const empty: UserRoleInput = {
+    user_id: "00000000-0000-0000-0000-000000000000",
+    display_name: "",
+    email: "",
+    role: "kantoor",
+  };
+  return (
+    <>
+      <div className="mb-4 rounded-2xl border border-border bg-card/60 p-4 text-sm text-foreground/70">
+        <p className="font-medium text-navy">Rolbeheer</p>
+        <p className="mt-1">
+          Wijs één van vijf rollen toe aan een gebruiker:{" "}
+          {APP_ROLES.map((r) => r.label).join(", ")}. Rollen worden later gekoppeld aan
+          inloggegevens voor automatische rechten in de Hub.
+        </p>
+      </div>
+      {isLoading && <div className="text-sm text-muted-foreground">Laden…</div>}
+      <EntityManager<UserRole>
+        title="Gebruikersrollen"
+        description="Beheer wie welke rol heeft binnen TerreVolt Hub."
+        items={roles}
+        fields={fields}
+        emptyItem={empty as Omit<UserRole, "id">}
+        onAdd={(item) => add.mutate(item as UserRoleInput)}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<UserRole> })}
+        onDelete={(id) => remove.mutate(id)}
+        onReorder={() => undefined}
+        rowPreview={(r) => (
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="truncate font-medium text-navy">
+                {r.display_name || r.email || "Onbekend"}
+              </div>
+              <span className="rounded-full bg-brand/15 px-2 py-0.5 text-xs font-medium text-brand">
+                {roleLabel(r.role)}
+              </span>
+            </div>
+            <div className="truncate text-xs text-muted-foreground">{r.email || r.user_id}</div>
+          </div>
+        )}
+      />
+    </>
   );
 }
 
