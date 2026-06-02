@@ -59,7 +59,8 @@ function CardInner({ app, large }: { app: Application; large?: boolean }) {
 }
 
 export function AppCard({ app, large }: { app: Application; large?: boolean }) {
-  const extra = app.new_tab ? { target: "_blank", rel: "noopener noreferrer" } : {};
+  const isExternal = /^https?:\/\//i.test(app.url);
+  const extra = app.new_tab || isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {};
   return (
     <a href={app.url} {...extra} className="block h-full">
       <CardInner app={app} large={large} />
