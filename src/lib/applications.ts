@@ -92,16 +92,11 @@ export function useAppMutations() {
 
   const reorder = useMutation({
     mutationFn: async ({ items }: { items: Application[] }) => {
-      // Reassign sort_order in increments of 10 and persist all changes.
-      const updates = items.map((a, i) => ({ id: a.id, sort_order: (i + 1) * 10 }));
-      // Use upsert to update many rows in one call (id is PK).
-      const { error } = await supabase
-        .from(TABLE)
-        .upsert(
-          updates.map((u) => ({ id: u.id, sort_order: u.sort_order })),
-          { onConflict: "id" },
-        );
-      if (error) throw error;
+      await Promise.all(
+        items.map((a, i) =>
+          supabase.from(TABLE).update({ sort_order: (i + 1) * 10 }).eq("id", a.id),
+        ),
+      );
     },
     onSuccess: invalidate,
   });
