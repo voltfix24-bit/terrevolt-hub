@@ -17,6 +17,7 @@ import {
   useSharePointMutations,
 } from "@/lib/sharepoint";
 import { ArrowUpRight } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -30,7 +31,7 @@ export const Route = createFileRoute("/")({
   component: Dashboard,
 });
 
-function getGreeting() {
+function computeGreeting() {
   const h = new Date().getHours();
   if (h < 12) return "Goedemorgen";
   if (h < 18) return "Goedemiddag";
@@ -51,7 +52,11 @@ function Dashboard() {
 
   const featured = apps.filter((a) => a.featured);
   const others = apps.filter((a) => !a.featured);
-  const greeting = getGreeting();
+  // Avoid SSR/client hydration mismatch — render a stable greeting first, then localise.
+  const [greeting, setGreeting] = useState("Welkom");
+  useEffect(() => {
+    setGreeting(computeGreeting());
+  }, []);
 
   return (
     <HubLayout>
