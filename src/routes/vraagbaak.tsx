@@ -480,6 +480,7 @@ function AnswerCard({
   answer,
   question,
   sources,
+  financeSources,
   related,
   bookmarked,
   feedbackSent,
@@ -491,6 +492,7 @@ function AnswerCard({
   answer: VraagbaakAnswer;
   question: string;
   sources: ResolvedSource[];
+  financeSources: FinanceClient[];
   related: KbArticle[];
   bookmarked: boolean;
   feedbackSent: VraagbaakFeedbackType | null;
@@ -500,6 +502,7 @@ function AnswerCard({
   canPersist: boolean;
 }) {
   const noSource = !answer.has_sources;
+  const totalSources = sources.length + financeSources.length;
 
   return (
     <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
