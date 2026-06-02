@@ -30,7 +30,7 @@ function getGreeting() {
 
 function Dashboard() {
   const { data: apps = [], isLoading } = useActiveApplications();
-  const news = useHubStore((s) => s.news);
+  const { data: news = [] } = usePublishedNews();
   const partners = useHubStore((s) => s.partners);
   const quickLinks = useHubStore((s) => s.quickLinks);
   const knowledge = useHubStore((s) => s.knowledge);
