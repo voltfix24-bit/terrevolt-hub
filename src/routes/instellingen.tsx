@@ -65,12 +65,21 @@ import {
   type KbDocumentType,
 } from "@/lib/knowledge";
 import { Icon } from "@/components/hub/Icon";
+import { AdminGate } from "@/components/hub/AdminGate";
 import { RotateCcw, Upload, X, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/instellingen")({
   head: () => ({ meta: [{ title: "Instellingen — TerreVolt Hub" }] }),
-  component: SettingsPage,
+  component: SettingsPageGated,
 });
+
+function SettingsPageGated() {
+  return (
+    <AdminGate>
+      <SettingsPage />
+    </AdminGate>
+  );
+}
 
 const TABS = [
   { id: "apps", label: "Applicaties" },
