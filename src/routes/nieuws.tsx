@@ -2,11 +2,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { NewsCard } from "@/components/hub/NewsCard";
 import { SectionHeader } from "@/components/hub/SectionHeader";
-import { news } from "@/lib/hub-data";
+import { useHubStore } from "@/lib/hub-store";
 
 export const Route = createFileRoute("/nieuws")({
   head: () => ({ meta: [{ title: "Nieuws — TerreVolt Hub" }] }),
-  component: () => (
+  component: Page,
+});
+
+function Page() {
+  const news = useHubStore((s) => s.news);
+  return (
     <HubLayout>
       <div className="mx-auto max-w-7xl">
         <SectionHeader title="Nieuws" subtitle="Alle updates van TerreVolt." />
@@ -15,5 +20,5 @@ export const Route = createFileRoute("/nieuws")({
         </div>
       </div>
     </HubLayout>
-  ),
-});
+  );
+}

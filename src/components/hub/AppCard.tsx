@@ -1,5 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
-import type { AppItem } from "@/lib/hub-data";
+import type { AppItem } from "@/lib/hub-store";
 
 const accentMap: Record<AppItem["accent"], string> = {
   brand: "from-brand/15 to-pastel/30",
@@ -58,15 +58,9 @@ function CardInner({ app, large }: { app: AppItem; large?: boolean }) {
 }
 
 export function AppCard({ app, large }: { app: AppItem; large?: boolean }) {
-  if (app.external) {
-    return (
-      <a href={app.href} target="_blank" rel="noopener noreferrer" className="block h-full">
-        <CardInner app={app} large={large} />
-      </a>
-    );
-  }
+  const extra = app.newTab ? { target: "_blank", rel: "noopener noreferrer" } : {};
   return (
-    <a href={app.href} className="block h-full">
+    <a href={app.href} {...extra} className="block h-full">
       <CardInner app={app} large={large} />
     </a>
   );

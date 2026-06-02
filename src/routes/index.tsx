@@ -3,7 +3,7 @@ import { HubLayout } from "@/components/hub/HubLayout";
 import { AppCard } from "@/components/hub/AppCard";
 import { NewsCard } from "@/components/hub/NewsCard";
 import { SectionHeader } from "@/components/hub/SectionHeader";
-import { apps, news, partners, knowledge } from "@/lib/hub-data";
+import { useHubStore } from "@/lib/hub-store";
 import { ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -26,6 +26,12 @@ function getGreeting() {
 }
 
 function Dashboard() {
+  const apps = useHubStore((s) => s.apps);
+  const news = useHubStore((s) => s.news);
+  const partners = useHubStore((s) => s.partners);
+  const quickLinks = useHubStore((s) => s.quickLinks);
+  const knowledge = useHubStore((s) => s.knowledge);
+
   const featured = apps.filter((a) => a.featured);
   const others = apps.filter((a) => !a.featured);
   const greeting = getGreeting();
@@ -44,25 +50,38 @@ function Dashboard() {
             <p className="mt-3 text-base text-foreground/70">
               Welkom terug in TerreVolt Hub
             </p>
+            {quickLinks.length > 0 && (
+              <div className="mt-6 flex flex-wrap gap-2">
+                {quickLinks.map((q) => (
+                  <a
+                    key={q.id}
+                    href={q.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-3.5 py-1.5 text-sm font-medium text-navy shadow-sm transition-all hover:border-brand/40 hover:bg-accent"
+                  >
+                    {q.icon && <span>{q.icon}</span>}
+                    {q.name}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
         {/* Applications */}
         <section>
-          <SectionHeader
-            title="Applicaties"
-            subtitle="Open snel je dagelijkse tools en omgevingen."
-          />
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            {featured.map((app) => (
-              <AppCard key={app.id} app={app} large />
-            ))}
-          </div>
-          <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {others.map((app) => (
-              <AppCard key={app.id} app={app} />
-            ))}
-          </div>
+          <SectionHeader title="Applicaties" subtitle="Open snel je dagelijkse tools en omgevingen." />
+          {featured.length > 0 && (
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+              {featured.map((app) => <AppCard key={app.id} app={app} large />)}
+            </div>
+          )}
+          {others.length > 0 && (
+            <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {others.map((app) => <AppCard key={app.id} app={app} />)}
+            </div>
+          )}
         </section>
 
         {/* News */}
@@ -71,36 +90,23 @@ function Dashboard() {
             title="Laatste nieuws"
             subtitle="Updates van TerreVolt en de branche."
             action={
-              <a
-                href="/nieuws"
-                className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
-              >
+              <a href="/nieuws" className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline">
                 Alles bekijken <ArrowUpRight className="h-4 w-4" />
               </a>
             }
           />
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {news.map((item) => (
-              <NewsCard key={item.id} item={item} />
-            ))}
+            {news.map((item) => <NewsCard key={item.id} item={item} />)}
           </div>
         </section>
 
         {/* Partner portals */}
         <section>
-          <SectionHeader
-            title="Partnerportalen"
-            subtitle="Directe toegang tot externe omgevingen."
-          />
+          <SectionHeader title="Partnerportalen" subtitle="Directe toegang tot externe omgevingen." />
           <div className="flex flex-wrap gap-3">
             {partners.map((p) => (
-              <a
-                key={p.id}
-                href={p.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-navy shadow-sm transition-all hover:border-brand/40 hover:bg-accent"
-              >
+              <a key={p.id} href={p.href} target="_blank" rel="noopener noreferrer"
+                 className="group inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-navy shadow-sm transition-all hover:border-brand/40 hover:bg-accent">
                 <span className="h-2 w-2 rounded-full bg-brand" />
                 {p.name}
                 <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -111,25 +117,15 @@ function Dashboard() {
 
         {/* Knowledge base */}
         <section className="pb-8">
-          <SectionHeader
-            title="Kennisbank"
-            subtitle="Vind procedures, richtlijnen en interne kennis."
-          />
+          <SectionHeader title="Kennisbank" subtitle="Vind procedures, richtlijnen en interne kennis." />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {knowledge.map((cat) => (
-              <a
-                key={cat.id}
-                href={`/kennisbank/${cat.slug}`}
-                className="group flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-xl">
-                  {cat.icon}
-                </div>
+              <a key={cat.id} href={`/kennisbank/${cat.slug}`}
+                 className="group flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-xl">{cat.icon}</div>
                 <div>
                   <div className="font-semibold text-navy">{cat.name}</div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {cat.description}
-                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">{cat.description}</div>
                 </div>
               </a>
             ))}

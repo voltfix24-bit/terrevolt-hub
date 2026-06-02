@@ -1,12 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
-import { partners } from "@/lib/hub-data";
+import { useHubStore } from "@/lib/hub-store";
 import { ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/partnerportalen")({
   head: () => ({ meta: [{ title: "Partnerportalen — TerreVolt Hub" }] }),
-  component: () => (
+  component: Page,
+});
+
+function Page() {
+  const partners = useHubStore((s) => s.partners);
+  return (
     <HubLayout>
       <div className="mx-auto max-w-7xl">
         <SectionHeader title="Partnerportalen" subtitle="Directe toegang tot externe omgevingen." />
@@ -22,5 +27,5 @@ export const Route = createFileRoute("/partnerportalen")({
         </div>
       </div>
     </HubLayout>
-  ),
-});
+  );
+}
