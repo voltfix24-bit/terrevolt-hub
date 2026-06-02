@@ -6,6 +6,7 @@ import { SectionHeader } from "@/components/hub/SectionHeader";
 import { Icon } from "@/components/hub/Icon";
 import { useHubStore } from "@/lib/hub-store";
 import { useActiveApplications } from "@/lib/applications";
+import { usePublishedNews } from "@/lib/news";
 import { ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -29,7 +30,7 @@ function getGreeting() {
 
 function Dashboard() {
   const { data: apps = [], isLoading } = useActiveApplications();
-  const news = useHubStore((s) => s.news);
+  const { data: news = [] } = usePublishedNews();
   const partners = useHubStore((s) => s.partners);
   const quickLinks = useHubStore((s) => s.quickLinks);
   const knowledge = useHubStore((s) => s.knowledge);

@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import { EntityManager, type Field } from "@/components/hub/EntityManager";
-import { useHubStore, type NewsItem, type PartnerLink, type QuickLink, type KnowledgeCategory } from "@/lib/hub-store";
+import { useHubStore, type PartnerLink, type QuickLink, type KnowledgeCategory } from "@/lib/hub-store";
 import {
   useApplications,
   useAppMutations,
@@ -11,6 +11,13 @@ import {
   type Application,
   type ApplicationInput,
 } from "@/lib/applications";
+import {
+  useNews,
+  useNewsMutations,
+  formatNewsDate,
+  type NewsArticle,
+  type NewsInput,
+} from "@/lib/news";
 import { Icon } from "@/components/hub/Icon";
 import { RotateCcw } from "lucide-react";
 
@@ -169,40 +176,79 @@ function AppsTab() {
 
 /* ---------------- News ---------------- */
 function NewsTab() {
-  const { news, addNews, updateNews, deleteNews, reorder } = useHubStore();
+  const { data: news = [], isLoading } = useNews();
+  const { add, update, remove, reorder } = useNewsMutations();
   const fields: Field[] = [
     { key: "title", label: "Titel", type: "text" },
     { key: "category", label: "Categorie", type: "text" },
-    { key: "date", label: "Datum", type: "date" },
-    { key: "excerpt", label: "Samenvatting", type: "textarea" },
-    { key: "image", label: "Afbeelding", type: "image" },
-    { key: "important", label: "Belangrijk", type: "bool" },
+    { key: "publish_date", label: "Publicatiedatum", type: "date" },
+    { key: "author", label: "Auteur", type: "text" },
+    { key: "summary", label: "Samenvatting", type: "textarea" },
+    { key: "content", label: "Inhoud", type: "textarea" },
+    { key: "cover_image", label: "Omslagafbeelding", type: "image" },
+    { key: "important", label: "Belangrijke aankondiging (vastgepind)", type: "bool" },
+    { key: "archived", label: "Gearchiveerd (niet zichtbaar op homepage)", type: "bool" },
   ];
-  const empty: Omit<NewsItem, "id"> = {
-    title: "", category: "Algemeen", excerpt: "", image: "", date: new Date().toLocaleDateString("nl-NL"), important: false,
+  const empty: NewsInput = {
+    title: "",
+    category: "Algemeen",
+    summary: "",
+    content: "",
+    cover_image: "",
+    publish_date: new Date().toISOString().slice(0, 10),
+    author: "",
+    important: false,
+    archived: false,
   };
   return (
-    <EntityManager<NewsItem>
-      title="Nieuws" description="Berichten op de nieuwskaarten."
-      items={news} fields={fields} emptyItem={empty}
-      onAdd={addNews} onUpdate={updateNews} onDelete={deleteNews}
-      onReorder={(f, t) => reorder("news", f, t)}
-      rowPreview={(n) => (
-        <div className="flex items-center gap-3">
-          {n.image
-            ? <img src={n.image} alt="" className="h-12 w-16 rounded-lg object-cover" />
-            : <div className="h-12 w-16 rounded-lg bg-accent" />
-          }
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <div className="truncate font-medium text-navy">{n.title}</div>
-              {n.important && <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-medium text-brand-foreground">Belangrijk</span>}
+    <>
+      {isLoading && <div className="text-sm text-muted-foreground">Laden…</div>}
+      <EntityManager<NewsArticle>
+        title="Nieuws"
+        description="Nieuwsberichten op het dashboard. Belangrijke aankondigingen worden bovenaan vastgepind."
+        items={news}
+        fields={fields}
+        emptyItem={empty as Omit<NewsArticle, "id">}
+        onAdd={(item) => add.mutate(item as NewsInput)}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<NewsArticle> })}
+        onDelete={(id) => remove.mutate(id)}
+        onReorder={(from, to) => {
+          if (from === to) return;
+          const next = news.slice();
+          const [m] = next.splice(from, 1);
+          next.splice(to, 0, m);
+          reorder.mutate({ items: next });
+        }}
+        rowPreview={(n) => (
+          <div className="flex items-center gap-3">
+            {n.cover_image ? (
+              <img src={n.cover_image} alt="" className="h-12 w-16 rounded-lg object-cover" />
+            ) : (
+              <div className="h-12 w-16 rounded-lg bg-accent" />
+            )}
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="truncate font-medium text-navy">{n.title}</div>
+                {n.important && (
+                  <span className="rounded-full bg-brand px-2 py-0.5 text-xs font-medium text-brand-foreground">
+                    Vastgepind
+                  </span>
+                )}
+                {n.archived && (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                    Gearchiveerd
+                  </span>
+                )}
+              </div>
+              <div className="truncate text-xs text-muted-foreground">
+                {n.category} · {formatNewsDate(n.publish_date)}
+                {n.author ? ` · ${n.author}` : ""}
+              </div>
             </div>
-            <div className="truncate text-xs text-muted-foreground">{n.category} · {n.date}</div>
           </div>
-        </div>
-      )}
-    />
+        )}
+      />
+    </>
   );
 }
 
