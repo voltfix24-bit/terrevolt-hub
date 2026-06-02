@@ -34,7 +34,7 @@ function Dashboard() {
   const { data: news = [] } = usePublishedNews();
   const partners = useHubStore((s) => s.partners);
   const quickLinks = useHubStore((s) => s.quickLinks);
-  const knowledge = useHubStore((s) => s.knowledge);
+  const { data: knowledge = [] } = useKbCategories();
 
   const featured = apps.filter((a) => a.featured);
   const others = apps.filter((a) => !a.featured);
