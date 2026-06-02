@@ -412,6 +412,87 @@ export type Database = {
         }
         Relationships: []
       }
+      people: {
+        Row: {
+          archived: boolean
+          bei_authorization: string
+          certifications: string[]
+          created_at: string
+          department: string
+          email: string
+          emergency_admin_only: boolean
+          emergency_contact: string
+          employment_type: string
+          equipment: string
+          full_name: string
+          hidden_fields: string[]
+          id: string
+          job_title: string
+          location: string
+          notes: string
+          person_type: Database["public"]["Enums"]["person_type"]
+          phone: string
+          photo_url: string
+          projects: string[]
+          sort_order: number
+          status: Database["public"]["Enums"]["person_status"]
+          updated_at: string
+          vehicle: string
+        }
+        Insert: {
+          archived?: boolean
+          bei_authorization?: string
+          certifications?: string[]
+          created_at?: string
+          department?: string
+          email?: string
+          emergency_admin_only?: boolean
+          emergency_contact?: string
+          employment_type?: string
+          equipment?: string
+          full_name: string
+          hidden_fields?: string[]
+          id?: string
+          job_title?: string
+          location?: string
+          notes?: string
+          person_type?: Database["public"]["Enums"]["person_type"]
+          phone?: string
+          photo_url?: string
+          projects?: string[]
+          sort_order?: number
+          status?: Database["public"]["Enums"]["person_status"]
+          updated_at?: string
+          vehicle?: string
+        }
+        Update: {
+          archived?: boolean
+          bei_authorization?: string
+          certifications?: string[]
+          created_at?: string
+          department?: string
+          email?: string
+          emergency_admin_only?: boolean
+          emergency_contact?: string
+          employment_type?: string
+          equipment?: string
+          full_name?: string
+          hidden_fields?: string[]
+          id?: string
+          job_title?: string
+          location?: string
+          notes?: string
+          person_type?: Database["public"]["Enums"]["person_type"]
+          phone?: string
+          photo_url?: string
+          projects?: string[]
+          sort_order?: number
+          status?: Database["public"]["Enums"]["person_status"]
+          updated_at?: string
+          vehicle?: string
+        }
+        Relationships: []
+      }
       sharepoint_config: {
         Row: {
           base_url: string
@@ -646,6 +727,23 @@ export type Database = {
         | "Externe systemen"
         | "Overig"
       kb_status: "active" | "draft" | "expired" | "archived"
+      person_status:
+        | "Beschikbaar"
+        | "Bezet"
+        | "Op project"
+        | "Afwezig"
+        | "Verlof"
+        | "Niet actief"
+      person_type:
+        | "Medewerker"
+        | "ZZP'er"
+        | "Monteur"
+        | "Werkvoorbereider"
+        | "Projectleider"
+        | "Administratie"
+        | "Directie"
+        | "Magazijn"
+        | "Externe partner"
       sharepoint_kind: "link" | "folder"
       vraagbaak_feedback_type:
         | "correct"
@@ -787,6 +885,25 @@ export const Constants = {
         "Overig",
       ],
       kb_status: ["active", "draft", "expired", "archived"],
+      person_status: [
+        "Beschikbaar",
+        "Bezet",
+        "Op project",
+        "Afwezig",
+        "Verlof",
+        "Niet actief",
+      ],
+      person_type: [
+        "Medewerker",
+        "ZZP'er",
+        "Monteur",
+        "Werkvoorbereider",
+        "Projectleider",
+        "Administratie",
+        "Directie",
+        "Magazijn",
+        "Externe partner",
+      ],
       sharepoint_kind: ["link", "folder"],
       vraagbaak_feedback_type: [
         "correct",
