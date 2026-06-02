@@ -224,7 +224,7 @@ function KnowledgeTab() {
       onReorder={(f, t) => reorder("knowledge", f, t)}
       rowPreview={(k) => (
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-xl">{k.icon}</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-navy"><Icon name={k.icon} size={20} /></div>
           <div className="min-w-0">
             <div className="font-medium text-navy">{k.name}</div>
             <div className="truncate text-xs text-muted-foreground">/{k.slug} · {k.description}</div>
