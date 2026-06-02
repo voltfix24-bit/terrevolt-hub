@@ -7,6 +7,7 @@ import { Icon } from "@/components/hub/Icon";
 import { useHubStore } from "@/lib/hub-store";
 import { useActiveApplications } from "@/lib/applications";
 import { usePublishedNews } from "@/lib/news";
+import { useKbCategories } from "@/lib/knowledge";
 import { ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
