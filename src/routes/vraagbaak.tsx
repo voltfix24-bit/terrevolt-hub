@@ -427,6 +427,7 @@ function VraagbaakPage() {
             answer={answer}
             question={answerForQuestion}
             sources={sources}
+            financeSources={financeSources}
             related={related}
             bookmarked={bookmarked}
             feedbackSent={feedbackSent}
