@@ -113,8 +113,8 @@ const defaults: State = {
     { id: uid(), slug: "aarding", name: "Aarding", description: "Richtlijnen en meetmethodes.", icon: "globe" },
     { id: uid(), slug: "ls-meten", name: "LS Meten", description: "Laagspanning meetprocedures.", icon: "ruler" },
     { id: uid(), slug: "materialen", name: "Materialen", description: "Specificaties en leveranciers.", icon: "package" },
-    { id: uid(), slug: "uren-boeken", name: "Uren boeken", description: "Handleidingen en tips.", icon: "⏱️" },
-    { id: uid(), slug: "bedrijfsprocessen", name: "Bedrijfsprocessen", description: "Interne workflows en afspraken.", icon: "🏢" },
+    { id: uid(), slug: "uren-boeken", name: "Uren boeken", description: "Handleidingen en tips.", icon: "clock" },
+    { id: uid(), slug: "bedrijfsprocessen", name: "Bedrijfsprocessen", description: "Interne workflows en afspraken.", icon: "building-2" },
   ],
 };
 
@@ -160,6 +160,6 @@ export const useHubStore = create<State & Actions>()(
 
       resetAll: () => set(() => ({ ...defaults })),
     }),
-    { name: "terrevolt-hub-store", version: 1 },
+    { name: "terrevolt-hub-store", version: 2, migrate: () => ({ ...defaults } as never) },
   ),
 );
