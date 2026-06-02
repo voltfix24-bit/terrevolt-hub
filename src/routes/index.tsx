@@ -8,6 +8,12 @@ import { useHubStore } from "@/lib/hub-store";
 import { useActiveApplications } from "@/lib/applications";
 import { usePublishedNews } from "@/lib/news";
 import { useKbCategories } from "@/lib/knowledge";
+import {
+  useRecentSharePointLinks,
+  useFavoriteSharePointFolders,
+  useFavoriteSharePointLinks,
+  useSharePointMutations,
+} from "@/lib/sharepoint";
 import { ArrowUpRight } from "lucide-react";
 
 export const Route = createFileRoute("/")({
