@@ -62,6 +62,89 @@ export type Database = {
         }
         Relationships: []
       }
+      kb_articles: {
+        Row: {
+          attachments: Json
+          author: string
+          category_id: string
+          content: string
+          created_at: string
+          id: string
+          related_ids: string[]
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json
+          author?: string
+          category_id: string
+          content?: string
+          created_at?: string
+          id?: string
+          related_ids?: string[]
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json
+          author?: string
+          category_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          related_ids?: string[]
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_articles_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "kb_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_categories: {
+        Row: {
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       news: {
         Row: {
           archived: boolean
