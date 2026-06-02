@@ -14,7 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      applications: {
+        Row: {
+          accent: string
+          active: boolean
+          category: Database["public"]["Enums"]["app_category"]
+          created_at: string
+          description: string
+          featured: boolean
+          icon: string
+          id: string
+          name: string
+          new_tab: boolean
+          sort_order: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          accent?: string
+          active?: boolean
+          category?: Database["public"]["Enums"]["app_category"]
+          created_at?: string
+          description?: string
+          featured?: boolean
+          icon?: string
+          id?: string
+          name: string
+          new_tab?: boolean
+          sort_order?: number
+          updated_at?: string
+          url?: string
+        }
+        Update: {
+          accent?: string
+          active?: boolean
+          category?: Database["public"]["Enums"]["app_category"]
+          created_at?: string
+          description?: string
+          featured?: boolean
+          icon?: string
+          id?: string
+          name?: string
+          new_tab?: boolean
+          sort_order?: number
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +70,12 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      app_category:
+        | "Operationeel"
+        | "Administratie"
+        | "Rapportage"
+        | "Externe systemen"
+        | "Overig"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +202,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_category: [
+        "Operationeel",
+        "Administratie",
+        "Rapportage",
+        "Externe systemen",
+        "Overig",
+      ],
+    },
   },
 } as const
