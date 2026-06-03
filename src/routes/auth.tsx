@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import logo from "@/assets/terrevolt-logo.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
@@ -30,9 +31,7 @@ function AuthPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pastel/40 via-background to-lime-soft/40 px-4">
       <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-xl">
         <Link to="/" className="flex items-center gap-2 mb-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-brand-foreground font-bold">
-            T
-          </div>
+          <img src={logo.url} alt="TerreVolt" className="h-10 w-10 object-contain" />
           <div className="leading-tight">
             <div className="font-semibold text-navy">TerreVolt</div>
             <div className="text-xs text-muted-foreground">Hub</div>
