@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import logo from "@/assets/terrevolt-logo.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,

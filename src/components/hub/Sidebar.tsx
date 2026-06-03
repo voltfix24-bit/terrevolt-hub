@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import logo from "@/assets/terrevolt-logo.png.asset.json";
 import {
   LayoutDashboard,
   AppWindow,
