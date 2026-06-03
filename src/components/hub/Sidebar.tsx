@@ -33,9 +33,7 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
       <div className="flex items-center gap-2 px-6 py-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-brand-foreground font-bold">
-          T
-        </div>
+        <img src={logo.url} alt="TerreVolt" className="h-9 w-9 object-contain" />
         <div className="leading-tight">
           <div className="font-semibold text-navy">TerreVolt</div>
           <div className="text-xs text-muted-foreground">Hub</div>
