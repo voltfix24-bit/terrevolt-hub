@@ -15,6 +15,8 @@ import {
   ArrowUpRight,
   History,
   Wallet,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
@@ -595,35 +597,61 @@ function AnswerCard({
                 </Link>
               </li>
             ))}
-            {sources.map((s) => (
-              <li key={s.article.id}>
-                <Link
-                  to="/kennisbank/$slug/$articleSlug"
-                  params={{
-                    slug: s.section?.slug ?? "item",
-                    articleSlug: s.article.slug,
-                  }}
-                  className="flex items-start gap-3 rounded-2xl border border-border bg-background p-3.5 shadow-sm transition hover:border-brand/40 hover:bg-pastel/30"
+            {sources.map((s) => {
+              const a = s.article;
+              const dateLabel = a.document_date ?? a.updated_at;
+              const hasPdf = !!a.file_url;
+              return (
+                <li
+                  key={a.id}
+                  className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition hover:border-brand/40"
                 >
-                  <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-medium text-navy">
-                      {s.article.title}
+                  <Link
+                    to="/kennisbank/$slug/$articleSlug"
+                    params={{
+                      slug: s.section?.slug ?? "item",
+                      articleSlug: a.slug,
+                    }}
+                    className="flex items-start gap-3 p-3.5 transition hover:bg-pastel/30"
+                  >
+                    <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand">
+                        Bron
+                      </div>
+                      <div className="truncate text-sm font-medium text-navy">
+                        {a.title}
+                      </div>
+                      <div className="mt-0.5 text-xs text-muted-foreground">
+                        {[s.section?.name, a.client, `v${a.version}`]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </div>
+                      <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {a.document_date ? "Documentdatum" : "Bijgewerkt"}{" "}
+                        {formatKbDate(dateLabel)}
+                      </div>
                     </div>
-                    <div className="mt-0.5 text-xs text-muted-foreground">
-                      {[s.section?.name, s.article.client, `v${s.article.version}`]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </div>
-                    <div className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      Bijgewerkt {formatKbDate(s.article.updated_at)}
-                    </div>
-                  </div>
-                  <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                </Link>
-              </li>
-            ))}
+                    <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  </Link>
+                  {hasPdf && (
+                    <a
+                      href={a.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between gap-2 border-t border-border/60 bg-pastel/20 px-3.5 py-2 text-xs font-medium text-navy transition hover:bg-pastel/40"
+                    >
+                      <span className="flex items-center gap-2">
+                        <FileText className="h-3.5 w-3.5 text-brand" />
+                        PDF openen{a.file_name ? ` · ${a.file_name}` : ""}
+                      </span>
+                      <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+                    </a>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </Section>
