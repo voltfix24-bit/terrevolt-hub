@@ -601,15 +601,24 @@ function AnswerCard({
                 </Link>
               </li>
             ))}
-            {sources.map((s) => {
+            {sources.map((s, idx) => {
               const a = s.article;
               const dateLabel = a.document_date ?? a.updated_at;
               const hasPdf = !!a.file_url;
               return (
                 <li
                   key={a.id}
-                  className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition hover:border-brand/40"
+                  id={`vb-source-${idx + 1}`}
+                  className="scroll-mt-24 overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition hover:border-brand/40"
                 >
+                  <div className="flex items-center gap-2 border-b border-border/60 bg-pastel/20 px-3.5 py-1.5">
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-brand/40 bg-brand/10 px-1 text-[10px] font-semibold text-brand">
+                      {idx + 1}
+                    </span>
+                    <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Bron
+                    </span>
+                  </div>
                   <Link
                     to="/kennisbank/$slug/$articleSlug"
                     params={{
