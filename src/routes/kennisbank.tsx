@@ -33,6 +33,12 @@ export const Route = createFileRoute("/kennisbank")({
 });
 
 function Page() {
+  const childMatches = useChildMatches();
+  if (childMatches.length > 0) return <Outlet />;
+  return <IndexPage />;
+}
+
+function IndexPage() {
   const [q, setQ] = useState("");
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [activeClient, setActiveClient] = useState<string | null>(null);
