@@ -542,10 +542,14 @@ function AnswerCard({
             <div>{NO_SOURCE_TEXT}</div>
           </div>
         ) : (
-          <p className="text-[15px] leading-7 text-foreground/90">{answer.short_answer}</p>
+          <p className="text-[15px] leading-7 text-foreground/90">
+            <CitedText text={answer.short_answer} max={sources.length} />
+          </p>
         )}
         {answer.summary && !noSource && (
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">{answer.summary}</p>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            <CitedText text={answer.summary} max={sources.length} />
+          </p>
         )}
       </Section>
 
@@ -558,7 +562,7 @@ function AnswerCard({
                 <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand/15 text-xs font-semibold text-brand">
                   {i + 1}
                 </span>
-                <span>{s}</span>
+                <span><CitedText text={s} max={sources.length} /></span>
               </li>
             ))}
           </ol>
