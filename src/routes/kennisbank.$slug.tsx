@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ChevronLeft, Search, FileText } from "lucide-react";
+import { ChevronLeft, Search, FileText, ChevronDown, Folder } from "lucide-react";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { Icon } from "@/components/hub/Icon";
 import {
   useKbArticles,
   useKbSections,
+  useKbCategories,
   formatKbDate,
   effectiveStatus,
   statusColor,
