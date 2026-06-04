@@ -59,6 +59,9 @@ function Page() {
     });
   }, [inSection, q, activeStatus, activeClient]);
 
+  if (childMatches.length > 0) return <Outlet />;
+
+
   return (
     <HubLayout>
       <div className="mx-auto max-w-5xl">
