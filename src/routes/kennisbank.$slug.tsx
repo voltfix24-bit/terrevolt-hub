@@ -24,7 +24,6 @@ export const Route = createFileRoute("/kennisbank/$slug")({
 function Page() {
   const { slug } = Route.useParams();
   const childMatches = useChildMatches();
-  if (childMatches.length > 0) return <Outlet />;
   const { data: sections = [] } = useKbSections();
   const { data: articles = [] } = useKbArticles();
   const { data: categories = [] } = useKbCategories();
