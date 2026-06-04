@@ -25,9 +25,11 @@ function Page() {
   const { slug } = Route.useParams();
   const { data: sections = [] } = useKbSections();
   const { data: articles = [] } = useKbArticles();
+  const { data: categories = [] } = useKbCategories();
   const [q, setQ] = useState("");
   const [activeStatus, setActiveStatus] = useState<string | null>(null);
   const [activeClient, setActiveClient] = useState<string | null>(null);
+  const [openCats, setOpenCats] = useState<Record<string, boolean>>({});
 
   const section = sections.find((s) => s.slug === slug);
 
