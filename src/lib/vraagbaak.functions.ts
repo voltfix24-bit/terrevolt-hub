@@ -100,13 +100,15 @@ REGELS:
 - Baseer je antwoord UITSLUITEND op de meegegeven documenten.
 - Als het antwoord niet (volledig) in de documenten staat, schrijf in "short_answer": "${NO_SOURCE}"
 - Presenteer het antwoord NOOIT als definitieve waarheid zonder bron.
+- Voeg in "short_answer", elke stap in "steps" en in "summary" inline bronverwijzingen toe in de vorm [n], waarbij n verwijst naar de positie (1-gebaseerd) in "source_indices". Plaats [n] direct achter de zin of zinsdeel die op die bron is gebaseerd, vóór de punt of komma. Meerdere bronnen mag: bijv. "...zoals beschreven [1][3].".
+- Gebruik alleen [n]-markers die ook in "source_indices" staan.
 - Antwoord altijd in geldige JSON met dit exacte schema:
 {
-  "short_answer": string,        // 1-3 zinnen, direct antwoord
-  "steps": string[],             // optioneel stappenplan, max 6 stappen
-  "summary": string,             // korte samenvatting / context, optioneel
-  "follow_ups": string[],        // 2-3 logische vervolgvragen
-  "source_indices": number[]     // de [nummers] van de gebruikte documenten
+  "short_answer": string,        // 1-3 zinnen met inline [n] citaten
+  "steps": string[],             // optioneel stappenplan met [n] citaten, max 6 stappen
+  "summary": string,             // korte samenvatting / context met [n] citaten, optioneel
+  "follow_ups": string[],        // 2-3 logische vervolgvragen (zonder [n])
+  "source_indices": number[]     // de [nummers] van de gebruikte documenten in volgorde van eerste citatie
 }
 - Geen markdown buiten de JSON, geen uitleg buiten de JSON.`;
 
