@@ -120,11 +120,12 @@ REGELS:
           "Lovable-API-Key": key,
         },
         body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+          model: "openai/gpt-5.2",
           messages: [
             { role: "system", content: system },
             { role: "user", content: userPrompt },
           ],
+          response_format: { type: "json_object" },
         }),
       });
 
