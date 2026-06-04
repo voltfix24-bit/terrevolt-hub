@@ -23,9 +23,8 @@ export const Route = createFileRoute("/kennisbank/$slug")({
 
 function Page() {
   const { slug } = Route.useParams();
-  const matchRoute = useMatchRoute();
-  const childMatch = matchRoute({ to: "/kennisbank/$slug/$articleSlug", params: { slug, articleSlug: "" }, fuzzy: true });
-  if (childMatch) return <Outlet />;
+  const childMatches = useChildMatches();
+  if (childMatches.length > 0) return <Outlet />;
   const { data: sections = [] } = useKbSections();
   const { data: articles = [] } = useKbArticles();
   const { data: categories = [] } = useKbCategories();
