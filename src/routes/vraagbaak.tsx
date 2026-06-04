@@ -542,10 +542,14 @@ function AnswerCard({
             <div>{NO_SOURCE_TEXT}</div>
           </div>
         ) : (
-          <p className="text-[15px] leading-7 text-foreground/90">{answer.short_answer}</p>
+          <p className="text-[15px] leading-7 text-foreground/90">
+            <CitedText text={answer.short_answer} max={sources.length} />
+          </p>
         )}
         {answer.summary && !noSource && (
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">{answer.summary}</p>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+            <CitedText text={answer.summary} max={sources.length} />
+          </p>
         )}
       </Section>
 
@@ -558,7 +562,7 @@ function AnswerCard({
                 <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand/15 text-xs font-semibold text-brand">
                   {i + 1}
                 </span>
-                <span>{s}</span>
+                <span><CitedText text={s} max={sources.length} /></span>
               </li>
             ))}
           </ol>
@@ -597,15 +601,24 @@ function AnswerCard({
                 </Link>
               </li>
             ))}
-            {sources.map((s) => {
+            {sources.map((s, idx) => {
               const a = s.article;
               const dateLabel = a.document_date ?? a.updated_at;
               const hasPdf = !!a.file_url;
               return (
                 <li
                   key={a.id}
-                  className="overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition hover:border-brand/40"
+                  id={`vb-source-${idx + 1}`}
+                  className="scroll-mt-24 overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition hover:border-brand/40"
                 >
+                  <div className="flex items-center gap-2 border-b border-border/60 bg-pastel/20 px-3.5 py-1.5">
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-brand/40 bg-brand/10 px-1 text-[10px] font-semibold text-brand">
+                      {idx + 1}
+                    </span>
+                    <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                      Bron
+                    </span>
+                  </div>
                   <Link
                     to="/kennisbank/$slug/$articleSlug"
                     params={{
@@ -616,9 +629,6 @@ function AnswerCard({
                   >
                     <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                     <div className="min-w-0 flex-1">
-                      <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand">
-                        Bron
-                      </div>
                       <div className="truncate text-sm font-medium text-navy">
                         {a.title}
                       </div>
@@ -737,5 +747,51 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       </div>
       {children}
     </div>
+  );
+}
+
+/** Renders text with inline [k] citation badges that scroll to the matching source. */
+function CitedText({ text, max }: { text: string; max: number }) {
+  if (!text) return null;
+  const parts: Array<string | number> = [];
+  const re = /\[(\d+)\]/g;
+  let lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > lastIndex) parts.push(text.slice(lastIndex, m.index));
+    const n = parseInt(m[1], 10);
+    if (n >= 1 && n <= max) parts.push(n);
+    lastIndex = m.index + m[0].length;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+
+  const jump = (n: number) => {
+    const el = document.getElementById(`vb-source-${n}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("ring-2", "ring-brand", "ring-offset-2");
+    setTimeout(() => {
+      el.classList.remove("ring-2", "ring-brand", "ring-offset-2");
+    }, 1600);
+  };
+
+  return (
+    <>
+      {parts.map((p, i) =>
+        typeof p === "string" ? (
+          <span key={i}>{p}</span>
+        ) : (
+          <button
+            key={i}
+            type="button"
+            onClick={() => jump(p)}
+            title={`Spring naar bron ${p}`}
+            className="mx-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-brand/40 bg-brand/10 px-1 align-baseline text-[10px] font-semibold text-brand transition hover:bg-brand/20"
+          >
+            {p}
+          </button>
+        )
+      )}
+    </>
   );
 }
