@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useChildMatches } from "@tanstack/react-router";
 import { ChevronLeft, Search, FileText, ChevronDown, Folder } from "lucide-react";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { Icon } from "@/components/hub/Icon";
