@@ -629,9 +629,6 @@ function AnswerCard({
                   >
                     <BookOpen className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                     <div className="min-w-0 flex-1">
-                      <div className="mb-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand">
-                        Bron
-                      </div>
                       <div className="truncate text-sm font-medium text-navy">
                         {a.title}
                       </div>
