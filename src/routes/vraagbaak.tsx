@@ -739,3 +739,49 @@ function Section({ title, children }: { title: string; children: React.ReactNode
     </div>
   );
 }
+
+/** Renders text with inline [k] citation badges that scroll to the matching source. */
+function CitedText({ text, max }: { text: string; max: number }) {
+  if (!text) return null;
+  const parts: Array<string | number> = [];
+  const re = /\[(\d+)\]/g;
+  let lastIndex = 0;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > lastIndex) parts.push(text.slice(lastIndex, m.index));
+    const n = parseInt(m[1], 10);
+    if (n >= 1 && n <= max) parts.push(n);
+    lastIndex = m.index + m[0].length;
+  }
+  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
+
+  const jump = (n: number) => {
+    const el = document.getElementById(`vb-source-${n}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("ring-2", "ring-brand", "ring-offset-2");
+    setTimeout(() => {
+      el.classList.remove("ring-2", "ring-brand", "ring-offset-2");
+    }, 1600);
+  };
+
+  return (
+    <>
+      {parts.map((p, i) =>
+        typeof p === "string" ? (
+          <span key={i}>{p}</span>
+        ) : (
+          <button
+            key={i}
+            type="button"
+            onClick={() => jump(p)}
+            title={`Spring naar bron ${p}`}
+            className="mx-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-md border border-brand/40 bg-brand/10 px-1 align-baseline text-[10px] font-semibold text-brand transition hover:bg-brand/20"
+          >
+            {p}
+          </button>
+        )
+      )}
+    </>
+  );
+}
