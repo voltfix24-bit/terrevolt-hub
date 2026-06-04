@@ -15,6 +15,8 @@ import {
   ArrowUpRight,
   History,
   Wallet,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
