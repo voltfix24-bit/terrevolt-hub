@@ -125,51 +125,93 @@ function Page() {
           <div className="rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">
             Geen kennisitems in deze sectie.
           </div>
-        ) : (
-          <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-            {list.map((a) => {
-              const eff = effectiveStatus(a);
-              return (
-                <li key={a.id}>
-                  <Link
-                    to="/kennisbank/$slug/$articleSlug"
-                    params={{ slug: section ? section.slug : slugify(slug), articleSlug: a.slug }}
-                    className="flex items-start gap-4 p-5 transition hover:bg-accent/40"
-                  >
-                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-navy">
-                      <Icon name={documentTypeIcon(a.document_type)} size={18} />
+        ) : (() => {
+          const usedCatIds = Array.from(new Set(list.map((a) => a.category_id).filter(Boolean) as string[]));
+          const sectionCats = categories
+            .filter((c) => usedCatIds.includes(c.id))
+            .sort((a, b) => (a.sort_order - b.sort_order) || a.name.localeCompare(b.name));
+          const ungrouped = list.filter((a) => !a.category_id);
+
+          const renderArticle = (a: typeof list[number]) => {
+            const eff = effectiveStatus(a);
+            return (
+              <li key={a.id}>
+                <Link
+                  to="/kennisbank/$slug/$articleSlug"
+                  params={{ slug: section ? section.slug : slugify(slug), articleSlug: a.slug }}
+                  className="flex items-start gap-4 p-5 transition hover:bg-accent/40"
+                >
+                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-navy">
+                    <Icon name={documentTypeIcon(a.document_type)} size={18} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="font-medium text-navy">{a.title}</div>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor(eff)}`}>
+                        {statusLabel(eff)}
+                      </span>
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-foreground/70">
+                        {documentTypeLabel(a.document_type)} v{a.version}
+                      </span>
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <div className="font-medium text-navy">{a.title}</div>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColor(eff)}`}
-                        >
-                          {statusLabel(eff)}
-                        </span>
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-foreground/70">
-                          {documentTypeLabel(a.document_type)} v{a.version}
-                        </span>
+                    <div className="mt-1 line-clamp-2 text-sm text-foreground/70">
+                      {a.summary || a.content.slice(0, 200)}
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <span>Bijgewerkt {formatKbDate(a.updated_at)}</span>
+                      {a.owner && <span>· Eigenaar {a.owner}</span>}
+                      {a.client && <span>· {a.client}</span>}
+                      {a.valid_until && <span>· geldig t/m {formatKbDate(a.valid_until)}</span>}
+                    </div>
+                  </div>
+                  <FileText className="mt-1 h-4 w-4 text-muted-foreground" />
+                </Link>
+              </li>
+            );
+          };
+
+          return (
+            <div className="space-y-4">
+              {ungrouped.length > 0 && (
+                <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                  {ungrouped.map(renderArticle)}
+                </ul>
+              )}
+              {sectionCats.map((c) => {
+                const inCat = list.filter((a) => a.category_id === c.id);
+                const isOpen = openCats[c.id] ?? (!!q || sectionCats.length === 1);
+                return (
+                  <div key={c.id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                    <button
+                      type="button"
+                      onClick={() => setOpenCats((s) => ({ ...s, [c.id]: !isOpen }))}
+                      className="flex w-full items-center gap-3 px-5 py-4 text-left transition hover:bg-accent/40"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent text-navy">
+                        <Folder className="h-4 w-4" />
                       </div>
-                      <div className="mt-1 line-clamp-2 text-sm text-foreground/70">
-                        {a.summary || a.content.slice(0, 200)}
-                      </div>
-                      <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                        <span>Bijgewerkt {formatKbDate(a.updated_at)}</span>
-                        {a.owner && <span>· Eigenaar {a.owner}</span>}
-                        {a.client && <span>· {a.client}</span>}
-                        {a.valid_until && (
-                          <span>· geldig t/m {formatKbDate(a.valid_until)}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-navy">{c.name}</div>
+                        {c.description && (
+                          <div className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{c.description}</div>
                         )}
                       </div>
-                    </div>
-                    <FileText className="mt-1 h-4 w-4 text-muted-foreground" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground/70">
+                        {inCat.length}
+                      </span>
+                      <ChevronDown className={`h-4 w-4 text-muted-foreground transition ${isOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    {isOpen && (
+                      <ul className="divide-y divide-border border-t border-border">
+                        {inCat.map(renderArticle)}
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
     </HubLayout>
   );
