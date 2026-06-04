@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useChildMatches } from "@tanstack/react-router";
 import { ChevronLeft, Search, FileText, ChevronDown, Folder } from "lucide-react";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { Icon } from "@/components/hub/Icon";
@@ -23,6 +23,7 @@ export const Route = createFileRoute("/kennisbank/$slug")({
 
 function Page() {
   const { slug } = Route.useParams();
+  const childMatches = useChildMatches();
   const { data: sections = [] } = useKbSections();
   const { data: articles = [] } = useKbArticles();
   const { data: categories = [] } = useKbCategories();
@@ -57,6 +58,9 @@ function Page() {
       return hay.includes(query);
     });
   }, [inSection, q, activeStatus, activeClient]);
+
+  if (childMatches.length > 0) return <Outlet />;
+
 
   return (
     <HubLayout>

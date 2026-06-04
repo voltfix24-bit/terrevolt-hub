@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useChildMatches } from "@tanstack/react-router";
 import { Search, AlertTriangle, Sparkles, Clock, Pin } from "lucide-react";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
@@ -33,6 +33,12 @@ export const Route = createFileRoute("/kennisbank")({
 });
 
 function Page() {
+  const childMatches = useChildMatches();
+  if (childMatches.length > 0) return <Outlet />;
+  return <IndexPage />;
+}
+
+function IndexPage() {
   const [q, setQ] = useState("");
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [activeClient, setActiveClient] = useState<string | null>(null);
