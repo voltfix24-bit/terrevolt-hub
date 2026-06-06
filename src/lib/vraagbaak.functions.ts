@@ -1,37 +1,44 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-const ContextDoc = z.object({
-  id: z.string(),
-  title: z.string(),
-  section: z.string().optional(),
-  client: z.string().optional(),
-  document_type: z.string().optional(),
-  summary: z.string().optional(),
-  content: z.string().optional(),
-  valid_until: z.string().nullable().optional(),
-  updated_at: z.string().optional(),
-});
+export type KbChunkSource =
+  | "kb_article"
+  | "news"
+  | "finance_client"
+  | "person"
+  | "application"
+  | "sharepoint_item"
+  | "partner_link"
+  | "quick_link"
+  | "department";
 
-const Input = z.object({
-  question: z.string().min(1).max(2000),
-  context: z.array(ContextDoc).max(20),
-});
+export type ResolvedSource = {
+  source_type: KbChunkSource;
+  source_id: string;
+  title: string;
+  url: string;
+  external: boolean;
+  similarity: number;
+};
 
 export type VraagbaakAnswer = {
   short_answer: string;
   steps: string[];
   summary: string;
   follow_ups: string[];
-  source_ids: string[];
+  sources: ResolvedSource[];
   has_sources: boolean;
 };
+
+const Input = z.object({
+  question: z.string().min(1).max(2000),
+});
 
 const NO_SOURCE =
   "Ik kan dit niet met zekerheid vinden in de kennisbank. Controleer de originele documenten of vraag dit na bij de verantwoordelijke.";
 
 function extractJson(text: string): unknown | null {
-  // Try fenced block first
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
   const candidate = fence ? fence[1] : text;
   const first = candidate.indexOf("{");
@@ -44,53 +51,152 @@ function extractJson(text: string): unknown | null {
   }
 }
 
+const fallback = (short: string): VraagbaakAnswer => ({
+  short_answer: short,
+  steps: [],
+  summary: "",
+  follow_ups: [],
+  sources: [],
+  has_sources: false,
+});
+
 export const askVraagbaak = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => Input.parse(input))
-  .handler(async ({ data }): Promise<VraagbaakAnswer> => {
+  .handler(async ({ data, context }): Promise<VraagbaakAnswer> => {
     const key = process.env.LOVABLE_API_KEY;
-    const hasContext = data.context.length > 0;
-
-    // Placeholder fallback if AI not configured
     if (!key) {
-      return {
-        short_answer: hasContext
-          ? "De AI-assistent is nog niet geactiveerd. Hieronder vind je documenten die mogelijk relevant zijn voor je vraag."
-          : NO_SOURCE,
-        steps: hasContext
-          ? [
-              "Open een van de bronnen hieronder.",
-              "Controleer de meest recente versie en geldigheidsdatum.",
-              "Vraag bij twijfel na bij de verantwoordelijke.",
-            ]
-          : [],
-        summary: "",
-        follow_ups: [
-          "Wie is verantwoordelijk voor dit onderwerp?",
-          "Is er een recentere versie van dit document?",
-        ],
-        source_ids: data.context.map((d) => d.id),
-        has_sources: hasContext,
-      };
+      return fallback("De AI-assistent is nog niet geactiveerd. Stel LOVABLE_API_KEY in.");
+    }
+    const { supabase } = context;
+
+
+    // 1. Embed the question
+    let queryEmbedding: number[];
+    try {
+      const er = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
+        body: JSON.stringify({
+          model: "openai/text-embedding-3-small",
+          input: data.question,
+        }),
+      });
+      if (!er.ok) {
+        if (er.status === 429)
+          return fallback("Te veel verzoeken. Probeer het zo dadelijk opnieuw.");
+        if (er.status === 402)
+          return fallback("Het AI-tegoed is op. Voeg credits toe in workspace-instellingen.");
+        throw new Error(`Embeddings ${er.status}`);
+      }
+      const ej = (await er.json()) as { data: Array<{ embedding: number[] }> };
+      queryEmbedding = ej.data?.[0]?.embedding ?? [];
+      if (!queryEmbedding.length) throw new Error("empty embedding");
+    } catch (err) {
+      console.error("embed error", err);
+      return fallback("Kon de vraag niet verwerken. Probeer het later opnieuw.");
     }
 
-    if (!hasContext) {
-      return {
-        short_answer: NO_SOURCE,
-        steps: [],
-        summary: "",
-        follow_ups: [],
-        source_ids: [],
-        has_sources: false,
-      };
+    // 2. Semantic search via RPC (RLS applies via SECURITY DEFINER + caller role)
+    const { data: matches, error: matchErr } = await (supabase as unknown as {
+      rpc: (
+        name: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message: string } | null }>;
+    }).rpc("match_kb_chunks", {
+      query_embedding: queryEmbedding,
+      match_count: 12,
+    });
+    if (matchErr) {
+      console.error("match_kb_chunks error", matchErr);
+      return fallback("Kon de kennisbank niet doorzoeken. Probeer het later opnieuw.");
+    }
+    type MatchRow = {
+      id: string;
+      source_type: KbChunkSource;
+      source_id: string;
+      chunk_index: number;
+      title: string;
+      content: string;
+      metadata: Record<string, unknown>;
+      similarity: number;
+    };
+    const rows = (matches as MatchRow[] | null) ?? [];
+    if (rows.length === 0) {
+      return fallback(NO_SOURCE);
     }
 
-    const docs = data.context
-      .map((d, i) => {
-        const meta = [d.section, d.client, d.document_type, d.updated_at?.slice(0, 10)]
-          .filter(Boolean)
+    // 3. Resolve URLs that need extra DB lookups (slugs)
+    const kbIds = new Set(
+      rows.filter((r) => r.source_type === "kb_article").map((r) => r.source_id),
+    );
+    const sectionIds = new Set<string>();
+    type KbArt = { id: string; slug: string; section_id: string };
+    type Section = { id: string; slug: string };
+    let kbBySource = new Map<string, KbArt>();
+    let sectionById = new Map<string, Section>();
+    if (kbIds.size > 0) {
+      const { data: arts } = await supabase
+        .from("kb_articles")
+        .select("id,slug,section_id")
+        .in("id", Array.from(kbIds));
+      kbBySource = new Map(
+        ((arts as KbArt[] | null) ?? []).map((a) => {
+          if (a.section_id) sectionIds.add(a.section_id);
+          return [a.id, a];
+        }),
+      );
+      if (sectionIds.size > 0) {
+        const { data: secs } = await supabase
+          .from("kb_sections")
+          .select("id,slug")
+          .in("id", Array.from(sectionIds));
+        sectionById = new Map(((secs as Section[] | null) ?? []).map((s) => [s.id, s]));
+      }
+    }
+
+    function buildSourceUrl(r: MatchRow): { url: string; external: boolean } {
+      const meta = r.metadata ?? {};
+      switch (r.source_type) {
+        case "kb_article": {
+          const art = kbBySource.get(r.source_id);
+          const sec = art ? sectionById.get(art.section_id) : undefined;
+          if (art && sec) return { url: `/kennisbank/${sec.slug}/${art.slug}`, external: false };
+          return { url: "/kennisbank", external: false };
+        }
+        case "news":
+          return { url: `/nieuws#${r.source_id}`, external: false };
+        case "finance_client":
+          return { url: `/finance-wiki/${meta.slug ?? ""}`, external: false };
+        case "person":
+          return { url: `/smoelenboek/${r.source_id}`, external: false };
+        case "application": {
+          const url = String(meta.url ?? "/");
+          return { url, external: !!meta.new_tab || url.startsWith("http") };
+        }
+        case "sharepoint_item":
+          return { url: String(meta.url ?? ""), external: true };
+        case "partner_link":
+          return { url: String(meta.href ?? ""), external: true };
+        case "quick_link":
+          return { url: String(meta.href ?? ""), external: true };
+        case "department":
+          return {
+            url: `/smoelenboek?dept=${encodeURIComponent(String(meta.name ?? ""))}`,
+            external: false,
+          };
+      }
+    }
+
+    // 4. Build LLM context
+    const docs = rows
+      .map((r, i) => {
+        const meta = Object.entries(r.metadata ?? {})
+          .filter(([, v]) => v !== null && v !== "" && v !== undefined)
+          .map(([k, v]) => `${k}=${typeof v === "string" ? v : JSON.stringify(v)}`)
           .join(" · ");
-        const body = (d.summary || d.content || "").slice(0, 1500);
-        return `### [${i + 1}] ${d.title}\nMeta: ${meta}\n${body}`;
+        const body = (r.content || "").slice(0, 1800);
+        return `### [${i + 1}] ${r.title} (${r.source_type})\nMeta: ${meta}\n${body}`;
       })
       .join("\n\n");
 
@@ -99,19 +205,17 @@ export const askVraagbaak = createServerFn({ method: "POST" })
 REGELS:
 - Baseer je antwoord UITSLUITEND op de meegegeven documenten.
 - Als het antwoord niet (volledig) in de documenten staat, schrijf in "short_answer": "${NO_SOURCE}"
-- Presenteer het antwoord NOOIT als definitieve waarheid zonder bron.
-- Werkwijze bronvermelding (BELANGRIJK):
-  1) Bepaal eerst "source_indices": de documentnummers (zoals [1], [2]... in de Documenten-lijst hieronder) die je daadwerkelijk gebruikt, in de volgorde waarin je ze voor het eerst citeert.
-  2) Voeg in "short_answer", elke stap in "steps" en in "summary" inline citaten toe in de vorm [k]. Hier verwijst k naar de POSITIE in "source_indices" (1-gebaseerd), NIET naar het originele documentnummer.
-  3) Plaats [k] direct achter de zin of zinsdeel die op die bron is gebaseerd, vóór de punt. Meerdere bronnen mag: bijv. "...zoals beschreven [1][2].".
-  4) Elke zin met inhoudelijke informatie krijgt minimaal één [k]-citaat.
+- Werkwijze bronvermelding:
+  1) Bepaal "source_indices": de documentnummers (zoals [1], [2]...) die je daadwerkelijk gebruikt, in citatievolgorde.
+  2) Voeg in "short_answer", elke stap in "steps" en in "summary" inline citaten toe in de vorm [k], waar k de POSITIE in source_indices is (1-gebaseerd).
+  3) Elke zin met inhoudelijke informatie krijgt minimaal één [k]-citaat.
 - Antwoord altijd in geldige JSON met dit exacte schema:
 {
-  "short_answer": string,        // 1-3 zinnen met inline [k] citaten
-  "steps": string[],             // optioneel stappenplan met [k] citaten, max 6 stappen
-  "summary": string,             // korte samenvatting met [k] citaten, optioneel
-  "follow_ups": string[],        // 2-3 logische vervolgvragen (zonder [k])
-  "source_indices": number[]     // documentnummers in citatievolgorde
+  "short_answer": string,
+  "steps": string[],
+  "summary": string,
+  "follow_ups": string[],
+  "source_indices": number[]
 }
 - Geen markdown buiten de JSON, geen uitleg buiten de JSON.`;
 
@@ -120,10 +224,7 @@ REGELS:
     try {
       const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Lovable-API-Key": key,
-        },
+        headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
         body: JSON.stringify({
           model: "openai/gpt-5.2",
           messages: [
@@ -133,64 +234,43 @@ REGELS:
           response_format: { type: "json_object" },
         }),
       });
-
       if (!res.ok) {
-        if (res.status === 429) {
-          return {
-            short_answer: "Te veel verzoeken op dit moment. Probeer het zo dadelijk opnieuw.",
-            steps: [],
-            summary: "",
-            follow_ups: [],
-            source_ids: [],
-            has_sources: false,
-          };
-        }
-        if (res.status === 402) {
-          return {
-            short_answer:
-              "Het AI-tegoed is op. Voeg credits toe in workspace-instellingen om door te gaan.",
-            steps: [],
-            summary: "",
-            follow_ups: [],
-            source_ids: [],
-            has_sources: false,
-          };
-        }
+        if (res.status === 429) return fallback("Te veel verzoeken. Probeer het zo dadelijk opnieuw.");
+        if (res.status === 402)
+          return fallback("Het AI-tegoed is op. Voeg credits toe in workspace-instellingen.");
         throw new Error(`AI gateway ${res.status}`);
       }
-
-      const json = (await res.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
-      };
-      const raw = json.choices?.[0]?.message?.content ?? "";
-      const parsed = extractJson(raw) as
-        | {
-            short_answer?: string;
-            steps?: string[];
-            summary?: string;
-            follow_ups?: string[];
-            source_indices?: number[];
-          }
-        | null;
+      const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+      const raw = j.choices?.[0]?.message?.content ?? "";
+      const parsed = extractJson(raw) as {
+        short_answer?: string;
+        steps?: string[];
+        summary?: string;
+        follow_ups?: string[];
+        source_indices?: number[];
+      } | null;
 
       if (!parsed || typeof parsed.short_answer !== "string") {
-        return {
-          short_answer: raw.trim() || NO_SOURCE,
-          steps: [],
-          summary: "",
-          follow_ups: [],
-          source_ids: data.context.map((d) => d.id),
-          has_sources: true,
-        };
+        return fallback(raw.trim() || NO_SOURCE);
       }
-
       const indices = Array.isArray(parsed.source_indices) ? parsed.source_indices : [];
-      const sourceIds = indices
-        .map((i) => data.context[i - 1]?.id)
-        .filter((x): x is string => !!x);
+      const sources: ResolvedSource[] = indices
+        .map((i) => rows[i - 1])
+        .filter(Boolean)
+        .map((r) => {
+          const { url, external } = buildSourceUrl(r);
+          return {
+            source_type: r.source_type,
+            source_id: r.source_id,
+            title: r.title,
+            url,
+            external,
+            similarity: r.similarity,
+          };
+        });
 
       const isNoSource =
-        parsed.short_answer.trim() === NO_SOURCE || sourceIds.length === 0;
+        parsed.short_answer.trim() === NO_SOURCE || sources.length === 0;
 
       return {
         short_answer: parsed.short_answer.trim(),
@@ -199,19 +279,11 @@ REGELS:
         follow_ups: Array.isArray(parsed.follow_ups)
           ? parsed.follow_ups.filter(Boolean).slice(0, 4)
           : [],
-        source_ids: sourceIds,
+        sources,
         has_sources: !isNoSource,
       };
     } catch (err) {
-      console.error("vraagbaak error", err);
-      return {
-        short_answer:
-          "Er ging iets mis bij het ophalen van het antwoord. Probeer het later opnieuw.",
-        steps: [],
-        summary: "",
-        follow_ups: [],
-        source_ids: [],
-        has_sources: false,
-      };
+      console.error("vraagbaak LLM error", err);
+      return fallback("Er ging iets mis bij het ophalen van het antwoord. Probeer het later opnieuw.");
     }
   });

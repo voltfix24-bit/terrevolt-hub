@@ -305,6 +305,48 @@ export type Database = {
         }
         Relationships: []
       }
+      kb_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          embedding: string | null
+          id: string
+          indexed_at: string
+          metadata: Json
+          source_id: string
+          source_type: Database["public"]["Enums"]["kb_chunk_source"]
+          source_updated_at: string | null
+          title: string
+          visibility: Database["public"]["Enums"]["kb_chunk_visibility"]
+        }
+        Insert: {
+          chunk_index?: number
+          content: string
+          embedding?: string | null
+          id?: string
+          indexed_at?: string
+          metadata?: Json
+          source_id: string
+          source_type: Database["public"]["Enums"]["kb_chunk_source"]
+          source_updated_at?: string | null
+          title: string
+          visibility?: Database["public"]["Enums"]["kb_chunk_visibility"]
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          embedding?: string | null
+          id?: string
+          indexed_at?: string
+          metadata?: Json
+          source_id?: string
+          source_type?: Database["public"]["Enums"]["kb_chunk_source"]
+          source_updated_at?: string | null
+          title?: string
+          visibility?: Database["public"]["Enums"]["kb_chunk_visibility"]
+        }
+        Relationships: []
+      }
       kb_sections: {
         Row: {
           accent: string
@@ -844,6 +886,7 @@ export type Database = {
           question_id: string
           section_heading: string
           sort_order: number
+          source_type: Database["public"]["Enums"]["kb_chunk_source"]
           title: string
         }
         Insert: {
@@ -857,6 +900,7 @@ export type Database = {
           question_id: string
           section_heading?: string
           sort_order?: number
+          source_type?: Database["public"]["Enums"]["kb_chunk_source"]
           title?: string
         }
         Update: {
@@ -870,6 +914,7 @@ export type Database = {
           question_id?: string
           section_heading?: string
           sort_order?: number
+          source_type?: Database["public"]["Enums"]["kb_chunk_source"]
           title?: string
         }
         Relationships: [
@@ -887,6 +932,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      count_kb_chunks: {
+        Args: never
+        Returns: {
+          last_indexed: string
+          total: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -896,6 +948,23 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      match_kb_chunks: {
+        Args: {
+          match_count?: number
+          query_embedding: string
+          source_filter?: Database["public"]["Enums"]["kb_chunk_source"][]
+        }
+        Returns: {
+          chunk_index: number
+          content: string
+          id: string
+          metadata: Json
+          similarity: number
+          source_id: string
+          source_type: Database["public"]["Enums"]["kb_chunk_source"]
+          title: string
+        }[]
+      }
     }
     Enums: {
       app_category:
@@ -905,6 +974,17 @@ export type Database = {
         | "Externe systemen"
         | "Overig"
       app_role: "admin" | "management" | "kantoor" | "monteur" | "zzper"
+      kb_chunk_source:
+        | "kb_article"
+        | "news"
+        | "finance_client"
+        | "person"
+        | "application"
+        | "sharepoint_item"
+        | "partner_link"
+        | "quick_link"
+        | "department"
+      kb_chunk_visibility: "all" | "staff" | "admin"
       kb_status: "active" | "draft" | "expired" | "archived"
       person_status:
         | "Beschikbaar"
@@ -1064,6 +1144,18 @@ export const Constants = {
         "Overig",
       ],
       app_role: ["admin", "management", "kantoor", "monteur", "zzper"],
+      kb_chunk_source: [
+        "kb_article",
+        "news",
+        "finance_client",
+        "person",
+        "application",
+        "sharepoint_item",
+        "partner_link",
+        "quick_link",
+        "department",
+      ],
+      kb_chunk_visibility: ["all", "staff", "admin"],
       kb_status: ["active", "draft", "expired", "archived"],
       person_status: [
         "Beschikbaar",
