@@ -101,22 +101,14 @@ type TabId = (typeof TABS)[number]["id"];
 
 function SettingsPage() {
   const [tab, setTab] = useState<TabId>("apps");
-  const store = useHubStore();
 
   return (
     <HubLayout>
       <div className="mx-auto max-w-5xl">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <SectionHeader title="Instellingen" subtitle="Beheer alle homepage-inhoud op één plek." />
-          <button
-            onClick={() => {
-              if (confirm("Alle inhoud terugzetten naar de standaardwaarden?")) store.resetAll();
-            }}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-sm font-medium hover:bg-accent"
-          >
-            <RotateCcw className="h-4 w-4" /> Standaard herstellen
-          </button>
         </div>
+
 
         <div className="mb-6 flex flex-wrap gap-1 rounded-2xl border border-border bg-card p-1.5 shadow-sm">
           {TABS.map((t) => (
