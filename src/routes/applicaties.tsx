@@ -24,7 +24,7 @@ function Page() {
           return (
             <section key={cat}>
               <h2 className="mb-4 text-lg font-semibold text-navy">{cat}</h2>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid auto-rows-fr grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {inCat.map((a) => <AppCard key={a.id} app={a} />)}
               </div>
             </section>
