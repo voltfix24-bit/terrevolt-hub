@@ -71,11 +71,11 @@ function Dashboard() {
     <HubLayout>
       <div className="mx-auto max-w-7xl space-y-12">
         {/* Welcome */}
-        <section className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-card via-card to-accent/40 p-8 lg:p-10">
+        <section className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-card via-card to-accent/40 p-6 sm:p-8 lg:p-10">
           <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-pastel/40 blur-3xl" />
           <div className="relative">
             <p className="text-sm font-medium text-brand">TerreVolt Hub</p>
-            <h1 className="mt-2 text-4xl font-semibold tracking-tight text-navy lg:text-5xl">
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-navy sm:text-4xl lg:text-5xl">
               {greeting}{displayName ? ` ${displayName}` : ""}
             </h1>
             <p className="mt-3 text-base text-foreground/70">
