@@ -52,8 +52,16 @@ function Dashboard() {
   const roleText = roleRow ? roleLabel(roleRow.role) : "gast";
   const { data: apps = [], isLoading } = useActiveApplications();
   const { data: news = [] } = usePublishedNews();
-  const { data: partners = [] } = useActivePartnerLinks();
-  const { data: quickLinks = [] } = useActiveQuickLinks();
+  const {
+    data: partners = [],
+    isLoading: partnersLoading,
+    error: partnersError,
+  } = useActivePartnerLinks();
+  const {
+    data: quickLinks = [],
+    isLoading: quickLinksLoading,
+    error: quickLinksError,
+  } = useActiveQuickLinks();
   const { data: knowledge = [] } = useKbSections();
   const { data: spRecent = [] } = useRecentSharePointLinks(6);
   const { data: spFavFolders = [] } = useFavoriteSharePointFolders();
