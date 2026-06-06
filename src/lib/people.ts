@@ -48,14 +48,18 @@ export type Person = {
   bei_authorization: string;
   vehicle: string;
   equipment: string;
-  emergency_contact: string;
-  emergency_admin_only: boolean;
   hidden_fields: string[];
   notes: string;
   archived: boolean;
   sort_order: number;
   created_at: string;
   updated_at: string;
+};
+
+export type PersonSensitive = {
+  person_id: string;
+  emergency_contact: string;
+  notes_admin: string;
 };
 
 export const STATUS_STYLES: Record<PersonStatus, string> = {
@@ -87,8 +91,6 @@ function normalize(r: Record<string, unknown>): Person {
     bei_authorization: String(r.bei_authorization ?? ""),
     vehicle: String(r.vehicle ?? ""),
     equipment: String(r.equipment ?? ""),
-    emergency_contact: String(r.emergency_contact ?? ""),
-    emergency_admin_only: Boolean(r.emergency_admin_only ?? true),
     hidden_fields: (r.hidden_fields as string[]) ?? [],
     notes: String(r.notes ?? ""),
     archived: Boolean(r.archived ?? false),
@@ -124,6 +126,50 @@ export function usePerson(id: string | undefined) {
       return data ? normalize(data as Record<string, unknown>) : null;
     },
   });
+}
+
+/**
+ * Gevoelige persoonsgegevens (noodcontact, admin-notities). RLS staat alleen
+ * staff (admin + management) toe te lezen; voor anderen retourneert dit `null`.
+ */
+export function usePersonSensitive(id: string | undefined) {
+  return useQuery({
+    queryKey: ["person-sensitive", id],
+    enabled: Boolean(id),
+    queryFn: async (): Promise<PersonSensitive | null> => {
+      if (!id) return null;
+      const { data, error } = await db
+        .from("people_sensitive")
+        .select("*")
+        .eq("person_id", id)
+        .maybeSingle();
+      if (error) {
+        // Geen rechten = stille null
+        return null;
+      }
+      if (!data) return null;
+      const r = data as Record<string, unknown>;
+      return {
+        person_id: String(r.person_id),
+        emergency_contact: String(r.emergency_contact ?? ""),
+        notes_admin: String(r.notes_admin ?? ""),
+      };
+    },
+    retry: false,
+  });
+}
+
+export function usePersonSensitiveMutations() {
+  const qc = useQueryClient();
+  return {
+    upsert: useMutation({
+      mutationFn: async (input: { person_id: string; emergency_contact?: string; notes_admin?: string }) => {
+        const { error } = await db.from("people_sensitive").upsert(input, { onConflict: "person_id" } as never);
+        if (error) throw error;
+      },
+      onSuccess: (_d, vars) => qc.invalidateQueries({ queryKey: ["person-sensitive", vars.person_id] }),
+    }),
+  };
 }
 
 export function usePeopleMutations() {
@@ -167,8 +213,4 @@ export function initials(name: string): string {
     .slice(0, 2)
     .map((p) => p[0]?.toUpperCase())
     .join("");
-}
-
-export function isAdminRole(role: string): boolean {
-  return role === "Directeur" || role === "Administratie";
 }
