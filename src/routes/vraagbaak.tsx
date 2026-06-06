@@ -255,6 +255,60 @@ function VraagbaakPage() {
           </div>
         </div>
 
+        {/* Filters */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Bron:
+          </span>
+          {(Object.keys(SOURCE_LABEL) as KbChunkSource[]).map((t) => {
+            const active = sourceFilter.includes(t);
+            return (
+              <button
+                key={t}
+                onClick={() => toggleSource(t)}
+                className={[
+                  "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition",
+                  active
+                    ? "border-brand bg-brand/10 text-brand"
+                    : "border-border bg-card text-foreground/70 hover:border-brand/40 hover:text-navy",
+                ].join(" ")}
+              >
+                <SourceIcon type={t} className="h-3 w-3" />
+                {SOURCE_LABEL[t]}
+              </button>
+            );
+          })}
+          <span className="ml-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Datum:
+          </span>
+          {(["any", "7d", "30d", "365d"] as DatePreset[]).map((p) => (
+            <button
+              key={p}
+              onClick={() => setDatePreset(p)}
+              className={[
+                "rounded-full border px-2.5 py-1 text-[11px] font-medium transition",
+                datePreset === p
+                  ? "border-brand bg-brand/10 text-brand"
+                  : "border-border bg-card text-foreground/70 hover:border-brand/40 hover:text-navy",
+              ].join(" ")}
+            >
+              {p === "any" ? "alles" : p === "7d" ? "laatste 7d" : p === "30d" ? "laatste 30d" : "laatste jaar"}
+            </button>
+          ))}
+          {(sourceFilter.length > 0 || datePreset !== "any") && (
+            <button
+              onClick={() => {
+                setSourceFilter([]);
+                setDatePreset("any");
+              }}
+              className="ml-1 text-[11px] font-medium text-muted-foreground underline hover:text-brand"
+            >
+              wissen
+            </button>
+          )}
+        </div>
+
+
         {!answer && !loading && (
           <div className="mt-6">
             <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
