@@ -351,20 +351,51 @@ Deno.serve(async (req) => {
 
   const t0 = Date.now();
 
+  // Parse optional body { source_filter?: SourceType[] }
+  let sourceFilter: SourceType[] | null = null;
   try {
-    // 1. Pull rows
+    const body = await req.json().catch(() => null);
+    if (body && Array.isArray(body.source_filter) && body.source_filter.length > 0) {
+      sourceFilter = body.source_filter as SourceType[];
+    }
+  } catch {
+    // no body — full reindex
+  }
+  const wants = (t: SourceType) => !sourceFilter || sourceFilter.includes(t);
+
+  try {
+    // 1. Pull rows (only for requested types)
+    const empty = { data: [] as any[], error: null as null };
     const [
       kb, news, fin, people, apps, sp, partners, quick, depts,
     ] = await Promise.all([
-      admin.from("kb_articles").select("id,title,slug,summary,content,important_notes,client,tags,section_id,file_url,status,updated_at,extracted_text,extraction_status,extracted_page_count"),
-      admin.from("news").select("id,title,category,summary,content,publish_date,important,archived,updated_at").eq("archived", false),
-      admin.from("finance_clients").select("id,slug,name,short_description,factuuradres,inkooporder_info,factuur_referenties,verplichte_bijlagen,btw_verlegd,g_rekening,betaaltermijn,factuur_email,veelgemaakte_fouten,voorbeeld_factuurtekst,interne_opmerkingen,archived,updated_at").eq("archived", false),
-      admin.from("people").select("id,full_name,job_title,department,person_type,certifications,bei_authorization,notes,archived,updated_at").eq("archived", false),
-      admin.from("applications").select("id,name,description,category,url,new_tab,active,updated_at").eq("active", true),
-      admin.from("sharepoint_items").select("id,name,description,url,kind,updated_at"),
-      admin.from("partner_links").select("id,name,description,href,category,active,updated_at").eq("active", true),
-      admin.from("quick_links").select("id,name,href,active,updated_at").eq("active", true),
-      admin.from("departments").select("id,name,description,updated_at"),
+      wants("kb_article")
+        ? admin.from("kb_articles").select("id,title,slug,summary,content,important_notes,client,tags,section_id,file_url,status,updated_at,extracted_text,extraction_status,extracted_page_count")
+        : Promise.resolve(empty),
+      wants("news")
+        ? admin.from("news").select("id,title,category,summary,content,publish_date,important,archived,updated_at").eq("archived", false)
+        : Promise.resolve(empty),
+      wants("finance_client")
+        ? admin.from("finance_clients").select("id,slug,name,short_description,factuuradres,inkooporder_info,factuur_referenties,verplichte_bijlagen,btw_verlegd,g_rekening,betaaltermijn,factuur_email,veelgemaakte_fouten,voorbeeld_factuurtekst,interne_opmerkingen,archived,updated_at").eq("archived", false)
+        : Promise.resolve(empty),
+      wants("person")
+        ? admin.from("people").select("id,full_name,job_title,department,person_type,certifications,bei_authorization,notes,archived,updated_at").eq("archived", false)
+        : Promise.resolve(empty),
+      wants("application")
+        ? admin.from("applications").select("id,name,description,category,url,new_tab,active,updated_at").eq("active", true)
+        : Promise.resolve(empty),
+      wants("sharepoint_item")
+        ? admin.from("sharepoint_items").select("id,name,description,url,kind,updated_at")
+        : Promise.resolve(empty),
+      wants("partner_link")
+        ? admin.from("partner_links").select("id,name,description,href,category,active,updated_at").eq("active", true)
+        : Promise.resolve(empty),
+      wants("quick_link")
+        ? admin.from("quick_links").select("id,name,href,active,updated_at").eq("active", true)
+        : Promise.resolve(empty),
+      wants("department")
+        ? admin.from("departments").select("id,name,description,updated_at")
+        : Promise.resolve(empty),
     ]);
 
     const errors = [kb, news, fin, people, apps, sp, partners, quick, depts]
@@ -374,17 +405,17 @@ Deno.serve(async (req) => {
       return json(500, { error: "Database read failed", details: errors });
     }
 
-    // 2. Build chunks per source
+    // 2. Build chunks per source (only requested types contribute)
     const built: Record<SourceType, Chunk[]> = {
-      kb_article: buildKbArticleChunks(kb.data ?? []),
-      news: buildNewsChunks(news.data ?? []),
-      finance_client: buildFinanceChunks(fin.data ?? []),
-      person: buildPersonChunks(people.data ?? []),
-      application: buildApplicationChunks(apps.data ?? []),
-      sharepoint_item: buildSharepointChunks(sp.data ?? []),
-      partner_link: buildPartnerChunks(partners.data ?? []),
-      quick_link: buildQuickLinkChunks(quick.data ?? []),
-      department: buildDepartmentChunks(depts.data ?? []),
+      kb_article: wants("kb_article") ? buildKbArticleChunks(kb.data ?? []) : [],
+      news: wants("news") ? buildNewsChunks(news.data ?? []) : [],
+      finance_client: wants("finance_client") ? buildFinanceChunks(fin.data ?? []) : [],
+      person: wants("person") ? buildPersonChunks(people.data ?? []) : [],
+      application: wants("application") ? buildApplicationChunks(apps.data ?? []) : [],
+      sharepoint_item: wants("sharepoint_item") ? buildSharepointChunks(sp.data ?? []) : [],
+      partner_link: wants("partner_link") ? buildPartnerChunks(partners.data ?? []) : [],
+      quick_link: wants("quick_link") ? buildQuickLinkChunks(quick.data ?? []) : [],
+      department: wants("department") ? buildDepartmentChunks(depts.data ?? []) : [],
     };
 
     const all: Chunk[] = [];
@@ -395,7 +426,7 @@ Deno.serve(async (req) => {
     }
 
     if (all.length === 0) {
-      return json(200, { ok: true, total: 0, counts, duration_ms: Date.now() - t0 });
+      return json(200, { ok: true, total: 0, counts, filter: sourceFilter, duration_ms: Date.now() - t0 });
     }
 
     // 3. Embed in batches
@@ -433,14 +464,14 @@ Deno.serve(async (req) => {
       if (error) throw new Error(`Upsert failed: ${error.message}`);
     }
 
-    // 5. Delete chunks whose source no longer exists or is excluded.
-    // Build a set of (source_type, source_id) keys we just upserted.
+    // 5. Delete stale chunks — scoped to the source_types we just reindexed
+    // so a filtered run does not wipe other entity types.
     const validKeys = new Set(
       all.map((c) => `${c.source_type}:${c.source_id}`),
     );
-    const { data: existing, error: listErr } = await admin
-      .from("kb_chunks")
-      .select("id,source_type,source_id");
+    let listQ = admin.from("kb_chunks").select("id,source_type,source_id");
+    if (sourceFilter) listQ = listQ.in("source_type", sourceFilter);
+    const { data: existing, error: listErr } = await listQ;
     if (listErr) throw new Error(`List failed: ${listErr.message}`);
     const stale = (existing ?? []).filter(
       (r) => !validKeys.has(`${r.source_type}:${r.source_id}`),
@@ -483,6 +514,7 @@ Deno.serve(async (req) => {
       ok: true,
       total: all.length,
       counts,
+      filter: sourceFilter,
       removed: stale.length,
       backfilled_questions: backfilled,
       duration_ms: Date.now() - t0,
