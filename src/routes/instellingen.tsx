@@ -1387,6 +1387,121 @@ function SearchIndexTab() {
           </div>
         )}
       </div>
+
+      <VraagbaakCacheCard />
     </div>
   );
 }
+
+/* ---------------- Vraagbaak semantic cache ---------------- */
+function VraagbaakCacheCard() {
+  const qc = useQueryClient();
+  const [clearing, setClearing] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const stats = useQuery({
+    queryKey: ["vraagbaak_cache_stats"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as unknown as {
+        rpc: (n: string) => Promise<{ data: unknown; error: { message: string } | null }>;
+      }).rpc("vraagbaak_cache_stats");
+      if (error) throw error;
+      const row = ((data as Array<{
+        total_cached: number;
+        active_cached: number;
+        invalidated: number;
+        expired: number;
+        total_hits: number;
+        most_asked: string | null;
+        most_asked_hits: number | null;
+      }>) ?? [])[0];
+      return row ?? null;
+    },
+  });
+
+  const onClear = async () => {
+    setClearing(true);
+    try {
+      const { error } = await (supabase as unknown as {
+        rpc: (n: string) => Promise<{ data: unknown; error: { message: string } | null }>;
+      }).rpc("vraagbaak_clear_cache");
+      if (error) throw error;
+      qc.invalidateQueries({ queryKey: ["vraagbaak_cache_stats"] });
+      setConfirmOpen(false);
+    } catch (e) {
+      console.error(e);
+      alert("Cache wissen mislukt: " + (e as Error).message);
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const s = stats.data;
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <div className="text-sm font-semibold text-navy">Vraagbaak cache</div>
+          <div className="text-xs text-muted-foreground">
+            Hergebruikt antwoorden bij vrijwel-identieke vragen om AI-kosten te besparen.
+          </div>
+        </div>
+        {!confirmOpen ? (
+          <button
+            onClick={() => setConfirmOpen(true)}
+            disabled={!s || s.active_cached === 0}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-destructive/40 bg-card px-3 py-1.5 text-xs font-medium text-destructive transition hover:bg-destructive/10 disabled:opacity-50"
+          >
+            Hele cache wissen
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-foreground/80">Zeker weten?</span>
+            <button
+              onClick={onClear}
+              disabled={clearing}
+              className="rounded-lg bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground disabled:opacity-50"
+            >
+              {clearing ? "Bezig…" : "Ja, wis alles"}
+            </button>
+            <button
+              onClick={() => setConfirmOpen(false)}
+              className="rounded-lg border border-border px-3 py-1.5 text-xs"
+            >
+              Annuleren
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Stat label="Totaal vragen" value={s?.total_cached ?? "—"} />
+        <Stat label="Actief in cache" value={s?.active_cached ?? "—"} />
+        <Stat label="Ongeldig gemaakt" value={s?.invalidated ?? "—"} />
+        <Stat label="Cache-hits totaal" value={s?.total_hits ?? "—"} />
+      </div>
+
+      {s?.most_asked && (
+        <div className="mt-4 rounded-xl border border-border bg-accent/30 p-3 text-sm">
+          <div className="text-xs uppercase tracking-wide text-muted-foreground">
+            Meest gestelde vraag
+          </div>
+          <div className="mt-1 font-medium text-navy">{s.most_asked}</div>
+          <div className="text-xs text-muted-foreground">
+            {s.most_asked_hits ?? 0}× hergebruikt
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div className="rounded-xl border border-border bg-card px-3 py-2">
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className="mt-0.5 text-lg font-semibold text-navy">{value}</div>
+    </div>
+  );
+}
+
