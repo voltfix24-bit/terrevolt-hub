@@ -1418,6 +1418,7 @@ function SearchIndexTab() {
         )}
       </div>
 
+      <PdfExtractionCard />
       <VraagbaakCacheCard />
     </div>
   );
