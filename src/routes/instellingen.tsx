@@ -1262,3 +1262,129 @@ function Field({
   );
 }
 
+
+/* ---------------- Search index (semantic reindex) ---------------- */
+function SearchIndexTab() {
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{
+    total: number;
+    counts: Record<string, number>;
+    removed?: number;
+    duration_ms: number;
+  } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const statsQuery = useQuery({
+    queryKey: ["kb_chunks_count"],
+    queryFn: async (): Promise<{ total: number; last_indexed: string | null }> => {
+      const { data, error } = await (supabase as unknown as {
+        rpc: (
+          name: string,
+        ) => Promise<{ data: unknown; error: { message: string } | null }>;
+      }).rpc("count_kb_chunks");
+      if (error) throw error;
+      const row = ((data as Array<{ total: number; last_indexed: string | null }>) ?? [])[0];
+      return { total: Number(row?.total ?? 0), last_indexed: row?.last_indexed ?? null };
+    },
+  });
+
+  const onReindex = async () => {
+    setBusy(true);
+    setError(null);
+    setResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("reindex_all");
+      if (error) throw error;
+      const r = data as {
+        ok?: boolean;
+        total?: number;
+        counts?: Record<string, number>;
+        removed?: number;
+        duration_ms?: number;
+        error?: string;
+      };
+      if (!r.ok) throw new Error(r.error ?? "Onbekende fout");
+      setResult({
+        total: r.total ?? 0,
+        counts: r.counts ?? {},
+        removed: r.removed,
+        duration_ms: r.duration_ms ?? 0,
+      });
+      statsQuery.refetch();
+    } catch (e) {
+      console.error(e);
+      setError((e as Error).message ?? "Reindex mislukt");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const SOURCE_LABELS: Record<string, string> = {
+    kb_article: "kennisartikelen",
+    news: "nieuwsberichten",
+    finance_client: "finance-klanten",
+    person: "mensen",
+    application: "applicaties",
+    sharepoint_item: "SharePoint-items",
+    partner_link: "partners",
+    quick_link: "quick links",
+    department: "afdelingen",
+  };
+
+  return (
+    <div className="space-y-5">
+      <div>
+        <h3 className="text-base font-semibold text-navy">Zoekindex</h3>
+        <p className="mt-1 text-sm text-muted-foreground">
+          De Vraagbaak gebruikt een semantische zoekindex. Indexeer opnieuw na het toevoegen of wijzigen van inhoud.
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="text-sm">
+            <div className="font-medium text-navy">
+              {statsQuery.data ? statsQuery.data.total : "—"} geïndexeerde stukken
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Laatste indexering:{" "}
+              {statsQuery.data?.last_indexed
+                ? new Date(statsQuery.data.last_indexed).toLocaleString("nl-NL")
+                : "nog niet uitgevoerd"}
+            </div>
+          </div>
+          <button
+            onClick={onReindex}
+            disabled={busy}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow-sm transition hover:opacity-90 disabled:opacity-50"
+          >
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+            {busy ? "Bezig…" : "Volledig opnieuw indexeren"}
+          </button>
+        </div>
+
+        {result && (
+          <div className="mt-4 rounded-xl border border-brand/30 bg-pastel/30 p-3 text-sm text-navy">
+            <div className="font-medium">
+              {result.total} chunks geïndexeerd in {(result.duration_ms / 1000).toFixed(1)}s
+              {typeof result.removed === "number" && result.removed > 0
+                ? ` · ${result.removed} verouderd verwijderd`
+                : ""}
+            </div>
+            <div className="mt-1 text-xs text-foreground/80">
+              {Object.entries(result.counts)
+                .filter(([, n]) => n > 0)
+                .map(([k, n]) => `${n} ${SOURCE_LABELS[k] ?? k}`)
+                .join(" · ")}
+            </div>
+          </div>
+        )}
+        {error && (
+          <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+            {error}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
