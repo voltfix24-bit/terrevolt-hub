@@ -7,6 +7,8 @@ import { Icon } from "@/components/hub/Icon";
 import { RoleWidgets } from "@/components/hub/RoleWidgets";
 import { PeopleSearchWidget } from "@/components/hub/PeopleSearchWidget";
 import { useHubStore } from "@/lib/hub-store";
+import { useSession, useCurrentRole } from "@/lib/auth";
+import { roleLabel } from "@/lib/userRoles";
 import { useActiveApplications } from "@/lib/applications";
 import { usePublishedNews } from "@/lib/news";
 import { useKbSections } from "@/lib/knowledge";
@@ -39,7 +41,14 @@ function computeGreeting() {
 }
 
 function Dashboard() {
-  const role = useHubStore((s) => s.role);
+  const { user } = useSession();
+  const { data: roleRow } = useCurrentRole(user);
+  const displayName =
+    roleRow?.display_name ||
+    (user?.user_metadata?.display_name as string | undefined) ||
+    user?.email?.split("@")[0] ||
+    "";
+  const roleText = roleRow ? roleLabel(roleRow.role) : "gast";
   const { data: apps = [], isLoading } = useActiveApplications();
   const { data: news = [] } = usePublishedNews();
   const partners = useHubStore((s) => s.partners);
@@ -67,10 +76,10 @@ function Dashboard() {
           <div className="relative">
             <p className="text-sm font-medium text-brand">TerreVolt Hub</p>
             <h1 className="mt-2 text-4xl font-semibold tracking-tight text-navy lg:text-5xl">
-              {greeting} Hassan
+              {greeting}{displayName ? ` ${displayName}` : ""}
             </h1>
             <p className="mt-3 text-base text-foreground/70">
-              Welkom terug — je werkt als <span className="font-semibold text-navy">{role}</span>.
+              Welkom terug — je werkt als <span className="font-semibold text-navy">{roleText}</span>.
             </p>
             {quickLinks.length > 0 && (
               <div className="mt-6 flex flex-wrap gap-2">
@@ -95,8 +104,8 @@ function Dashboard() {
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
           <div>
             <SectionHeader
-              title={`Jouw ${role.toLowerCase()}-dashboard`}
-              subtitle="Widgets afgestemd op jouw rol. Wissel van rol via je profiel rechtsboven."
+              title={`Jouw ${roleText.toLowerCase()}-dashboard`}
+              subtitle="Widgets afgestemd op jouw rol in TerreVolt Hub."
             />
             <RoleWidgets />
           </div>

@@ -1,20 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import {
   usePeople,
   usePeopleMutations,
+  usePersonSensitive,
+  usePersonSensitiveMutations,
   PERSON_TYPES,
   PERSON_STATUSES,
   EMPLOYMENT_TYPES,
   STATUS_STYLES,
   initials,
-  isAdminRole,
   type Person,
   type PersonStatus,
 } from "@/lib/people";
-import { useHubStore } from "@/lib/hub-store";
+import { useSession, useCurrentRole } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Phone, Mail, MapPin, LayoutGrid, List, Copy, Plus, X, Pencil, Trash2 } from "lucide-react";
@@ -33,8 +34,9 @@ export const Route = createFileRoute("/smoelenboek")({
 type View = "grid" | "list";
 
 function SmoelenboekPage() {
-  const role = useHubStore((s) => s.role);
-  const admin = isAdminRole(role);
+  const { user } = useSession();
+  const { data: roleRow } = useCurrentRole(user);
+  const admin = roleRow?.role === "admin" || roleRow?.role === "management";
   const { data: people = [], isLoading } = usePeople();
 
   const [q, setQ] = useState("");
@@ -348,6 +350,8 @@ export function QuickActions({ person }: { person: Person }) {
 
 function PersonEditor({ person, onClose }: { person: Person | null; onClose: () => void }) {
   const { create, update, remove } = usePeopleMutations();
+  const { upsert: upsertSensitive } = usePersonSensitiveMutations();
+  const { data: sensitive } = usePersonSensitive(person?.id);
   const empty: Partial<Person> = {
     full_name: "",
     job_title: "",
@@ -364,18 +368,23 @@ function PersonEditor({ person, onClose }: { person: Person | null; onClose: () 
     bei_authorization: "",
     vehicle: "",
     equipment: "",
-    emergency_contact: "",
-    emergency_admin_only: true,
     notes: "",
   };
   const [form, setForm] = useState<Partial<Person>>(person ?? empty);
+  const [emergencyContact, setEmergencyContact] = useState<string>("");
   const setF = <K extends keyof Person>(k: K, v: Person[K]) => setForm((f) => ({ ...f, [k]: v }));
+
+  // Load sensitive emergency contact into local state when available
+  useEffect(() => {
+    if (sensitive) setEmergencyContact(sensitive.emergency_contact ?? "");
+  }, [sensitive]);
 
   const save = async () => {
     if (!form.full_name?.trim()) { toast.error("Naam is verplicht"); return; }
     try {
       if (person) {
         await update.mutateAsync({ id: person.id, patch: form });
+        await upsertSensitive.mutateAsync({ person_id: person.id, emergency_contact: emergencyContact });
         toast.success("Profiel bijgewerkt");
       } else {
         await create.mutateAsync({ ...form, full_name: form.full_name } as Person);
@@ -394,6 +403,7 @@ function PersonEditor({ person, onClose }: { person: Person | null; onClose: () 
     toast.success("Profiel verwijderd");
     onClose();
   };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4">
@@ -435,15 +445,18 @@ function PersonEditor({ person, onClose }: { person: Person | null; onClose: () 
           <Field label="Certificaten (komma's)" full>
             <Input value={(form.certifications ?? []).join(", ")} onChange={(e) => setF("certifications", splitCsv(e.target.value))} />
           </Field>
-          <Field label="Noodcontact" full>
-            <Input value={form.emergency_contact ?? ""} onChange={(e) => setF("emergency_contact", e.target.value)} placeholder="Naam — telefoonnummer" />
-          </Field>
-          <Field label="" full>
-            <label className="flex items-center gap-2 text-sm text-foreground/80">
-              <input type="checkbox" checked={form.emergency_admin_only ?? true} onChange={(e) => setF("emergency_admin_only", e.target.checked)} />
-              Noodcontact alleen zichtbaar voor admins
-            </label>
-          </Field>
+          {person && (
+            <Field label="Noodcontact (alleen staff)" full>
+              <Input
+                value={emergencyContact}
+                onChange={(e) => setEmergencyContact(e.target.value)}
+                placeholder="Naam — telefoonnummer"
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Alleen zichtbaar voor administratie / directie.
+              </p>
+            </Field>
+          )}
           <Field label="Notities" full>
             <textarea
               value={form.notes ?? ""}

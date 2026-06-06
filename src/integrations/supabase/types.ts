@@ -495,8 +495,6 @@ export type Database = {
           created_at: string
           department: string
           email: string
-          emergency_admin_only: boolean
-          emergency_contact: string
           employment_type: string
           equipment: string
           full_name: string
@@ -521,8 +519,6 @@ export type Database = {
           created_at?: string
           department?: string
           email?: string
-          emergency_admin_only?: boolean
-          emergency_contact?: string
           employment_type?: string
           equipment?: string
           full_name: string
@@ -547,8 +543,6 @@ export type Database = {
           created_at?: string
           department?: string
           email?: string
-          emergency_admin_only?: boolean
-          emergency_contact?: string
           employment_type?: string
           equipment?: string
           full_name?: string
@@ -567,6 +561,38 @@ export type Database = {
           vehicle?: string
         }
         Relationships: []
+      }
+      people_sensitive: {
+        Row: {
+          created_at: string
+          emergency_contact: string
+          notes_admin: string
+          person_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          emergency_contact?: string
+          notes_admin?: string
+          person_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          emergency_contact?: string
+          notes_admin?: string
+          person_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "people_sensitive_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: true
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sharepoint_config: {
         Row: {
@@ -666,6 +692,7 @@ export type Database = {
           id: string
           note: string
           question_id: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -674,6 +701,7 @@ export type Database = {
           id?: string
           note?: string
           question_id: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -682,6 +710,7 @@ export type Database = {
           id?: string
           note?: string
           question_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -742,6 +771,7 @@ export type Database = {
           label: string
           question_id: string
           saved_by: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -749,6 +779,7 @@ export type Database = {
           label?: string
           question_id: string
           saved_by?: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -756,6 +787,7 @@ export type Database = {
           label?: string
           question_id?: string
           saved_by?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -829,6 +861,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: never; Returns: boolean }
+      is_staff: { Args: never; Returns: boolean }
     }
     Enums: {
       app_category:
