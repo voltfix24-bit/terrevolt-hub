@@ -252,7 +252,32 @@ function VraagbaakPage() {
         )}
       </div>
 
+      {needsLogin && !session && (
+        <div className="mt-6 flex flex-col items-start gap-3 rounded-3xl border border-border bg-card p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="rounded-full bg-pastel/60 p-2 text-brand">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-navy">Log in om door te gaan</div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                De Vraagbaak doorzoekt interne kennis. Meld je aan om je vraag te stellen.
+              </div>
+            </div>
+          </div>
+          <Link
+            to="/auth"
+            search={{ redirect: "/vraagbaak" }}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow-sm transition hover:opacity-90"
+          >
+            Inloggen
+            <ArrowUpRight className="h-4 w-4" />
+          </Link>
+        </div>
+      )}
+
       {loading && (
+
         <div className="mt-6 space-y-3 rounded-3xl border border-border bg-card p-6 shadow-sm">
           <div className="h-4 w-32 animate-pulse rounded-full bg-muted" />
           <div className="h-6 w-3/4 animate-pulse rounded-full bg-muted" />
