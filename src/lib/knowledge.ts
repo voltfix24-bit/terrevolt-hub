@@ -63,6 +63,11 @@ export type KbArticle = {
   file_url: string;
   file_name: string;
   file_size: number;
+  file_path: string;
+  extraction_status: KbExtractionStatus;
+  extraction_error: string;
+  extracted_page_count: number;
+  extracted_at: string | null;
   external_url: string;
   attachments: KbAttachment[];
   related_ids: string[];
@@ -71,6 +76,14 @@ export type KbArticle = {
   updated_at: string;
   created_at: string;
 };
+
+export type KbExtractionStatus =
+  | "not_applicable"
+  | "pending"
+  | "ok"
+  | "scanned"
+  | "failed"
+  | "too_large";
 
 export type KbArticleInput = Omit<
   KbArticle,
