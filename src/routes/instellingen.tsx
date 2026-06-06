@@ -690,15 +690,25 @@ function KbArticlesTab() {
     setAdding(false);
     setEditingId(null);
   };
-  const save = () => {
+  const save = async () => {
     const payload: KbArticleInput = {
       ...draft,
       slug: draft.slug || slugify(draft.title),
     };
     if (!payload.title.trim() || !payload.section_id) return;
-    if (adding) add.mutate(payload);
-    else if (editingId)
-      update.mutate({ id: editingId, patch: payload as Partial<KbArticle> });
+    let articleId: string | null = null;
+    if (adding) {
+      const created = await add.mutateAsync(payload);
+      articleId = created.id;
+    } else if (editingId) {
+      await update.mutateAsync({ id: editingId, patch: payload as Partial<KbArticle> });
+      articleId = editingId;
+    }
+    if (articleId && payload.file_path && payload.extraction_status === "pending") {
+      supabase.functions
+        .invoke("extract_pdf_text", { body: { article_id: articleId } })
+        .catch((e) => console.warn("PDF extractie niet gestart:", e));
+    }
     cancel();
   };
 
