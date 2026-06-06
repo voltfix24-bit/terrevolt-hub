@@ -426,21 +426,23 @@ async function resolveSourcesFromChunkIds(
   similarity: number,
 ): Promise<ResolvedSource[]> {
   if (chunkIds.length === 0) return [];
-  const res = await supabase
-    .from("kb_chunks")
-    .select("id,source_type,source_id,title,metadata")
-    .in("id", chunkIds);
-  const rows = (res.data as Array<{
+  const { data, error } = await supabase.rpc("get_kb_chunks_by_ids", {
+    chunk_ids: chunkIds,
+  });
+  if (error) {
+    console.error("get_kb_chunks_by_ids error", error);
+    return [];
+  }
+  const rows = (data as Array<{
     id: string;
     source_type: KbChunkSource;
     source_id: string;
     title: string;
     metadata: Record<string, unknown>;
+    visibility: KbVisibility;
   }> | null) ?? [];
-  // preserve original chunkIds order
   const byId = new Map(rows.map((r) => [r.id, r]));
   const ordered = chunkIds.map((id) => byId.get(id)).filter(Boolean) as typeof rows;
-  // Build a fake MatchRow set so we can reuse the URL resolver
   const asMatch: MatchRow[] = ordered.map((r) => ({
     id: r.id,
     source_type: r.source_type,
@@ -449,10 +451,22 @@ async function resolveSourcesFromChunkIds(
     title: r.title,
     content: "",
     metadata: r.metadata ?? {},
+    visibility: r.visibility,
     similarity,
   }));
   const resolver = await buildUrlResolver(supabase, asMatch);
   return asMatch.map((r) => {
+    const { url, external } = resolver(r);
+    return {
+      source_type: r.source_type,
+      source_id: r.source_id,
+      title: r.title,
+      url,
+      external,
+      similarity,
+    };
+  });
+}
     const { url, external } = resolver(r);
     return {
       source_type: r.source_type,
