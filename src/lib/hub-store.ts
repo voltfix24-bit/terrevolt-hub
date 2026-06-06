@@ -116,7 +116,6 @@ const defaults: State = {
     { id: uid(), slug: "uren-boeken", name: "Uren boeken", description: "Handleidingen en tips.", icon: "clock" },
     { id: uid(), slug: "bedrijfsprocessen", name: "Bedrijfsprocessen", description: "Interne workflows en afspraken.", icon: "building-2" },
   ],
-  role: "Directeur",
 };
 
 function move<T>(arr: T[], from: number, to: number): T[] {
@@ -159,9 +158,8 @@ export const useHubStore = create<State & Actions>()(
         set((s) => ({ knowledge: s.knowledge.map((k) => (k.id === id ? { ...k, ...patch } : k)) })),
       deleteKnowledge: (id) => set((s) => ({ knowledge: s.knowledge.filter((k) => k.id !== id) })),
 
-      setRole: (role) => set(() => ({ role })),
       resetAll: () => set(() => ({ ...defaults })),
     }),
-    { name: "terrevolt-hub-store", version: 3, migrate: () => ({ ...defaults } as never) },
+    { name: "terrevolt-hub-store", version: 4, migrate: () => ({ ...defaults } as never) },
   ),
 );
