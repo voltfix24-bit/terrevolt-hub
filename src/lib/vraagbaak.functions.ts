@@ -243,7 +243,7 @@ REGELS:
         method: "POST",
         headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
         body: JSON.stringify({
-          model: "openai/gpt-5.2",
+          model: "openai/gpt-4o",
           messages: [
             { role: "system", content: system },
             { role: "user", content: userPrompt },
@@ -333,6 +333,7 @@ REGELS:
             question_embedding: queryEmbedding as unknown as string,
             source_chunk_ids: visIds,
             min_visibility,
+            asked_by: context.userId,
           })
           .select("id")
           .single();
