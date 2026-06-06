@@ -594,6 +594,39 @@ export type Database = {
           },
         ]
       }
+      quick_links: {
+        Row: {
+          active: boolean
+          created_at: string
+          href: string
+          icon: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          href?: string
+          icon?: string
+          id?: string
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          href?: string
+          icon?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sharepoint_config: {
         Row: {
           base_url: string
