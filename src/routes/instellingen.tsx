@@ -3,7 +3,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import { EntityManager, type Field } from "@/components/hub/EntityManager";
-import { useHubStore, type QuickLink } from "@/lib/hub-store";
+import {
+  useQuickLinks,
+  useQuickLinkMutations,
+  type QuickLink,
+  type QuickLinkInput,
+} from "@/lib/quickLinks";
 import {
   usePartnerLinks,
   usePartnerLinkMutations,
@@ -66,7 +71,7 @@ import {
 } from "@/lib/knowledge";
 import { Icon } from "@/components/hub/Icon";
 import { AdminGate } from "@/components/hub/AdminGate";
-import { RotateCcw, Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/instellingen")({
   head: () => ({ meta: [{ title: "Instellingen — TerreVolt Hub" }] }),
@@ -96,22 +101,14 @@ type TabId = (typeof TABS)[number]["id"];
 
 function SettingsPage() {
   const [tab, setTab] = useState<TabId>("apps");
-  const store = useHubStore();
 
   return (
     <HubLayout>
       <div className="mx-auto max-w-5xl">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <SectionHeader title="Instellingen" subtitle="Beheer alle homepage-inhoud op één plek." />
-          <button
-            onClick={() => {
-              if (confirm("Alle inhoud terugzetten naar de standaardwaarden?")) store.resetAll();
-            }}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-sm font-medium hover:bg-accent"
-          >
-            <RotateCcw className="h-4 w-4" /> Standaard herstellen
-          </button>
         </div>
+
 
         <div className="mb-6 flex flex-wrap gap-1 rounded-2xl border border-border bg-card p-1.5 shadow-sm">
           {TABS.map((t) => (
@@ -536,31 +533,50 @@ function RolesTab() {
   );
 }
 
-/* ---------------- Quick Links ---------------- */
+/* ---------------- Quick Links (DB-backed) ---------------- */
 function QuickLinksTab() {
-  const { quickLinks, addQuickLink, updateQuickLink, deleteQuickLink, reorder } = useHubStore();
+  const { data: quickLinks = [], isLoading } = useQuickLinks();
+  const { add, update, remove, reorder } = useQuickLinkMutations();
   const fields: Field[] = [
     { key: "name", label: "Naam", type: "text" },
     { key: "icon", label: "Icoon", type: "icon" },
     { key: "href", label: "URL", type: "url" },
+    { key: "active", label: "Actief (zichtbaar)", type: "bool" },
   ];
-  const empty: Omit<QuickLink, "id"> = { name: "", href: "https://", icon: "link" };
+  const empty: QuickLinkInput = { name: "", href: "https://", icon: "link", active: true };
   return (
-    <EntityManager<QuickLink>
-      title="Quick links" description="Snelkoppelingen in het welkomstvak."
-      items={quickLinks} fields={fields} emptyItem={empty}
-      onAdd={addQuickLink} onUpdate={updateQuickLink} onDelete={deleteQuickLink}
-      onReorder={(f, t) => reorder("quickLinks", f, t)}
-      rowPreview={(q) => (
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-navy"><Icon name={q.icon ?? "link"} size={18} /></div>
-          <div className="min-w-0">
-            <div className="font-medium text-navy">{q.name}</div>
-            <div className="truncate text-xs text-muted-foreground">{q.href}</div>
+    <>
+      {isLoading && <div className="text-sm text-muted-foreground">Laden…</div>}
+      <EntityManager<QuickLink>
+        title="Quick links" description="Snelkoppelingen in het welkomstvak."
+        items={quickLinks} fields={fields} emptyItem={empty as Omit<QuickLink, "id">}
+        onAdd={(item) => add.mutate(item as QuickLinkInput)}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<QuickLink> })}
+        onDelete={(id) => remove.mutate(id)}
+        onReorder={(from, to) => {
+          if (from === to) return;
+          const next = quickLinks.slice();
+          const [m] = next.splice(from, 1);
+          next.splice(to, 0, m);
+          reorder.mutate({ items: next });
+        }}
+        rowPreview={(q) => (
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-navy"><Icon name={q.icon ?? "link"} size={18} /></div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="font-medium text-navy">{q.name}</div>
+                {!q.active && (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Inactief</span>
+                )}
+              </div>
+              <div className="truncate text-xs text-muted-foreground">{q.href}</div>
+            </div>
           </div>
-        </div>
-      )}
-    />
+        )}
+      />
+    </>
+
   );
 }
 
