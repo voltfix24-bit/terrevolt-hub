@@ -33,11 +33,12 @@ import {
 import {
   FEEDBACK_LABELS,
   useFeedbackMutation,
-  useSaveAnswer,
   useSaveBookmark,
   useVraagbaakRecent,
   type VraagbaakFeedbackType,
 } from "@/lib/vraagbaak";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 export const Route = createFileRoute("/vraagbaak")({
   head: () => ({
@@ -100,11 +101,11 @@ function VraagbaakPage() {
 
   const ask = useServerFn(askVraagbaak);
   const { data: recent = [] } = useVraagbaakRecent(6);
-  const saveAnswer = useSaveAnswer();
   const bookmark = useSaveBookmark();
   const feedback = useFeedbackMutation();
+  const qc = useQueryClient();
 
-  const submit = async (override?: string) => {
+  const submit = async (override?: string, opts?: { forceFresh?: boolean }) => {
     const q = (override ?? question).trim();
     if (!q || loading) return;
     setQuestion(q);
@@ -115,30 +116,12 @@ function VraagbaakPage() {
     setFeedbackSent(null);
 
     try {
-      const res = await ask({ data: { question: q } });
+      const res = await ask({ data: { question: q, force_fresh: !!opts?.forceFresh } });
       setAnswer(res);
       setAnswerForQuestion(q);
-
-      const persistedId = await saveAnswer.mutateAsync({
-        question: q,
-        short_answer: res.short_answer,
-        steps: res.steps,
-        summary: res.summary,
-        follow_ups: res.follow_ups,
-        related_ids: [],
-        has_sources: res.has_sources,
-        sources: res.sources.map((s) => ({
-          article_id: s.source_type === "kb_article" ? s.source_id : null,
-          source_type: s.source_type,
-          title: s.title,
-          section_heading: SOURCE_LABEL[s.source_type],
-          page_number: null,
-          file_url: "",
-          external_url: s.url,
-          last_updated: null,
-        })),
-      });
-      setSavedQuestionId(persistedId);
+      if (res.question_id) setSavedQuestionId(res.question_id);
+      // refresh recent list when a brand-new answer was persisted
+      if (!res.cached) qc.invalidateQueries({ queryKey: ["vraagbaak_questions"] });
     } catch (err) {
       console.error(err);
       setAnswer({
@@ -149,6 +132,7 @@ function VraagbaakPage() {
         follow_ups: [],
         sources: [],
         has_sources: false,
+        cached: false,
       });
     } finally {
       setLoading(false);
@@ -157,6 +141,7 @@ function VraagbaakPage() {
 
   const onExample = (q: string) => {
     setQuestion(q);
+
     void submit(q);
     inputRef.current?.focus();
   };
@@ -266,7 +251,20 @@ function VraagbaakPage() {
       )}
 
       {answer && !loading && (
-        <div className="mt-6 space-y-6">
+        <div className="mt-6 space-y-4">
+          {answer.cached && (
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-lime-soft/60 px-3 py-1 text-[11px] font-medium text-navy">
+              <Sparkles className="h-3 w-3" />
+              Beantwoord uit cache · {answer.cache_age_days ?? 0}{" "}
+              {answer.cache_age_days === 1 ? "dag" : "dagen"} oud
+              <button
+                onClick={() => void submit(answerForQuestion, { forceFresh: true })}
+                className="ml-1 underline hover:text-brand"
+              >
+                opnieuw beantwoorden
+              </button>
+            </div>
+          )}
           <AnswerCard
             answer={answer}
             question={answerForQuestion}
@@ -282,6 +280,7 @@ function VraagbaakPage() {
           />
         </div>
       )}
+
 
       {recent.length > 0 && (
         <div className="mt-10">

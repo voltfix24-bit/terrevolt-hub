@@ -801,12 +801,19 @@ export type Database = {
         Row: {
           asked_by: string
           created_at: string
+          expires_at: string
           follow_ups: Json
           has_sources: boolean
+          hit_count: number
           id: string
+          invalidated_at: string | null
+          last_hit_at: string | null
+          min_visibility: Database["public"]["Enums"]["kb_chunk_visibility"]
           question: string
+          question_embedding: string | null
           related_ids: string[]
           short_answer: string
+          source_chunk_ids: string[]
           steps: Json
           summary: string
           updated_at: string
@@ -814,12 +821,19 @@ export type Database = {
         Insert: {
           asked_by?: string
           created_at?: string
+          expires_at?: string
           follow_ups?: Json
           has_sources?: boolean
+          hit_count?: number
           id?: string
+          invalidated_at?: string | null
+          last_hit_at?: string | null
+          min_visibility?: Database["public"]["Enums"]["kb_chunk_visibility"]
           question: string
+          question_embedding?: string | null
           related_ids?: string[]
           short_answer?: string
+          source_chunk_ids?: string[]
           steps?: Json
           summary?: string
           updated_at?: string
@@ -827,12 +841,19 @@ export type Database = {
         Update: {
           asked_by?: string
           created_at?: string
+          expires_at?: string
           follow_ups?: Json
           has_sources?: boolean
+          hit_count?: number
           id?: string
+          invalidated_at?: string | null
+          last_hit_at?: string | null
+          min_visibility?: Database["public"]["Enums"]["kb_chunk_visibility"]
           question?: string
+          question_embedding?: string | null
           related_ids?: string[]
           short_answer?: string
+          source_chunk_ids?: string[]
           steps?: Json
           summary?: string
           updated_at?: string
@@ -939,6 +960,21 @@ export type Database = {
           total: number
         }[]
       }
+      find_cached_answer: {
+        Args: { query_embedding: string; threshold?: number }
+        Returns: {
+          age_days: number
+          follow_ups: Json
+          has_sources: boolean
+          id: string
+          question: string
+          short_answer: string
+          similarity: number
+          source_chunk_ids: string[]
+          steps: Json
+          summary: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -965,6 +1001,20 @@ export type Database = {
           title: string
         }[]
       }
+      register_cache_hit: { Args: { question_id: string }; Returns: undefined }
+      vraagbaak_cache_stats: {
+        Args: never
+        Returns: {
+          active_cached: number
+          expired: number
+          invalidated: number
+          most_asked: string
+          most_asked_hits: number
+          total_cached: number
+          total_hits: number
+        }[]
+      }
+      vraagbaak_clear_cache: { Args: never; Returns: number }
     }
     Enums: {
       app_category:
