@@ -514,6 +514,7 @@ Deno.serve(async (req) => {
       ok: true,
       total: all.length,
       counts,
+      filter: sourceFilter,
       removed: stale.length,
       backfilled_questions: backfilled,
       duration_ms: Date.now() - t0,
