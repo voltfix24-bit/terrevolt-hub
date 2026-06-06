@@ -1369,58 +1369,235 @@ function SearchIndexTab() {
       <div>
         <h3 className="text-base font-semibold text-navy">Zoekindex</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          De Vraagbaak gebruikt een semantische zoekindex. Indexeer opnieuw na het toevoegen of wijzigen van inhoud.
+          De Vraagbaak gebruikt een semantische zoekindex. Wijzigingen aan kennisartikelen,
+          nieuws, mensen, applicaties en andere bronnen worden automatisch verwerkt — meestal
+          binnen 1-2 minuten.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-sm">
-            <div className="font-medium text-navy">
-              {statsQuery.data ? statsQuery.data.total : "—"} geïndexeerde stukken
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Laatste indexering:{" "}
-              {statsQuery.data?.last_indexed
-                ? new Date(statsQuery.data.last_indexed).toLocaleString("nl-NL")
-                : "nog niet uitgevoerd"}
-            </div>
-          </div>
-          <button
-            onClick={onReindex}
-            disabled={busy}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow-sm transition hover:opacity-90 disabled:opacity-50"
-          >
-            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-            {busy ? "Bezig…" : "Volledig opnieuw indexeren"}
-          </button>
-        </div>
-
-        {result && (
-          <div className="mt-4 rounded-xl border border-brand/30 bg-pastel/30 p-3 text-sm text-navy">
-            <div className="font-medium">
-              {result.total} chunks geïndexeerd in {(result.duration_ms / 1000).toFixed(1)}s
-              {typeof result.removed === "number" && result.removed > 0
-                ? ` · ${result.removed} verouderd verwijderd`
-                : ""}
-            </div>
-            <div className="mt-1 text-xs text-foreground/80">
-              {Object.entries(result.counts)
-                .filter(([, n]) => n > 0)
-                .map(([k, n]) => `${n} ${SOURCE_LABELS[k] ?? k}`)
-                .join(" · ")}
-            </div>
-          </div>
-        )}
-        {error && (
-          <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-            {error}
-          </div>
-        )}
-      </div>
+      <ReindexQueueCard
+        totalChunks={statsQuery.data?.total ?? null}
+        lastIndexed={statsQuery.data?.last_indexed ?? null}
+      />
 
       <PdfExtractionCard />
       <VraagbaakCacheCard />
+
+      <details className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <summary className="cursor-pointer text-sm font-medium text-navy">
+          Geavanceerd: volledige herindexering
+        </summary>
+        <div className="mt-3 space-y-3 text-sm text-muted-foreground">
+          <p>
+            Verwerkt alle bronnen opnieuw en re-embedt alles. Alleen nodig in noodgevallen
+            (corrupte index, na grote migraties). Kost AI-credits — voor normale wijzigingen
+            werkt de automatische verwerking hierboven.
+          </p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <button
+              onClick={onReindex}
+              disabled={busy}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow-sm transition hover:opacity-90 disabled:opacity-50"
+            >
+              {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+              {busy ? "Bezig…" : "Volledig opnieuw indexeren"}
+            </button>
+          </div>
+          {result && (
+            <div className="rounded-xl border border-brand/30 bg-pastel/30 p-3 text-sm text-navy">
+              <div className="font-medium">
+                {result.total} chunks geïndexeerd in {(result.duration_ms / 1000).toFixed(1)}s
+                {typeof result.removed === "number" && result.removed > 0
+                  ? ` · ${result.removed} verouderd verwijderd`
+                  : ""}
+              </div>
+              <div className="mt-1 text-xs text-foreground/80">
+                {Object.entries(result.counts)
+                  .filter(([, n]) => n > 0)
+                  .map(([k, n]) => `${n} ${SOURCE_LABELS[k] ?? k}`)
+                  .join(" · ")}
+              </div>
+            </div>
+          )}
+          {error && (
+            <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+        </div>
+      </details>
+    </div>
+  );
+}
+
+/* ---------------- Auto-reindex queue ---------------- */
+type ReindexQueueStats = {
+  pending: number;
+  failed: number;
+  oldest_age_seconds: number;
+};
+type ReindexFailedItem = {
+  id: string;
+  source_type: string;
+  source_id: string;
+  operation: string;
+  attempts: number;
+  last_attempt_at: string | null;
+  last_error: string;
+  enqueued_at: string;
+};
+
+function ReindexQueueCard({
+  totalChunks,
+  lastIndexed,
+}: {
+  totalChunks: number | null;
+  lastIndexed: string | null;
+}) {
+  const qc = useQueryClient();
+  const [retrying, setRetrying] = useState<string | null>(null);
+
+  const statsQ = useQuery({
+    queryKey: ["reindex_queue_stats"],
+    refetchInterval: 15000,
+    queryFn: async (): Promise<ReindexQueueStats> => {
+      const { data, error } = await (supabase as unknown as {
+        rpc: (n: string) => Promise<{ data: unknown; error: { message: string } | null }>;
+      }).rpc("reindex_queue_stats");
+      if (error) throw error;
+      const row = ((data as ReindexQueueStats[]) ?? [])[0];
+      return {
+        pending: Number(row?.pending ?? 0),
+        failed: Number(row?.failed ?? 0),
+        oldest_age_seconds: Number(row?.oldest_age_seconds ?? 0),
+      };
+    },
+  });
+
+  const failedQ = useQuery({
+    queryKey: ["reindex_queue_failed"],
+    refetchInterval: 30000,
+    queryFn: async (): Promise<ReindexFailedItem[]> => {
+      const { data, error } = await (supabase as unknown as {
+        rpc: (n: string) => Promise<{ data: unknown; error: { message: string } | null }>;
+      }).rpc("reindex_queue_failed_items");
+      if (error) throw error;
+      return (data as ReindexFailedItem[]) ?? [];
+    },
+  });
+
+  const retry = async (id: string) => {
+    setRetrying(id);
+    try {
+      const { error } = await (supabase as unknown as {
+        rpc: (n: string, a: Record<string, unknown>) => Promise<{ error: { message: string } | null }>;
+      }).rpc("reindex_queue_retry", { item_id: id });
+      if (error) throw error;
+      toast.success("Item teruggezet in de wachtrij");
+      qc.invalidateQueries({ queryKey: ["reindex_queue_stats"] });
+      qc.invalidateQueries({ queryKey: ["reindex_queue_failed"] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setRetrying(null);
+    }
+  };
+
+  const retryAll = async () => {
+    setRetrying("all");
+    try {
+      const { error } = await (supabase as unknown as {
+        rpc: (n: string) => Promise<{ error: { message: string } | null }>;
+      }).rpc("reindex_queue_retry_all");
+      if (error) throw error;
+      toast.success("Alle mislukte items teruggezet");
+      qc.invalidateQueries({ queryKey: ["reindex_queue_stats"] });
+      qc.invalidateQueries({ queryKey: ["reindex_queue_failed"] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setRetrying(null);
+    }
+  };
+
+  const pending = statsQ.data?.pending ?? 0;
+  const failed = statsQ.data?.failed ?? 0;
+  const oldestAge = statsQ.data?.oldest_age_seconds ?? 0;
+  const items = failedQ.data ?? [];
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="text-sm">
+          <div className="font-medium text-navy">Automatische verwerking</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            {totalChunks ?? "—"} stukken geïndexeerd
+            {lastIndexed
+              ? ` · laatst: ${new Date(lastIndexed).toLocaleString("nl-NL")}`
+              : ""}
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2 text-xs">
+          <span className={`rounded-lg px-2.5 py-1 ${pending > 0 ? "bg-amber-100 text-amber-900" : "bg-emerald-100 text-emerald-900"}`}>
+            {pending} wachtend
+          </span>
+          <span className={`rounded-lg px-2.5 py-1 ${failed > 0 ? "bg-destructive/10 text-destructive" : "bg-muted text-muted-foreground"}`}>
+            {failed} mislukt
+          </span>
+          {pending > 0 && oldestAge > 60 && (
+            <span className="rounded-lg bg-muted px-2.5 py-1 text-muted-foreground">
+              oudste: {Math.round(oldestAge / 60)} min
+            </span>
+          )}
+        </div>
+      </div>
+
+      {failed > 0 && (
+        <div className="mt-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-medium text-navy">Mislukte items</h4>
+            <button
+              onClick={retryAll}
+              disabled={retrying === "all"}
+              className="text-xs font-medium text-brand hover:underline disabled:opacity-50"
+            >
+              {retrying === "all" ? "Bezig…" : "Alles opnieuw proberen"}
+            </button>
+          </div>
+          <ul className="space-y-1.5">
+            {items.map((it) => (
+              <li key={it.id} className="rounded-lg border border-destructive/20 bg-destructive/5 p-2.5 text-xs">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-navy">
+                      {it.source_type} · {it.operation}
+                    </div>
+                    <div className="truncate text-muted-foreground" title={it.source_id}>
+                      {it.source_id}
+                    </div>
+                    {it.last_error && (
+                      <div className="mt-1 break-words text-destructive">{it.last_error}</div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => retry(it.id)}
+                    disabled={retrying === it.id}
+                    className="shrink-0 rounded-md border border-border bg-background px-2 py-1 text-xs font-medium hover:bg-muted disabled:opacity-50"
+                  >
+                    {retrying === it.id ? "…" : "Opnieuw"}
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {failed === 0 && pending === 0 && (
+        <div className="mt-3 text-xs text-muted-foreground">
+          Alles is up-to-date. Nieuwe wijzigingen worden automatisch verwerkt.
+        </div>
+      )}
     </div>
   );
 }
