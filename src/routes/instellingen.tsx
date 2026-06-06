@@ -1687,6 +1687,10 @@ function PdfExtractionCard() {
           <p className="mt-1 text-sm text-muted-foreground">
             Haalt tekst uit geüploade PDF&apos;s zodat de Vraagbaak de inhoud kan doorzoeken.
           </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Deze knop verwerkt PDF&apos;s en updatet daarna automatisch de zoekindex voor artikelen.
+            Voor de eerste indexering van overige content (nieuws, mensen, applicaties etc.) gebruik &quot;Volledig opnieuw indexeren&quot; bovenaan.
+          </p>
         </div>
         <button
           onClick={runAllPending}
