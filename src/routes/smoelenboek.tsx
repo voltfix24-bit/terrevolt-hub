@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import {
@@ -445,15 +445,18 @@ function PersonEditor({ person, onClose }: { person: Person | null; onClose: () 
           <Field label="Certificaten (komma's)" full>
             <Input value={(form.certifications ?? []).join(", ")} onChange={(e) => setF("certifications", splitCsv(e.target.value))} />
           </Field>
-          <Field label="Noodcontact" full>
-            <Input value={form.emergency_contact ?? ""} onChange={(e) => setF("emergency_contact", e.target.value)} placeholder="Naam — telefoonnummer" />
-          </Field>
-          <Field label="" full>
-            <label className="flex items-center gap-2 text-sm text-foreground/80">
-              <input type="checkbox" checked={form.emergency_admin_only ?? true} onChange={(e) => setF("emergency_admin_only", e.target.checked)} />
-              Noodcontact alleen zichtbaar voor admins
-            </label>
-          </Field>
+          {person && (
+            <Field label="Noodcontact (alleen staff)" full>
+              <Input
+                value={emergencyContact}
+                onChange={(e) => setEmergencyContact(e.target.value)}
+                placeholder="Naam — telefoonnummer"
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Alleen zichtbaar voor administratie / directie.
+              </p>
+            </Field>
+          )}
           <Field label="Notities" full>
             <textarea
               value={form.notes ?? ""}
