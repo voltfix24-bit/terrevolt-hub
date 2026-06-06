@@ -532,7 +532,7 @@ function AnswerCard({
             <ol className="grid gap-2">
               {answer.sources.map((s, i) => (
                 <li key={`${s.source_type}:${s.source_id}:${i}`}>
-                  <SourceRow source={s} index={i + 1} />
+                  <SourceRow source={s} index={i + 1} query={question} />
                 </li>
               ))}
             </ol>
