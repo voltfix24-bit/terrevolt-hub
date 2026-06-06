@@ -467,9 +467,31 @@ function AnswerCard({
 
       <div className="space-y-5 px-6 py-5">
         {noSource ? (
-          <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <div>{answer.short_answer}</div>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <div>{answer.short_answer}</div>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-4 text-sm">
+              <div className="mb-2 font-semibold text-navy">Wat kun je nu proberen?</div>
+              <ul className="list-disc space-y-1 pl-5 text-foreground/80">
+                <li>Probeer andere of bredere zoekwoorden (synoniemen, afkortingen).</li>
+                <li>
+                  Verwijder filters of zoek direct in de{" "}
+                  <Link to="/kennisbank" className="text-brand underline">
+                    kennisbank
+                  </Link>
+                  .
+                </li>
+                <li>
+                  Ontbreekt dit echt?{" "}
+                  <a href="mailto:beheer@terrevolt.nl?subject=Vraagbaak%20-%20ontbrekende%20kennis" className="text-brand underline">
+                    Dien een vraag in bij de beheerder
+                  </a>
+                  .
+                </li>
+              </ul>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
