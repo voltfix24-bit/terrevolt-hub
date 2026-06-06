@@ -428,7 +428,7 @@ function AnswerCard({
         {answer.sources.length > 0 && (
           <div>
             <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Bronnen
+              Gevonden bronnen
             </div>
             <ol className="grid gap-2">
               {answer.sources.map((s, i) => (
