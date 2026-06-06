@@ -75,6 +75,14 @@ import {
 import { Icon } from "@/components/hub/Icon";
 import { AdminGate } from "@/components/hub/AdminGate";
 import { Upload, X, Loader2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/instellingen")({
   head: () => ({ meta: [{ title: "Instellingen — TerreVolt Hub" }] }),
