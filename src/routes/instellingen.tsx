@@ -96,6 +96,7 @@ const TABS = [
   { id: "kb-sections", label: "KB secties" },
   { id: "kb-cats", label: "KB sub-categorieën" },
   { id: "kb-articles", label: "KB kennisitems" },
+  { id: "search-index", label: "Zoekindex" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
