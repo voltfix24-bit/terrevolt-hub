@@ -251,7 +251,20 @@ function VraagbaakPage() {
       )}
 
       {answer && !loading && (
-        <div className="mt-6 space-y-6">
+        <div className="mt-6 space-y-4">
+          {answer.cached && (
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-lime-soft/60 px-3 py-1 text-[11px] font-medium text-navy">
+              <Sparkles className="h-3 w-3" />
+              Beantwoord uit cache · {answer.cache_age_days ?? 0}{" "}
+              {answer.cache_age_days === 1 ? "dag" : "dagen"} oud
+              <button
+                onClick={() => void submit(answerForQuestion, { forceFresh: true })}
+                className="ml-1 underline hover:text-brand"
+              >
+                opnieuw beantwoorden
+              </button>
+            </div>
+          )}
           <AnswerCard
             answer={answer}
             question={answerForQuestion}
@@ -267,6 +280,7 @@ function VraagbaakPage() {
           />
         </div>
       )}
+
 
       {recent.length > 0 && (
         <div className="mt-10">
