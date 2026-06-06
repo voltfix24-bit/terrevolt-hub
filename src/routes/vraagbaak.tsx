@@ -612,7 +612,7 @@ function highlightSnippet(text: string, query: string): React.ReactNode {
   const re = new RegExp(`(${escaped.join("|")})`, "gi");
   const parts = text.split(re);
   return parts.map((p, i) =>
-    re.test(p) ? (
+    terms.includes(p.toLowerCase()) ? (
       <mark key={i} className="rounded bg-yellow-200/70 px-0.5 text-navy">
         {p}
       </mark>
