@@ -624,9 +624,12 @@ function AnswerCard({
 const MATCH_LABEL: Record<string, string> = {
   title_exact: "Exacte titel",
   title_contains: "Titel",
+  title_all_tokens: "Titel (alle woorden)",
+  title_token: "Titel (woord)",
   tag_or_category: "Tag/categorie",
   fts_content: "Tekst",
-  content_like: "Tekst (fallback)",
+  content_phrase: "Tekst (zin)",
+  content_token: "Tekst (woord)",
 };
 
 function highlightSnippet(text: string, query: string): React.ReactNode {
