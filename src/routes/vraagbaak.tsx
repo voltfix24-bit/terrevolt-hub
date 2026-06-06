@@ -102,6 +102,7 @@ function VraagbaakPage() {
 
   const ask = useServerFn(askVraagbaak);
   const { session } = useSession();
+  const [needsLogin, setNeedsLogin] = useState(false);
   const { data: recent = [] } = useVraagbaakRecent(6);
   const bookmark = useSaveBookmark();
   const feedback = useFeedbackMutation();
@@ -111,18 +112,13 @@ function VraagbaakPage() {
     const q = (override ?? question).trim();
     if (!q || loading) return;
     if (!session) {
-      setAnswer({
-        short_answer: "Log in om de Vraagbaak te gebruiken.",
-        steps: [],
-        summary: "",
-        follow_ups: [],
-        sources: [],
-        has_sources: false,
-        cached: false,
-      });
-      setAnswerForQuestion(q);
+      setQuestion(q);
+      setAnswer(null);
+      setNeedsLogin(true);
       return;
     }
+    setNeedsLogin(false);
+
     setQuestion(q);
     setLoading(true);
     setAnswer(null);
