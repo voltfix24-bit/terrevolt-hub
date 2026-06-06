@@ -1606,9 +1606,12 @@ function PdfExtractionCard() {
   const runAllPending = async () => {
     setBusy(true);
     setError(null);
-    setProgress("Bezig…");
+    setProgress("PDF's verwerken…");
     try {
       let totalProcessed = 0;
+      const startFailed = s?.failed ?? 0;
+      const startScanned = s?.scanned ?? 0;
+      const startTooLarge = s?.too_large ?? 0;
       for (let i = 0; i < 50; i++) {
         const { data, error } = await supabase.functions.invoke("extract_pdf_text", {
           body: { all_pending: true },
@@ -1617,13 +1620,46 @@ function PdfExtractionCard() {
         const r = data as { processed?: number; remaining_hint?: boolean; error?: string };
         if (r.error) throw new Error(r.error);
         totalProcessed += r.processed ?? 0;
-        setProgress(`${totalProcessed} verwerkt…`);
+        setProgress(`PDF's verwerken… (${totalProcessed} verwerkt)`);
         if (!r.processed || !r.remaining_hint) break;
       }
-      setProgress(`Klaar. ${totalProcessed} verwerkt.`);
+
+      // Phase 2: only reindex if we actually processed something
+      if (totalProcessed > 0) {
+        setProgress("PDF-inhoud indexeren…");
+        const { error: reindexErr } = await supabase.functions.invoke("reindex_all", {
+          body: { source_filter: ["kb_article"] },
+        });
+        if (reindexErr) throw reindexErr;
+        toast.success(
+          `${totalProcessed} PDF${totalProcessed === 1 ? "" : "'s"} verwerkt en geïndexeerd. Inhoud is nu doorzoekbaar in de Vraagbaak.`,
+        );
+        setProgress(`Klaar. ${totalProcessed} verwerkt en geïndexeerd.`);
+      } else {
+        setProgress("Geen wachtende PDF's gevonden.");
+      }
+
       refresh();
+
+      // Check fresh stats for new problems and warn if any
+      const { data: freshData } = await (supabase as unknown as {
+        rpc: (n: string) => Promise<{ data: unknown; error: { message: string } | null }>;
+      }).rpc("pdf_extraction_stats");
+      const fresh = ((freshData as PdfStats[]) ?? [])[0];
+      if (fresh) {
+        const newProblems =
+          (fresh.failed - startFailed) +
+          (fresh.scanned - startScanned) +
+          (fresh.too_large - startTooLarge);
+        if (newProblems > 0) {
+          toast.warning(
+            `Let op: ${newProblems} PDF${newProblems === 1 ? "" : "'s"} konden niet worden verwerkt. Bekijk ze onder 'Aandacht nodig'.`,
+          );
+        }
+      }
     } catch (e) {
       setError((e as Error).message ?? "Verwerken mislukt");
+      toast.error("Verwerken mislukt: " + ((e as Error).message ?? ""));
     } finally {
       setBusy(false);
     }
