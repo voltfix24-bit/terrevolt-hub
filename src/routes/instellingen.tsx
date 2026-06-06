@@ -137,6 +137,7 @@ function SettingsPage() {
         {tab === "kb-sections" && <KbSectionsTab />}
         {tab === "kb-cats" && <KbCategoriesTab />}
         {tab === "kb-articles" && <KbArticlesTab />}
+        {tab === "search-index" && <SearchIndexTab />}
       </div>
     </HubLayout>
   );
