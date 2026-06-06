@@ -1649,12 +1649,6 @@ function ReindexQueueCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {failed === 0 && pending === 0 && (
         <div className="mt-3 text-xs text-muted-foreground">
