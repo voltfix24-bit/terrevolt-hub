@@ -308,8 +308,11 @@ REGELS:
         // Determine min visibility from the chunks actually used (or all rows if none cited)
         const visRows = usedRows.length > 0 ? usedRows : rows;
         const visIds = visRows.map((r) => r.id);
-        const visRank = await fetchMaxVisibilityRank(supabase, visIds);
-        const min_visibility: KbVisibility = rankVisibility(visRank);
+        const maxRank = visRows.reduce(
+          (m, r) => Math.max(m, visibilityRank(r.visibility)),
+          0,
+        );
+        const min_visibility: KbVisibility = rankVisibility(maxRank);
 
         // Insert via REST: cast through rpc-style any
         const sb = context.supabase as unknown as {
