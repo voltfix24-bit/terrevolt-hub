@@ -59,8 +59,18 @@ function Dashboard() {
   const { data: spQuickAccess = [] } = useFavoriteSharePointLinks();
   const { touch: spTouch } = useSharePointMutations();
 
-  const featured = apps.filter((a) => a.featured);
-  const others = apps.filter((a) => !a.featured);
+  const [appQuery, setAppQuery] = useState("");
+  const q = appQuery.trim().toLowerCase();
+  const filteredApps = q
+    ? apps.filter(
+        (a) =>
+          a.name.toLowerCase().includes(q) ||
+          a.category.toLowerCase().includes(q) ||
+          a.description.toLowerCase().includes(q),
+      )
+    : apps;
+  const featured = filteredApps.filter((a) => a.featured);
+  const others = filteredApps.filter((a) => !a.featured);
   // Avoid SSR/client hydration mismatch — render a stable greeting first, then localise.
   const [greeting, setGreeting] = useState("Welkom");
   useEffect(() => {
@@ -117,6 +127,15 @@ function Dashboard() {
         {/* Applications */}
         <section>
           <SectionHeader title="Applicaties" subtitle="Open snel je dagelijkse tools en omgevingen." />
+          <div className="mb-5">
+            <input
+              type="search"
+              value={appQuery}
+              onChange={(e) => setAppQuery(e.target.value)}
+              placeholder="Zoek apps op naam of categorie…"
+              className="w-full max-w-md rounded-full border border-border bg-card px-4 py-2 text-sm text-navy shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+            />
+          </div>
           {featured.length > 0 && (
             <div className="grid auto-rows-fr grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
               {featured.map((app) => <AppCard key={app.id} app={app} large />)}
@@ -125,6 +144,11 @@ function Dashboard() {
           {others.length > 0 && (
             <div className="mt-4 grid auto-rows-fr grid-cols-1 gap-4 sm:mt-5 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {others.map((app) => <AppCard key={app.id} app={app} />)}
+            </div>
+          )}
+          {!isLoading && apps.length > 0 && filteredApps.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+              Geen apps gevonden voor "{appQuery}".
             </div>
           )}
           {!isLoading && apps.length === 0 && (
