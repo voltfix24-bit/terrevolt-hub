@@ -350,6 +350,8 @@ export function QuickActions({ person }: { person: Person }) {
 
 function PersonEditor({ person, onClose }: { person: Person | null; onClose: () => void }) {
   const { create, update, remove } = usePeopleMutations();
+  const { upsert: upsertSensitive } = usePersonSensitiveMutations();
+  const { data: sensitive } = usePersonSensitive(person?.id);
   const empty: Partial<Person> = {
     full_name: "",
     job_title: "",
@@ -366,18 +368,23 @@ function PersonEditor({ person, onClose }: { person: Person | null; onClose: () 
     bei_authorization: "",
     vehicle: "",
     equipment: "",
-    emergency_contact: "",
-    emergency_admin_only: true,
     notes: "",
   };
   const [form, setForm] = useState<Partial<Person>>(person ?? empty);
+  const [emergencyContact, setEmergencyContact] = useState<string>("");
   const setF = <K extends keyof Person>(k: K, v: Person[K]) => setForm((f) => ({ ...f, [k]: v }));
+
+  // Load sensitive emergency contact into local state when available
+  useEffect(() => {
+    if (sensitive) setEmergencyContact(sensitive.emergency_contact ?? "");
+  }, [sensitive]);
 
   const save = async () => {
     if (!form.full_name?.trim()) { toast.error("Naam is verplicht"); return; }
     try {
       if (person) {
         await update.mutateAsync({ id: person.id, patch: form });
+        await upsertSensitive.mutateAsync({ person_id: person.id, emergency_contact: emergencyContact });
         toast.success("Profiel bijgewerkt");
       } else {
         await create.mutateAsync({ ...form, full_name: form.full_name } as Person);
@@ -396,6 +403,7 @@ function PersonEditor({ person, onClose }: { person: Person | null; onClose: () 
     toast.success("Profiel verwijderd");
     onClose();
   };
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4">
