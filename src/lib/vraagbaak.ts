@@ -99,6 +99,7 @@ export type SaveAnswerInput = {
   has_sources: boolean;
   sources: Array<{
     article_id: string | null;
+    source_type: string;
     title: string;
     section_heading: string;
     page_number: number | null;
