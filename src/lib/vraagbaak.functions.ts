@@ -22,6 +22,7 @@ export type ResolvedSource = {
   url: string;
   external: boolean;
   similarity: number;
+  snippet?: string;
 };
 
 export type VraagbaakAnswer = {
@@ -43,61 +44,10 @@ const Input = z.object({
 });
 
 const NO_SOURCE =
-  "Ik kan dit niet met zekerheid vinden in de kennisbank. Controleer de originele documenten of vraag dit na bij de verantwoordelijke.";
+  "Ik kon geen passende interne bron vinden. Probeer andere zoekwoorden of vraag dit na bij de verantwoordelijke.";
+const FOUND_PREFIX = "Ik heb deze interne bronnen gevonden:";
 
-const CACHE_THRESHOLD = 0.92;
-const MIN_MATCH_SIMILARITY = 0.36;
-
-function sanitizeText(value: unknown, fallbackText = ""): string {
-  return typeof value === "string" ? value.trim() : fallbackText;
-}
-
-function sanitizeStringArray(value: unknown, limit: number): string[] {
-  if (!Array.isArray(value)) return [];
-  return value
-    .filter((item): item is string => typeof item === "string")
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, limit);
-}
-
-function uniqueValidSourceIndices(value: unknown, max: number): number[] {
-  if (!Array.isArray(value)) return [];
-  const seen = new Set<number>();
-  const indices: number[] = [];
-  for (const item of value) {
-    const n = typeof item === "number" ? item : Number(item);
-    if (!Number.isInteger(n) || n < 1 || n > max || seen.has(n)) continue;
-    seen.add(n);
-    indices.push(n);
-  }
-  return indices;
-}
-
-function extractJson(text: string): unknown | null {
-  const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  const candidate = fence ? fence[1] : text;
-  const first = candidate.indexOf("{");
-  const last = candidate.lastIndexOf("}");
-  if (first === -1 || last === -1 || last <= first) return null;
-  try {
-    return JSON.parse(candidate.slice(first, last + 1));
-  } catch {
-    return null;
-  }
-}
-
-const fallback = (short: string): VraagbaakAnswer => ({
-  short_answer: short,
-  steps: [],
-  summary: "",
-  follow_ups: [],
-  sources: [],
-  has_sources: false,
-  cached: false,
-});
-
-type MatchRow = {
+type SearchRow = {
   id: string;
   source_type: KbChunkSource;
   source_id: string;
@@ -106,7 +56,7 @@ type MatchRow = {
   content: string;
   metadata: Record<string, unknown>;
   visibility: KbVisibility;
-  similarity: number;
+  rank: number;
 };
 
 type SupabaseLike = {
@@ -121,274 +71,94 @@ type SupabaseLike = {
   };
 };
 
-function visibilityRank(v: KbVisibility): number {
-  return v === "all" ? 0 : v === "staff" ? 1 : 2;
-}
-function rankVisibility(r: number): KbVisibility {
-  return r >= 2 ? "admin" : r >= 1 ? "staff" : "all";
+function buildSnippet(content: string, q: string, len = 200): string {
+  const text = (content || "").replace(/\s+/g, " ").trim();
+  if (!text) return "";
+  const lower = text.toLowerCase();
+  const terms = q
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((t) => t.length >= 3);
+  let idx = -1;
+  for (const t of terms) {
+    idx = lower.indexOf(t);
+    if (idx !== -1) break;
+  }
+  if (idx === -1) return text.slice(0, len) + (text.length > len ? "…" : "");
+  const start = Math.max(0, idx - 60);
+  const end = Math.min(text.length, start + len);
+  return (start > 0 ? "…" : "") + text.slice(start, end) + (end < text.length ? "…" : "");
 }
 
 export const askVraagbaak = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => Input.parse(input))
   .handler(async ({ data, context }): Promise<VraagbaakAnswer> => {
-    const key = process.env.LOVABLE_API_KEY;
-    if (!key) {
-      return fallback("De AI-assistent is nog niet geactiveerd. Stel LOVABLE_API_KEY in.");
-    }
     const supabase = context.supabase as unknown as SupabaseLike;
+    const question = data.question.trim();
 
-    // 1. Embed the question
-    let queryEmbedding: number[];
-    try {
-      const er = await fetch("https://ai.gateway.lovable.dev/v1/embeddings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
-        body: JSON.stringify({
-          model: "openai/text-embedding-3-small",
-          input: data.question,
-        }),
-      });
-      if (!er.ok) {
-        if (er.status === 429)
-          return fallback("Te veel verzoeken. Probeer het zo dadelijk opnieuw.");
-        if (er.status === 402)
-          return fallback("Het AI-tegoed is op. Voeg credits toe in workspace-instellingen.");
-        throw new Error(`Embeddings ${er.status}`);
-      }
-      const ej = (await er.json()) as { data: Array<{ embedding: number[] }> };
-      queryEmbedding = ej.data?.[0]?.embedding ?? [];
-      if (!queryEmbedding.length) throw new Error("empty embedding");
-    } catch (err) {
-      console.error("embed error", err);
-      return fallback("Kon de vraag niet verwerken. Probeer het later opnieuw.");
-    }
-
-    // 2. Cache lookup (skip when force_fresh)
-    if (!data.force_fresh) {
-      const { data: cached, error: cacheErr } = await supabase.rpc("find_cached_answer", {
-        query_embedding: queryEmbedding,
-        threshold: CACHE_THRESHOLD,
-      });
-      if (!cacheErr && Array.isArray(cached) && cached.length > 0) {
-        const hit = (cached as Array<{
-          id: string;
-          short_answer: string;
-          steps: unknown;
-          summary: string;
-          follow_ups: unknown;
-          has_sources: boolean;
-          source_chunk_ids: string[];
-          similarity: number;
-          age_days: number;
-        }>)[0];
-
-        // resolve sources from chunk ids
-        const sources = await resolveSourcesFromChunkIds(
-          supabase,
-          hit.source_chunk_ids ?? [],
-          hit.similarity,
-        );
-
-        // fire-and-forget hit counter
-        void supabase.rpc("register_cache_hit", { question_id: hit.id });
-
-        return {
-          short_answer: sanitizeText(hit.short_answer),
-          steps: sanitizeStringArray(hit.steps, 6),
-          summary: sanitizeText(hit.summary),
-          follow_ups: sanitizeStringArray(hit.follow_ups, 4),
-          sources,
-          has_sources: hit.has_sources,
-          cached: true,
-          cache_age_days: hit.age_days,
-          cache_similarity: hit.similarity,
-          question_id: hit.id,
-        };
-      }
-    }
-
-    // 3. Semantic search via RPC
-    const { data: matches, error: matchErr } = await supabase.rpc("match_kb_chunks", {
-      query_embedding: queryEmbedding,
-      match_count: 12,
+    const { data: matches, error } = await supabase.rpc("search_kb_chunks", {
+      query_text: question,
+      match_count: 10,
     });
-    if (matchErr) {
-      console.error("match_kb_chunks error", matchErr);
-      return fallback("Kon de kennisbank niet doorzoeken. Probeer het later opnieuw.");
+
+    if (error) {
+      console.error("search_kb_chunks error", error);
+      return {
+        short_answer: "Kon de kennisbank niet doorzoeken. Probeer het later opnieuw.",
+        steps: [],
+        summary: "",
+        follow_ups: [],
+        sources: [],
+        has_sources: false,
+        cached: false,
+      };
     }
-    const rows = (matches as MatchRow[] | null) ?? [];
+
+    const rows = ((matches as SearchRow[] | null) ?? []).slice(0, 8);
     if (rows.length === 0) {
-      return fallback(NO_SOURCE);
-    }
-    const strongRows = rows.filter((r) => r.similarity >= MIN_MATCH_SIMILARITY);
-    if (strongRows.length === 0) {
-      return fallback(NO_SOURCE);
-    }
-
-    // 4. Resolve URLs (kb article slugs need extra lookups)
-    const urlResolver = await buildUrlResolver(supabase, strongRows);
-
-    // 5. Build LLM context
-    const docs = strongRows
-      .map((r, i) => {
-        const meta = Object.entries(r.metadata ?? {})
-          .filter(([, v]) => v !== null && v !== "" && v !== undefined)
-          .map(([k, v]) => `${k}=${typeof v === "string" ? v : JSON.stringify(v)}`)
-          .join(" · ");
-        const body = (r.content || "").slice(0, 1800);
-        return `### [${i + 1}] ${r.title} (${r.source_type}, relevantie ${r.similarity.toFixed(2)})\nMeta: ${meta}\n${body}`;
-      })
-      .join("\n\n");
-
-    const system = `Je bent de TerreVolt Vraagbaak. Beantwoord vragen kort, helder en uitsluitend in het Nederlands.
-
-REGELS:
-- Baseer je antwoord UITSLUITEND op de meegegeven documenten.
-- Gebruik alleen documenten die de vraag direct beantwoorden. Noem geen details die slechts losjes verwant zijn.
-- Als het antwoord niet (volledig) in de documenten staat, schrijf in "short_answer": "${NO_SOURCE}"
-- Werkwijze bronvermelding:
-  1) Bepaal "source_indices": de documentnummers (zoals [1], [2]...) die je daadwerkelijk gebruikt, in citatievolgorde.
-  2) Voeg in "short_answer", elke stap in "steps" en in "summary" inline citaten toe in de vorm [k], waar k de POSITIE in source_indices is (1-gebaseerd).
-  3) Elke zin met inhoudelijke informatie krijgt minimaal een [k]-citaat.
-- Antwoord altijd in geldige JSON met dit exacte schema:
-{
-  "short_answer": string,
-  "steps": string[],
-  "summary": string,
-  "follow_ups": string[],
-  "source_indices": number[]
-}
-- Geen markdown buiten de JSON, geen uitleg buiten de JSON.`;
-
-    const userPrompt = `Documenten:\n${docs}\n\nVraag: ${data.question}\n\nGeef nu het JSON-antwoord.`;
-
-    type ParsedAnswer = {
-      short_answer: string;
-      steps?: string[];
-      summary?: string;
-      follow_ups?: string[];
-      source_indices?: number[];
-    };
-    let parsed: ParsedAnswer;
-    try {
-      const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Lovable-API-Key": key },
-        body: JSON.stringify({
-          model: "openai/gpt-5.2",
-          messages: [
-            { role: "system", content: system },
-            { role: "user", content: userPrompt },
-          ],
-          response_format: { type: "json_object" },
-        }),
-      });
-      if (!res.ok) {
-        if (res.status === 429) return fallback("Te veel verzoeken. Probeer het zo dadelijk opnieuw.");
-        if (res.status === 402)
-          return fallback("Het AI-tegoed is op. Voeg credits toe in workspace-instellingen.");
-        throw new Error(`AI gateway ${res.status}`);
-      }
-      const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
-      const raw = j.choices?.[0]?.message?.content ?? "";
-      const maybe = extractJson(raw) as Partial<ParsedAnswer> | null;
-      if (!maybe || typeof maybe.short_answer !== "string") {
-        return fallback(raw.trim() || NO_SOURCE);
-      }
-      parsed = maybe as ParsedAnswer;
-    } catch (err) {
-      console.error("vraagbaak LLM error", err);
-      return fallback("Er ging iets mis bij het ophalen van het antwoord. Probeer het later opnieuw.");
+      return {
+        short_answer: NO_SOURCE,
+        steps: [],
+        summary: "",
+        follow_ups: [],
+        sources: [],
+        has_sources: false,
+        cached: false,
+      };
     }
 
-    parsed.short_answer = sanitizeText(parsed.short_answer, NO_SOURCE);
-    const indices = uniqueValidSourceIndices(parsed.source_indices, strongRows.length);
-    const usedRows: MatchRow[] = indices
-      .map((i: number) => strongRows[i - 1])
-      .filter((r): r is MatchRow => Boolean(r));
-
-    const sources: ResolvedSource[] = usedRows.map((r) => {
-      const { url, external } = urlResolver(r);
+    const resolver = await buildUrlResolver(supabase, rows);
+    const sources: ResolvedSource[] = rows.map((r) => {
+      const { url, external } = resolver(r);
       return {
         source_type: r.source_type,
         source_id: r.source_id,
         title: r.title,
         url,
         external,
-        similarity: r.similarity,
+        similarity: Number(r.rank) || 0,
+        snippet: buildSnippet(r.content, question),
       };
     });
 
-    const isNoSource =
-      parsed.short_answer.trim() === NO_SOURCE || sources.length === 0;
-
-    const answer: VraagbaakAnswer = {
-      short_answer: parsed.short_answer.trim(),
-      steps: sanitizeStringArray(parsed.steps, 6),
-      summary: sanitizeText(parsed.summary),
-      follow_ups: sanitizeStringArray(parsed.follow_ups, 4),
+    return {
+      short_answer: FOUND_PREFIX,
+      steps: [],
+      summary: "",
+      follow_ups: [],
       sources,
-      has_sources: !isNoSource,
+      has_sources: true,
       cached: false,
     };
-
-    // 6. Persist with embedding + chunk_ids + min_visibility (only useful answers)
-    if (!isNoSource) {
-      try {
-        // Determine min visibility from the chunks actually used (or all rows if none cited)
-        const visRows = usedRows.length > 0 ? usedRows : strongRows;
-        const visIds = visRows.map((r) => r.id);
-        const maxRank = visRows.reduce(
-          (m, r) => Math.max(m, visibilityRank(r.visibility)),
-          0,
-        );
-        const min_visibility: KbVisibility = rankVisibility(maxRank);
-
-        // Insert via REST: cast through rpc-style any
-        const sb = context.supabase as unknown as {
-          from: (t: string) => {
-            insert: (row: Record<string, unknown>) => {
-              select: (c: string) => {
-                single: () => Promise<{ data: { id: string } | null; error: unknown }>;
-              };
-            };
-          };
-        };
-        const { data: ins, error: insErr } = await sb
-          .from("vraagbaak_questions")
-          .insert({
-            question: data.question,
-            short_answer: answer.short_answer,
-            steps: answer.steps,
-            summary: answer.summary,
-            follow_ups: answer.follow_ups,
-            related_ids: [],
-            has_sources: answer.has_sources,
-            question_embedding: queryEmbedding as unknown as string,
-            source_chunk_ids: visIds,
-            min_visibility,
-          })
-          .select("id")
-          .single();
-        if (!insErr && ins?.id) {
-          answer.question_id = ins.id;
-        }
-      } catch (e) {
-        console.error("persist vraagbaak error", e);
-      }
-    }
-
-    return answer;
   });
 
 /* -------- helpers -------- */
 
-
 async function buildUrlResolver(
   supabase: SupabaseLike,
-  rows: MatchRow[],
-): Promise<(r: MatchRow) => { url: string; external: boolean }> {
+  rows: SearchRow[],
+): Promise<(r: SearchRow) => { url: string; external: boolean }> {
   const kbIds = new Set(
     rows.filter((r) => r.source_type === "kb_article").map((r) => r.source_id),
   );
@@ -417,7 +187,7 @@ async function buildUrlResolver(
     }
   }
 
-  return (r: MatchRow) => {
+  return (r: SearchRow) => {
     const meta = r.metadata ?? {};
     switch (r.source_type) {
       case "kb_article": {
@@ -449,52 +219,4 @@ async function buildUrlResolver(
         };
     }
   };
-}
-
-async function resolveSourcesFromChunkIds(
-  supabase: SupabaseLike,
-  chunkIds: string[],
-  similarity: number,
-): Promise<ResolvedSource[]> {
-  if (chunkIds.length === 0) return [];
-  const { data, error } = await supabase.rpc("get_kb_chunks_by_ids", {
-    chunk_ids: chunkIds,
-  });
-  if (error) {
-    console.error("get_kb_chunks_by_ids error", error);
-    return [];
-  }
-  const rows = (data as Array<{
-    id: string;
-    source_type: KbChunkSource;
-    source_id: string;
-    title: string;
-    metadata: Record<string, unknown>;
-    visibility: KbVisibility;
-  }> | null) ?? [];
-  const byId = new Map(rows.map((r) => [r.id, r]));
-  const ordered = chunkIds.map((id) => byId.get(id)).filter(Boolean) as typeof rows;
-  const asMatch: MatchRow[] = ordered.map((r) => ({
-    id: r.id,
-    source_type: r.source_type,
-    source_id: r.source_id,
-    chunk_index: 0,
-    title: r.title,
-    content: "",
-    metadata: r.metadata ?? {},
-    visibility: r.visibility,
-    similarity,
-  }));
-  const resolver = await buildUrlResolver(supabase, asMatch);
-  return asMatch.map((r) => {
-    const { url, external } = resolver(r);
-    return {
-      source_type: r.source_type,
-      source_id: r.source_id,
-      title: r.title,
-      url,
-      external,
-      similarity,
-    };
-  });
 }

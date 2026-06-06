@@ -48,7 +48,7 @@ export const Route = createFileRoute("/vraagbaak")({
       {
         name: "description",
         content:
-          "Stel een vraag over procedures, documenten, opdrachtgevers, nieuws, mensen en applicaties. De Vraagbaak doorzoekt de hele TerreVolt Hub.",
+          "Doorzoek interne kennis, procedures en documenten in de TerreVolt Hub.",
       },
     ],
   }),
@@ -185,8 +185,8 @@ function VraagbaakPage() {
   return (
     <HubLayout>
       <SectionHeader
-        title="Stel je vraag - de hele Hub antwoordt"
-        subtitle="Vraag iets over procedures, opdrachtgevers, nieuws, applicaties of collega's. De Vraagbaak doorzoekt alle bronnen in TerreVolt Hub."
+        title="Vraagbaak"
+        subtitle="Zoek in interne kennis, procedures en documenten."
       />
 
       <div className="relative overflow-hidden rounded-3xl border border-brand/30 bg-gradient-to-br from-pastel/50 via-card to-lime-soft/40 p-6 shadow-sm md:p-8">
@@ -195,9 +195,9 @@ function VraagbaakPage() {
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <div className="font-semibold text-navy">Vraagbaak assistent</div>
+            <div className="font-semibold text-navy">Interne zoekvraagbaak</div>
             <div className="text-xs text-foreground/70">
-              Antwoorden zijn altijd voorzien van bronnen - kennisbank, nieuws, mensen, applicaties en meer.
+              Geen AI - alleen interne bronnen uit kennisbank, nieuws, mensen, applicaties en meer.
             </div>
           </div>
         </div>
@@ -214,12 +214,12 @@ function VraagbaakPage() {
               }
             }}
             rows={2}
-            placeholder="Bijv. Wie heeft BEI-3? of Waar boek ik mijn uren?"
+            placeholder="Bijv. BEI-3, factureren Van Gelder, aardingsprocedure..."
             className="block w-full resize-none rounded-2xl bg-transparent px-5 py-4 text-base outline-none placeholder:text-muted-foreground"
           />
           <div className="flex items-center justify-between gap-3 border-t border-border/60 px-3 py-2.5">
             <div className="px-2 text-xs text-muted-foreground">
-              Enter om te vragen · Shift+Enter voor nieuwe regel
+              Enter om te zoeken - Shift+Enter voor nieuwe regel
             </div>
             <button
               onClick={() => void submit()}
@@ -227,7 +227,7 @@ function VraagbaakPage() {
               className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow-sm transition hover:opacity-90 disabled:opacity-50"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              Vraag
+              Zoeken
             </button>
           </div>
         </div>
@@ -261,7 +261,7 @@ function VraagbaakPage() {
             <div>
               <div className="text-sm font-semibold text-navy">Log in om door te gaan</div>
               <div className="mt-1 text-sm text-muted-foreground">
-                De Vraagbaak doorzoekt interne kennis. Meld je aan om je vraag te stellen.
+                De Vraagbaak doorzoekt interne kennis. Meld je aan om te zoeken.
               </div>
             </div>
           </div>
@@ -290,7 +290,7 @@ function VraagbaakPage() {
           {answer.cached && (
             <div className="inline-flex items-center gap-1.5 rounded-full bg-lime-soft/60 px-3 py-1 text-[11px] font-medium text-navy">
               <Sparkles className="h-3 w-3" />
-              Beantwoord uit cache · {answer.cache_age_days ?? 0}{" "}
+              Beantwoord uit cache - {answer.cache_age_days ?? 0}{" "}
               {answer.cache_age_days === 1 ? "dag" : "dagen"} oud
               <button
                 onClick={() => void submit(answerForQuestion, { forceFresh: true })}
@@ -428,7 +428,7 @@ function AnswerCard({
         {answer.sources.length > 0 && (
           <div>
             <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Bronnen
+              Gevonden bronnen
             </div>
             <ol className="grid gap-2">
               {answer.sources.map((s, i) => (
@@ -502,8 +502,11 @@ function SourceRow({ source, index }: { source: ResolvedSource; index: number })
         <div className="truncate text-sm font-medium text-navy">{source.title}</div>
         <div className="truncate text-xs text-muted-foreground">
           {SOURCE_LABEL[source.source_type]}
-          {source.url ? ` Â· ${source.url}` : ""}
+          {source.similarity ? ` - relevantie ${source.similarity.toFixed(2)}` : ""}
         </div>
+        {source.snippet && (
+          <div className="mt-1 line-clamp-2 text-xs text-foreground/70">{source.snippet}</div>
+        )}
       </div>
       <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />
     </>
