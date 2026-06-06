@@ -1503,6 +1503,7 @@ function ReindexQueueCard({
       }).rpc("reindex_queue_retry", { item_id: id });
       if (error) throw error;
       toast.success("Item teruggezet in de wachtrij");
+      setDetailItem(null);
       qc.invalidateQueries({ queryKey: ["reindex_queue_stats"] });
       qc.invalidateQueries({ queryKey: ["reindex_queue_failed"] });
     } catch (e) {
