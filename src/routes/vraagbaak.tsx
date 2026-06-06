@@ -496,29 +496,61 @@ function AnswerCard({
           </div>
         ) : (
           <div className="space-y-4">
-            <p className="text-base leading-relaxed text-navy">{answer.short_answer}</p>
-
-            {answer.steps.length > 0 && (
-              <div>
-                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Stappen
+            {answer.direct_answer ? (
+              <div className="rounded-2xl border border-brand/30 bg-pastel/40 p-4">
+                <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand">
+                  Beste match
                 </div>
-                <ol className="space-y-2">
-                  {answer.steps.map((s, i) => (
-                    <li key={i} className="flex gap-3 text-sm text-foreground/85">
-                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand/15 text-xs font-semibold text-brand">
-                        {i + 1}
-                      </span>
-                      <span>{s}</span>
-                    </li>
-                  ))}
-                </ol>
+                <div className="mb-2 text-sm font-semibold text-navy">
+                  {answer.direct_answer.title}
+                </div>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+                  {answer.direct_answer.content}
+                </p>
+                {answer.direct_answer.url && (
+                  answer.direct_answer.external ? (
+                    <a
+                      href={answer.direct_answer.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+                    >
+                      Bron openen <ArrowUpRight className="h-3 w-3" />
+                    </a>
+                  ) : (
+                    <Link
+                      to={answer.direct_answer.url}
+                      className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+                    >
+                      Bron openen <ArrowUpRight className="h-3 w-3" />
+                    </Link>
+                  )
+                )}
               </div>
+            ) : (
+              <p className="text-base leading-relaxed text-navy">{answer.short_answer}</p>
             )}
 
-            {answer.summary && (
-              <div className="rounded-2xl bg-accent/40 p-4 text-sm text-foreground/85">
-                {answer.summary}
+            {answer.suggestions.length > 0 && (
+              <div>
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  {answer.direct_answer ? "Verwante vragen" : "Bedoel je"}
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  {answer.suggestions
+                    .filter((s) => !answer.direct_answer || s.title !== answer.direct_answer.title)
+                    .map((s) => (
+                      <button
+                        key={`${s.source_id}:${s.title}`}
+                        onClick={() => onFollowUp(s.title)}
+                        className="group flex items-start gap-2 rounded-xl border border-border bg-card px-3 py-2 text-left text-sm text-navy shadow-sm transition hover:border-brand/40 hover:bg-pastel/30"
+                      >
+                        <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                        <span className="flex-1">{s.title}</span>
+                        <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:text-brand" />
+                      </button>
+                    ))}
+                </div>
               </div>
             )}
           </div>
