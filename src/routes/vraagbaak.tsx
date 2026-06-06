@@ -38,6 +38,7 @@ import {
   type VraagbaakFeedbackType,
 } from "@/lib/vraagbaak";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSession } from "@/lib/auth";
 
 
 export const Route = createFileRoute("/vraagbaak")({
@@ -100,6 +101,7 @@ function VraagbaakPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const ask = useServerFn(askVraagbaak);
+  const { session } = useSession();
   const { data: recent = [] } = useVraagbaakRecent(6);
   const bookmark = useSaveBookmark();
   const feedback = useFeedbackMutation();
@@ -108,6 +110,19 @@ function VraagbaakPage() {
   const submit = async (override?: string, opts?: { forceFresh?: boolean }) => {
     const q = (override ?? question).trim();
     if (!q || loading) return;
+    if (!session) {
+      setAnswer({
+        short_answer: "Log in om de Vraagbaak te gebruiken.",
+        steps: [],
+        summary: "",
+        follow_ups: [],
+        sources: [],
+        has_sources: false,
+        cached: false,
+      });
+      setAnswerForQuestion(q);
+      return;
+    }
     setQuestion(q);
     setLoading(true);
     setAnswer(null);
