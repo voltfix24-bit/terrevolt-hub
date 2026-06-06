@@ -353,17 +353,6 @@ REGELS:
 
 /* -------- helpers -------- */
 
-async function fetchMaxVisibilityRank(
-  supabase: SupabaseLike,
-  chunkIds: string[],
-): Promise<number> {
-  if (chunkIds.length === 0) return 0;
-  const res = await supabase.from("kb_chunks").select("visibility").in("id", chunkIds);
-  const rows = (res.data as Array<{ visibility: KbVisibility }> | null) ?? [];
-  let max = 0;
-  for (const r of rows) max = Math.max(max, visibilityRank(r.visibility));
-  return max;
-}
 
 async function buildUrlResolver(
   supabase: SupabaseLike,
