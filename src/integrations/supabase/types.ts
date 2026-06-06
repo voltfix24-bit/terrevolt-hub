@@ -178,7 +178,14 @@ export type Database = {
           document_date: string | null
           document_type: string
           external_url: string
+          extracted_at: string | null
+          extracted_file_size: number
+          extracted_page_count: number
+          extracted_text: string
+          extraction_error: string
+          extraction_status: string
           file_name: string
+          file_path: string
           file_size: number
           file_url: string
           id: string
@@ -207,7 +214,14 @@ export type Database = {
           document_date?: string | null
           document_type?: string
           external_url?: string
+          extracted_at?: string | null
+          extracted_file_size?: number
+          extracted_page_count?: number
+          extracted_text?: string
+          extraction_error?: string
+          extraction_status?: string
           file_name?: string
+          file_path?: string
           file_size?: number
           file_url?: string
           id?: string
@@ -236,7 +250,14 @@ export type Database = {
           document_date?: string | null
           document_type?: string
           external_url?: string
+          extracted_at?: string | null
+          extracted_file_size?: number
+          extracted_page_count?: number
+          extracted_text?: string
+          extraction_error?: string
+          extraction_status?: string
           file_name?: string
+          file_path?: string
           file_size?: number
           file_url?: string
           id?: string
@@ -999,6 +1020,19 @@ export type Database = {
           source_id: string
           source_type: Database["public"]["Enums"]["kb_chunk_source"]
           title: string
+        }[]
+      }
+      pdf_extraction_stats: {
+        Args: never
+        Returns: {
+          avg_chars: number
+          extracted_ok: number
+          failed: number
+          pending: number
+          scanned: number
+          too_large: number
+          total_pages: number
+          total_with_pdf: number
         }[]
       }
       register_cache_hit: { Args: { question_id: string }; Returns: undefined }

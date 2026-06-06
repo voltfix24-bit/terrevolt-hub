@@ -138,7 +138,12 @@ function buildKbArticleChunks(rows: any[]): Chunk[] {
       Array.isArray(r.tags) && r.tags.length ? `Tags: ${r.tags.join(", ")}` : "",
       r.important_notes ? `Belangrijk: ${r.important_notes}` : "",
     ]);
-    const body = trim(r.content);
+    const bodyParts: string[] = [];
+    if (trim(r.content)) bodyParts.push(trim(r.content));
+    if (r.extraction_status === "ok" && trim(r.extracted_text)) {
+      bodyParts.push(`Documentinhoud:\n${trim(r.extracted_text)}`);
+    }
+    const body = bodyParts.join("\n\n");
     const parts = body.length > 4000 ? chunkParagraphs(body, 3500, 200) : [body];
     parts.forEach((part, idx) => {
       const text = joinNonEmpty([
@@ -156,6 +161,9 @@ function buildKbArticleChunks(rows: any[]): Chunk[] {
           slug: r.slug ?? null,
           file_url: r.file_url ?? null,
           client: r.client ?? null,
+          has_pdf: !!r.file_url,
+          extraction_status: r.extraction_status ?? "not_applicable",
+          page_count: r.extracted_page_count ?? 0,
         },
         visibility: "all",
         source_updated_at: r.updated_at ?? null,
@@ -348,7 +356,7 @@ Deno.serve(async (req) => {
     const [
       kb, news, fin, people, apps, sp, partners, quick, depts,
     ] = await Promise.all([
-      admin.from("kb_articles").select("id,title,slug,summary,content,important_notes,client,tags,section_id,file_url,status,updated_at"),
+      admin.from("kb_articles").select("id,title,slug,summary,content,important_notes,client,tags,section_id,file_url,status,updated_at,extracted_text,extraction_status,extracted_page_count"),
       admin.from("news").select("id,title,category,summary,content,publish_date,important,archived,updated_at").eq("archived", false),
       admin.from("finance_clients").select("id,slug,name,short_description,factuuradres,inkooporder_info,factuur_referenties,verplichte_bijlagen,btw_verlegd,g_rekening,betaaltermijn,factuur_email,veelgemaakte_fouten,voorbeeld_factuurtekst,interne_opmerkingen,archived,updated_at").eq("archived", false),
       admin.from("people").select("id,full_name,job_title,department,person_type,certifications,bei_authorization,notes,archived,updated_at").eq("archived", false),

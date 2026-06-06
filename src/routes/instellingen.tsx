@@ -675,6 +675,11 @@ function KbArticlesTab() {
       file_url: a.file_url,
       file_name: a.file_name,
       file_size: a.file_size,
+      file_path: a.file_path,
+      extraction_status: a.extraction_status,
+      extraction_error: a.extraction_error,
+      extracted_page_count: a.extracted_page_count,
+      extracted_at: a.extracted_at,
       external_url: a.external_url,
       attachments: a.attachments,
       related_ids: a.related_ids,
@@ -685,15 +690,25 @@ function KbArticlesTab() {
     setAdding(false);
     setEditingId(null);
   };
-  const save = () => {
+  const save = async () => {
     const payload: KbArticleInput = {
       ...draft,
       slug: draft.slug || slugify(draft.title),
     };
     if (!payload.title.trim() || !payload.section_id) return;
-    if (adding) add.mutate(payload);
-    else if (editingId)
-      update.mutate({ id: editingId, patch: payload as Partial<KbArticle> });
+    let articleId: string | null = null;
+    if (adding) {
+      const created = await add.mutateAsync(payload);
+      articleId = created.id;
+    } else if (editingId) {
+      await update.mutateAsync({ id: editingId, patch: payload as Partial<KbArticle> });
+      articleId = editingId;
+    }
+    if (articleId && payload.file_path && payload.extraction_status === "pending") {
+      supabase.functions
+        .invoke("extract_pdf_text", { body: { article_id: articleId } })
+        .catch((e) => console.warn("PDF extractie niet gestart:", e));
+    }
     cancel();
   };
 
@@ -902,6 +917,11 @@ function ArticleEditor({
         file_url: res.url,
         file_name: res.name,
         file_size: res.size,
+        file_path: res.path,
+        extraction_status: ext === "pdf" ? "pending" : "not_applicable",
+        extraction_error: "",
+        extracted_page_count: 0,
+        extracted_at: null,
         document_type: draft.document_type === "wiki" ? docType : draft.document_type,
       });
     } catch (err) {
@@ -1100,7 +1120,17 @@ function ArticleEditor({
             <button
               type="button"
               onClick={() =>
-                setDraft({ ...draft, file_url: "", file_name: "", file_size: 0 })
+                setDraft({
+                  ...draft,
+                  file_url: "",
+                  file_name: "",
+                  file_size: 0,
+                  file_path: "",
+                  extraction_status: "not_applicable",
+                  extraction_error: "",
+                  extracted_page_count: 0,
+                  extracted_at: null,
+                })
               }
               className="mt-1 text-xs font-medium text-muted-foreground hover:text-destructive"
             >
@@ -1388,6 +1418,7 @@ function SearchIndexTab() {
         )}
       </div>
 
+      <PdfExtractionCard />
       <VraagbaakCacheCard />
     </div>
   );
@@ -1501,6 +1532,193 @@ function Stat({ label, value }: { label: string; value: number | string }) {
     <div className="rounded-xl border border-border bg-card px-3 py-2">
       <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
       <div className="mt-0.5 text-lg font-semibold text-navy">{value}</div>
+    </div>
+  );
+}
+
+/* ---------------- PDF text extraction ---------------- */
+type PdfStats = {
+  total_with_pdf: number;
+  extracted_ok: number;
+  pending: number;
+  scanned: number;
+  failed: number;
+  too_large: number;
+  total_pages: number;
+  avg_chars: number;
+};
+
+function PdfExtractionCard() {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const statsQuery = useQuery({
+    queryKey: ["pdf_extraction_stats"],
+    queryFn: async (): Promise<PdfStats> => {
+      const { data, error } = await (supabase as unknown as {
+        rpc: (n: string) => Promise<{ data: unknown; error: { message: string } | null }>;
+      }).rpc("pdf_extraction_stats");
+      if (error) throw error;
+      const row = ((data as PdfStats[]) ?? [])[0];
+      return (
+        row ?? {
+          total_with_pdf: 0,
+          extracted_ok: 0,
+          pending: 0,
+          scanned: 0,
+          failed: 0,
+          too_large: 0,
+          total_pages: 0,
+          avg_chars: 0,
+        }
+      );
+    },
+  });
+
+  const attentionQuery = useQuery({
+    queryKey: ["pdf_attention"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("kb_articles")
+        .select("id,title,extraction_status,extraction_error,file_name")
+        .in("extraction_status", ["failed", "scanned", "too_large"])
+        .order("extracted_at", { ascending: false, nullsFirst: false })
+        .limit(50);
+      if (error) throw error;
+      return (data ?? []) as Array<{
+        id: string;
+        title: string;
+        extraction_status: string;
+        extraction_error: string;
+        file_name: string;
+      }>;
+    },
+  });
+
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["pdf_extraction_stats"] });
+    qc.invalidateQueries({ queryKey: ["pdf_attention"] });
+  };
+
+  const runAllPending = async () => {
+    setBusy(true);
+    setError(null);
+    setProgress("Bezig…");
+    try {
+      let totalProcessed = 0;
+      for (let i = 0; i < 50; i++) {
+        const { data, error } = await supabase.functions.invoke("extract_pdf_text", {
+          body: { all_pending: true },
+        });
+        if (error) throw error;
+        const r = data as { processed?: number; remaining_hint?: boolean; error?: string };
+        if (r.error) throw new Error(r.error);
+        totalProcessed += r.processed ?? 0;
+        setProgress(`${totalProcessed} verwerkt…`);
+        if (!r.processed || !r.remaining_hint) break;
+      }
+      setProgress(`Klaar. ${totalProcessed} verwerkt.`);
+      refresh();
+    } catch (e) {
+      setError((e as Error).message ?? "Verwerken mislukt");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const retryOne = async (id: string) => {
+    try {
+      const { error } = await supabase.functions.invoke("extract_pdf_text", {
+        body: { article_id: id, force: true },
+      });
+      if (error) throw error;
+      refresh();
+    } catch (e) {
+      alert("Opnieuw proberen mislukt: " + (e as Error).message);
+    }
+  };
+
+  const s = statsQuery.data;
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="text-base font-semibold text-navy">PDF-extractie</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Haalt tekst uit geüploade PDF&apos;s zodat de Vraagbaak de inhoud kan doorzoeken.
+          </p>
+        </div>
+        <button
+          onClick={runAllPending}
+          disabled={busy || !s || s.pending === 0}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow-sm transition hover:opacity-90 disabled:opacity-50"
+        >
+          {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+          {busy ? "Bezig…" : `Verwerk wachtende PDF's${s ? ` (${s.pending})` : ""}`}
+        </button>
+      </div>
+
+      {s && (
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Stat label="PDFs totaal" value={s.total_with_pdf} />
+          <Stat label="Geëxtraheerd" value={s.extracted_ok} />
+          <Stat label="Wachtend" value={s.pending} />
+          <Stat label="Gefaald" value={s.failed} />
+          <Stat label="Scans" value={s.scanned} />
+          <Stat label="Te groot" value={s.too_large} />
+          <Stat label="Pagina's totaal" value={s.total_pages} />
+          <Stat label="Gem. tekens" value={s.avg_chars} />
+        </div>
+      )}
+
+      {progress && (
+        <div className="mt-3 text-xs text-muted-foreground">{progress}</div>
+      )}
+      {error && (
+        <div className="mt-3 rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+
+      {attentionQuery.data && attentionQuery.data.length > 0 && (
+        <div className="mt-5">
+          <div className="mb-2 text-sm font-medium text-navy">Aandacht nodig</div>
+          <ul className="divide-y divide-border rounded-xl border border-border">
+            {attentionQuery.data.map((a) => (
+              <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 p-3">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-sm font-medium text-navy">{a.title || a.file_name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    <span
+                      className={
+                        a.extraction_status === "failed"
+                          ? "rounded-full bg-destructive/15 px-2 py-0.5 text-destructive"
+                          : a.extraction_status === "too_large"
+                            ? "rounded-full bg-destructive/10 px-2 py-0.5 text-destructive/80"
+                            : "rounded-full bg-amber-100 px-2 py-0.5 text-amber-800"
+                      }
+                    >
+                      {a.extraction_status}
+                    </span>
+                    {a.extraction_error && (
+                      <span className="ml-2">{a.extraction_error}</span>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={() => retryOne(a.id)}
+                  className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-foreground/80 hover:bg-accent"
+                >
+                  Opnieuw proberen
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

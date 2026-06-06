@@ -63,6 +63,11 @@ export type KbArticle = {
   file_url: string;
   file_name: string;
   file_size: number;
+  file_path: string;
+  extraction_status: KbExtractionStatus;
+  extraction_error: string;
+  extracted_page_count: number;
+  extracted_at: string | null;
   external_url: string;
   attachments: KbAttachment[];
   related_ids: string[];
@@ -71,6 +76,14 @@ export type KbArticle = {
   updated_at: string;
   created_at: string;
 };
+
+export type KbExtractionStatus =
+  | "not_applicable"
+  | "pending"
+  | "ok"
+  | "scanned"
+  | "failed"
+  | "too_large";
 
 export type KbArticleInput = Omit<
   KbArticle,
@@ -250,6 +263,11 @@ function normalizeArticle(r: Record<string, unknown>): KbArticle {
     file_url: (r.file_url as string) ?? "",
     file_name: (r.file_name as string) ?? "",
     file_size: Number(r.file_size ?? 0),
+    file_path: (r.file_path as string) ?? "",
+    extraction_status: ((r.extraction_status as KbExtractionStatus) ?? "not_applicable"),
+    extraction_error: (r.extraction_error as string) ?? "",
+    extracted_page_count: Number(r.extracted_page_count ?? 0),
+    extracted_at: (r.extracted_at as string | null) ?? null,
     external_url: (r.external_url as string) ?? "",
     attachments: (r.attachments as KbAttachment[]) ?? [],
     related_ids: (r.related_ids as string[]) ?? [],
@@ -540,6 +558,11 @@ export function emptyArticleInput(sectionId?: string): KbArticleInput {
     file_url: "",
     file_name: "",
     file_size: 0,
+    file_path: "",
+    extraction_status: "not_applicable",
+    extraction_error: "",
+    extracted_page_count: 0,
+    extracted_at: null,
     external_url: "",
     attachments: [],
     related_ids: [],
