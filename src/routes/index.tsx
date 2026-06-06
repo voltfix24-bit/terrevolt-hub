@@ -59,8 +59,18 @@ function Dashboard() {
   const { data: spQuickAccess = [] } = useFavoriteSharePointLinks();
   const { touch: spTouch } = useSharePointMutations();
 
-  const featured = apps.filter((a) => a.featured);
-  const others = apps.filter((a) => !a.featured);
+  const [appQuery, setAppQuery] = useState("");
+  const q = appQuery.trim().toLowerCase();
+  const filteredApps = q
+    ? apps.filter(
+        (a) =>
+          a.name.toLowerCase().includes(q) ||
+          a.category.toLowerCase().includes(q) ||
+          a.description.toLowerCase().includes(q),
+      )
+    : apps;
+  const featured = filteredApps.filter((a) => a.featured);
+  const others = filteredApps.filter((a) => !a.featured);
   // Avoid SSR/client hydration mismatch — render a stable greeting first, then localise.
   const [greeting, setGreeting] = useState("Welkom");
   useEffect(() => {
