@@ -90,6 +90,14 @@ function SourceIcon({ type, className = "h-4 w-4" }: { type: KbChunkSource; clas
   }
 }
 
+type DatePreset = "any" | "7d" | "30d" | "365d";
+
+function presetToFrom(p: DatePreset): string | undefined {
+  if (p === "any") return undefined;
+  const days = p === "7d" ? 7 : p === "30d" ? 30 : 365;
+  return new Date(Date.now() - days * 86400_000).toISOString();
+}
+
 function VraagbaakPage() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -98,6 +106,8 @@ function VraagbaakPage() {
   const [savedQuestionId, setSavedQuestionId] = useState<string | null>(null);
   const [bookmarked, setBookmarked] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState<VraagbaakFeedbackType | null>(null);
+  const [sourceFilter, setSourceFilter] = useState<KbChunkSource[]>([]);
+  const [datePreset, setDatePreset] = useState<DatePreset>("any");
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const ask = useServerFn(askVraagbaak);
@@ -107,6 +117,12 @@ function VraagbaakPage() {
   const bookmark = useSaveBookmark();
   const feedback = useFeedbackMutation();
   const qc = useQueryClient();
+
+  const toggleSource = (t: KbChunkSource) => {
+    setSourceFilter((prev) =>
+      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
+    );
+  };
 
   const submit = async (override?: string, opts?: { forceFresh?: boolean }) => {
     const q = (override ?? question).trim();
@@ -127,11 +143,17 @@ function VraagbaakPage() {
     setFeedbackSent(null);
 
     try {
-      const res = await ask({ data: { question: q, force_fresh: !!opts?.forceFresh } });
+      const res = await ask({
+        data: {
+          question: q,
+          force_fresh: !!opts?.forceFresh,
+          source_types: sourceFilter.length ? sourceFilter : undefined,
+          date_from: presetToFrom(datePreset),
+        },
+      });
       setAnswer(res);
       setAnswerForQuestion(q);
       if (res.question_id) setSavedQuestionId(res.question_id);
-      // refresh recent list when a brand-new answer was persisted
       if (!res.cached) qc.invalidateQueries({ queryKey: ["vraagbaak_questions"] });
     } catch (err) {
       console.error(err);
@@ -149,6 +171,7 @@ function VraagbaakPage() {
       setLoading(false);
     }
   };
+
 
   const onExample = (q: string) => {
     setQuestion(q);
