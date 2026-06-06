@@ -502,8 +502,11 @@ function SourceRow({ source, index }: { source: ResolvedSource; index: number })
         <div className="truncate text-sm font-medium text-navy">{source.title}</div>
         <div className="truncate text-xs text-muted-foreground">
           {SOURCE_LABEL[source.source_type]}
-          {source.url ? ` Â- ${source.url}` : ""}
+          {source.similarity ? ` - relevantie ${source.similarity.toFixed(2)}` : ""}
         </div>
+        {source.snippet && (
+          <div className="mt-1 line-clamp-2 text-xs text-foreground/70">{source.snippet}</div>
+        )}
       </div>
       <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />
     </>
