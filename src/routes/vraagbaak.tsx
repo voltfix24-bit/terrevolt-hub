@@ -164,6 +164,7 @@ function VraagbaakPage() {
         summary: "",
         follow_ups: [],
         sources: [],
+        suggestions: [],
         has_sources: false,
         cached: false,
       });
