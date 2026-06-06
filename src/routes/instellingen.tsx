@@ -917,6 +917,11 @@ function ArticleEditor({
         file_url: res.url,
         file_name: res.name,
         file_size: res.size,
+        file_path: res.path,
+        extraction_status: ext === "pdf" ? "pending" : "not_applicable",
+        extraction_error: "",
+        extracted_page_count: 0,
+        extracted_at: null,
         document_type: draft.document_type === "wiki" ? docType : draft.document_type,
       });
     } catch (err) {
