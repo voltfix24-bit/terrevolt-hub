@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { HubLayout } from "@/components/hub/HubLayout";
-import { usePerson, isAdminRole } from "@/lib/people";
-import { useHubStore } from "@/lib/hub-store";
+import { usePerson, usePersonSensitive } from "@/lib/people";
+import { useSession, useCurrentRole } from "@/lib/auth";
 import { Avatar, StatusBadge, QuickActions } from "./smoelenboek";
 import { ArrowLeft, Phone, Mail, MapPin, Briefcase, Car, Wrench, ShieldAlert, ShieldCheck, FileBadge2, StickyNote } from "lucide-react";
 
@@ -15,8 +15,10 @@ export const Route = createFileRoute("/smoelenboek/$id")({
 function PersonDetail() {
   const { id } = useParams({ from: "/smoelenboek/$id" });
   const { data: person, isLoading } = usePerson(id);
-  const role = useHubStore((s) => s.role);
-  const admin = isAdminRole(role);
+  const { user } = useSession();
+  const { data: roleRow } = useCurrentRole(user);
+  const isStaff = roleRow?.role === "admin" || roleRow?.role === "management";
+  const { data: sensitive } = usePersonSensitive(isStaff ? id : undefined);
 
   if (isLoading) {
     return <HubLayout><div className="mx-auto max-w-4xl text-sm text-muted-foreground">Laden…</div></HubLayout>;
@@ -37,7 +39,8 @@ function PersonDetail() {
   }
 
   const hidden = new Set(person.hidden_fields);
-  const showEmergency = person.emergency_contact && (!person.emergency_admin_only || admin);
+  const emergency = sensitive?.emergency_contact ?? "";
+  const showEmergency = isStaff && emergency.length > 0;
 
   return (
     <HubLayout>
@@ -119,10 +122,8 @@ function PersonDetail() {
 
           {showEmergency && (
             <InfoCard title="Noodcontact" icon={<ShieldAlert className="h-4 w-4 text-rose-600" />}>
-              <div className="text-sm text-foreground/80">{person.emergency_contact}</div>
-              {person.emergency_admin_only && (
-                <div className="mt-2 text-[11px] text-muted-foreground">Alleen zichtbaar voor administratie / directie.</div>
-              )}
+              <div className="text-sm text-foreground/80">{emergency}</div>
+              <div className="mt-2 text-[11px] text-muted-foreground">Alleen zichtbaar voor administratie / directie.</div>
             </InfoCard>
           )}
 
