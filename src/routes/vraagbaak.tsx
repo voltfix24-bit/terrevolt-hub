@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -90,6 +90,14 @@ function SourceIcon({ type, className = "h-4 w-4" }: { type: KbChunkSource; clas
   }
 }
 
+type DatePreset = "any" | "7d" | "30d" | "365d";
+
+function presetToFrom(p: DatePreset): string | undefined {
+  if (p === "any") return undefined;
+  const days = p === "7d" ? 7 : p === "30d" ? 30 : 365;
+  return new Date(Date.now() - days * 86400_000).toISOString();
+}
+
 function VraagbaakPage() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -98,6 +106,8 @@ function VraagbaakPage() {
   const [savedQuestionId, setSavedQuestionId] = useState<string | null>(null);
   const [bookmarked, setBookmarked] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState<VraagbaakFeedbackType | null>(null);
+  const [sourceFilter, setSourceFilter] = useState<KbChunkSource[]>([]);
+  const [datePreset, setDatePreset] = useState<DatePreset>("any");
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const ask = useServerFn(askVraagbaak);
@@ -107,6 +117,12 @@ function VraagbaakPage() {
   const bookmark = useSaveBookmark();
   const feedback = useFeedbackMutation();
   const qc = useQueryClient();
+
+  const toggleSource = (t: KbChunkSource) => {
+    setSourceFilter((prev) =>
+      prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
+    );
+  };
 
   const submit = async (override?: string, opts?: { forceFresh?: boolean }) => {
     const q = (override ?? question).trim();
@@ -127,11 +143,17 @@ function VraagbaakPage() {
     setFeedbackSent(null);
 
     try {
-      const res = await ask({ data: { question: q, force_fresh: !!opts?.forceFresh } });
+      const res = await ask({
+        data: {
+          question: q,
+          force_fresh: !!opts?.forceFresh,
+          source_types: sourceFilter.length ? sourceFilter : undefined,
+          date_from: presetToFrom(datePreset),
+        },
+      });
       setAnswer(res);
       setAnswerForQuestion(q);
       if (res.question_id) setSavedQuestionId(res.question_id);
-      // refresh recent list when a brand-new answer was persisted
       if (!res.cached) qc.invalidateQueries({ queryKey: ["vraagbaak_questions"] });
     } catch (err) {
       console.error(err);
@@ -149,6 +171,7 @@ function VraagbaakPage() {
       setLoading(false);
     }
   };
+
 
   const onExample = (q: string) => {
     setQuestion(q);
@@ -231,6 +254,60 @@ function VraagbaakPage() {
             </button>
           </div>
         </div>
+
+        {/* Filters */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Bron:
+          </span>
+          {(Object.keys(SOURCE_LABEL) as KbChunkSource[]).map((t) => {
+            const active = sourceFilter.includes(t);
+            return (
+              <button
+                key={t}
+                onClick={() => toggleSource(t)}
+                className={[
+                  "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium transition",
+                  active
+                    ? "border-brand bg-brand/10 text-brand"
+                    : "border-border bg-card text-foreground/70 hover:border-brand/40 hover:text-navy",
+                ].join(" ")}
+              >
+                <SourceIcon type={t} className="h-3 w-3" />
+                {SOURCE_LABEL[t]}
+              </button>
+            );
+          })}
+          <span className="ml-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Datum:
+          </span>
+          {(["any", "7d", "30d", "365d"] as DatePreset[]).map((p) => (
+            <button
+              key={p}
+              onClick={() => setDatePreset(p)}
+              className={[
+                "rounded-full border px-2.5 py-1 text-[11px] font-medium transition",
+                datePreset === p
+                  ? "border-brand bg-brand/10 text-brand"
+                  : "border-border bg-card text-foreground/70 hover:border-brand/40 hover:text-navy",
+              ].join(" ")}
+            >
+              {p === "any" ? "alles" : p === "7d" ? "laatste 7d" : p === "30d" ? "laatste 30d" : "laatste jaar"}
+            </button>
+          ))}
+          {(sourceFilter.length > 0 || datePreset !== "any") && (
+            <button
+              onClick={() => {
+                setSourceFilter([]);
+                setDatePreset("any");
+              }}
+              className="ml-1 text-[11px] font-medium text-muted-foreground underline hover:text-brand"
+            >
+              wissen
+            </button>
+          )}
+        </div>
+
 
         {!answer && !loading && (
           <div className="mt-6">
@@ -390,9 +467,31 @@ function AnswerCard({
 
       <div className="space-y-5 px-6 py-5">
         {noSource ? (
-          <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <div>{answer.short_answer}</div>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+              <div>{answer.short_answer}</div>
+            </div>
+            <div className="rounded-2xl border border-border bg-card p-4 text-sm">
+              <div className="mb-2 font-semibold text-navy">Wat kun je nu proberen?</div>
+              <ul className="list-disc space-y-1 pl-5 text-foreground/80">
+                <li>Probeer andere of bredere zoekwoorden (synoniemen, afkortingen).</li>
+                <li>
+                  Verwijder filters of zoek direct in de{" "}
+                  <Link to="/kennisbank" className="text-brand underline">
+                    kennisbank
+                  </Link>
+                  .
+                </li>
+                <li>
+                  Ontbreekt dit echt?{" "}
+                  <a href="mailto:beheer@terrevolt.nl?subject=Vraagbaak%20-%20ontbrekende%20kennis" className="text-brand underline">
+                    Dien een vraag in bij de beheerder
+                  </a>
+                  .
+                </li>
+              </ul>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
@@ -433,7 +532,7 @@ function AnswerCard({
             <ol className="grid gap-2">
               {answer.sources.map((s, i) => (
                 <li key={`${s.source_type}:${s.source_id}:${i}`}>
-                  <SourceRow source={s} index={i + 1} />
+                  <SourceRow source={s} index={i + 1} query={question} />
                 </li>
               ))}
             </ol>
@@ -489,7 +588,49 @@ function AnswerCard({
   );
 }
 
-function SourceRow({ source, index }: { source: ResolvedSource; index: number }) {
+const MATCH_LABEL: Record<string, string> = {
+  title_exact: "Exacte titel",
+  title_contains: "Titel",
+  tag_or_category: "Tag/categorie",
+  fts_content: "Tekst",
+  content_like: "Tekst (fallback)",
+};
+
+function highlightSnippet(text: string, query: string): React.ReactNode {
+  if (!text) return null;
+  const terms = Array.from(
+    new Set(
+      query
+        .toLowerCase()
+        .split(/\s+/)
+        .map((t) => t.replace(/[^\p{L}\p{N}]/gu, ""))
+        .filter((t) => t.length >= 3),
+    ),
+  );
+  if (terms.length === 0) return text;
+  const escaped = terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const re = new RegExp(`(${escaped.join("|")})`, "gi");
+  const parts = text.split(re);
+  return parts.map((p, i) =>
+    terms.includes(p.toLowerCase()) ? (
+      <mark key={i} className="rounded bg-yellow-200/70 px-0.5 text-navy">
+        {p}
+      </mark>
+    ) : (
+      <span key={i}>{p}</span>
+    ),
+  );
+}
+
+function SourceRow({
+  source,
+  index,
+  query,
+}: {
+  source: ResolvedSource;
+  index: number;
+  query: string;
+}) {
   const inner = (
     <>
       <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand/15 text-xs font-semibold text-brand">
@@ -500,17 +641,25 @@ function SourceRow({ source, index }: { source: ResolvedSource; index: number })
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium text-navy">{source.title}</div>
-        <div className="truncate text-xs text-muted-foreground">
-          {SOURCE_LABEL[source.source_type]}
-          {source.similarity ? ` - relevantie ${source.similarity.toFixed(2)}` : ""}
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <span>{SOURCE_LABEL[source.source_type]}</span>
+          {source.match_kind && (
+            <span className="rounded-full bg-pastel/60 px-1.5 py-0.5 text-[10px] font-medium text-navy">
+              {MATCH_LABEL[source.match_kind] ?? source.match_kind}
+            </span>
+          )}
+          {source.similarity ? <span>· score {source.similarity.toFixed(2)}</span> : null}
         </div>
         {source.snippet && (
-          <div className="mt-1 line-clamp-2 text-xs text-foreground/70">{source.snippet}</div>
+          <div className="mt-1 line-clamp-2 text-xs text-foreground/70">
+            {highlightSnippet(source.snippet, query)}
+          </div>
         )}
       </div>
       <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />
     </>
   );
+
 
   const className =
     "group flex items-center gap-3 rounded-2xl border border-border bg-card px-3.5 py-2.5 shadow-sm transition hover:border-brand/40 hover:bg-pastel/30";
