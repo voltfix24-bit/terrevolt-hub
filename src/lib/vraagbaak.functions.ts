@@ -467,14 +467,3 @@ async function resolveSourcesFromChunkIds(
     };
   });
 }
-    const { url, external } = resolver(r);
-    return {
-      source_type: r.source_type,
-      source_id: r.source_id,
-      title: r.title,
-      url,
-      external,
-      similarity,
-    };
-  });
-}
