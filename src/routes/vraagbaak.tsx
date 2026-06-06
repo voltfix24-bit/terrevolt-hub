@@ -588,7 +588,49 @@ function AnswerCard({
   );
 }
 
-function SourceRow({ source, index }: { source: ResolvedSource; index: number }) {
+const MATCH_LABEL: Record<string, string> = {
+  title_exact: "Exacte titel",
+  title_contains: "Titel",
+  tag_or_category: "Tag/categorie",
+  fts_content: "Tekst",
+  content_like: "Tekst (fallback)",
+};
+
+function highlightSnippet(text: string, query: string): React.ReactNode {
+  if (!text) return null;
+  const terms = Array.from(
+    new Set(
+      query
+        .toLowerCase()
+        .split(/\s+/)
+        .map((t) => t.replace(/[^\p{L}\p{N}]/gu, ""))
+        .filter((t) => t.length >= 3),
+    ),
+  );
+  if (terms.length === 0) return text;
+  const escaped = terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const re = new RegExp(`(${escaped.join("|")})`, "gi");
+  const parts = text.split(re);
+  return parts.map((p, i) =>
+    re.test(p) ? (
+      <mark key={i} className="rounded bg-yellow-200/70 px-0.5 text-navy">
+        {p}
+      </mark>
+    ) : (
+      <span key={i}>{p}</span>
+    ),
+  );
+}
+
+function SourceRow({
+  source,
+  index,
+  query,
+}: {
+  source: ResolvedSource;
+  index: number;
+  query: string;
+}) {
   const inner = (
     <>
       <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand/15 text-xs font-semibold text-brand">
@@ -599,17 +641,25 @@ function SourceRow({ source, index }: { source: ResolvedSource; index: number })
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium text-navy">{source.title}</div>
-        <div className="truncate text-xs text-muted-foreground">
-          {SOURCE_LABEL[source.source_type]}
-          {source.similarity ? ` - relevantie ${source.similarity.toFixed(2)}` : ""}
+        <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          <span>{SOURCE_LABEL[source.source_type]}</span>
+          {source.match_kind && (
+            <span className="rounded-full bg-pastel/60 px-1.5 py-0.5 text-[10px] font-medium text-navy">
+              {MATCH_LABEL[source.match_kind] ?? source.match_kind}
+            </span>
+          )}
+          {source.similarity ? <span>· score {source.similarity.toFixed(2)}</span> : null}
         </div>
         {source.snippet && (
-          <div className="mt-1 line-clamp-2 text-xs text-foreground/70">{source.snippet}</div>
+          <div className="mt-1 line-clamp-2 text-xs text-foreground/70">
+            {highlightSnippet(source.snippet, query)}
+          </div>
         )}
       </div>
       <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground" />
     </>
   );
+
 
   const className =
     "group flex items-center gap-3 rounded-2xl border border-border bg-card px-3.5 py-2.5 shadow-sm transition hover:border-brand/40 hover:bg-pastel/30";
