@@ -230,13 +230,14 @@ REGELS:
 
     const userPrompt = `Documenten:\n${docs}\n\nVraag: ${data.question}\n\nGeef nu het JSON-antwoord.`;
 
-    let parsed: {
-      short_answer?: string;
+    type ParsedAnswer = {
+      short_answer: string;
       steps?: string[];
       summary?: string;
       follow_ups?: string[];
       source_indices?: number[];
-    } | null = null;
+    };
+    let parsed: ParsedAnswer;
     try {
       const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
@@ -258,17 +259,21 @@ REGELS:
       }
       const j = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
       const raw = j.choices?.[0]?.message?.content ?? "";
-      parsed = extractJson(raw) as typeof parsed;
-      if (!parsed || typeof parsed.short_answer !== "string") {
+      const maybe = extractJson(raw) as Partial<ParsedAnswer> | null;
+      if (!maybe || typeof maybe.short_answer !== "string") {
         return fallback(raw.trim() || NO_SOURCE);
       }
+      parsed = maybe as ParsedAnswer;
     } catch (err) {
       console.error("vraagbaak LLM error", err);
       return fallback("Er ging iets mis bij het ophalen van het antwoord. Probeer het later opnieuw.");
     }
 
     const indices = Array.isArray(parsed.source_indices) ? parsed.source_indices : [];
-    const usedRows = indices.map((i) => rows[i - 1]).filter(Boolean);
+    const usedRows: MatchRow[] = indices
+      .map((i: number) => rows[i - 1])
+      .filter((r): r is MatchRow => Boolean(r));
+
     const sources: ResolvedSource[] = usedRows.map((r) => {
       const { url, external } = urlResolver(r);
       return {
