@@ -101,11 +101,11 @@ function VraagbaakPage() {
 
   const ask = useServerFn(askVraagbaak);
   const { data: recent = [] } = useVraagbaakRecent(6);
-  const saveAnswer = useSaveAnswer();
   const bookmark = useSaveBookmark();
   const feedback = useFeedbackMutation();
+  const qc = useQueryClient();
 
-  const submit = async (override?: string) => {
+  const submit = async (override?: string, opts?: { forceFresh?: boolean }) => {
     const q = (override ?? question).trim();
     if (!q || loading) return;
     setQuestion(q);
@@ -116,30 +116,12 @@ function VraagbaakPage() {
     setFeedbackSent(null);
 
     try {
-      const res = await ask({ data: { question: q } });
+      const res = await ask({ data: { question: q, force_fresh: !!opts?.forceFresh } });
       setAnswer(res);
       setAnswerForQuestion(q);
-
-      const persistedId = await saveAnswer.mutateAsync({
-        question: q,
-        short_answer: res.short_answer,
-        steps: res.steps,
-        summary: res.summary,
-        follow_ups: res.follow_ups,
-        related_ids: [],
-        has_sources: res.has_sources,
-        sources: res.sources.map((s) => ({
-          article_id: s.source_type === "kb_article" ? s.source_id : null,
-          source_type: s.source_type,
-          title: s.title,
-          section_heading: SOURCE_LABEL[s.source_type],
-          page_number: null,
-          file_url: "",
-          external_url: s.url,
-          last_updated: null,
-        })),
-      });
-      setSavedQuestionId(persistedId);
+      if (res.question_id) setSavedQuestionId(res.question_id);
+      // refresh recent list when a brand-new answer was persisted
+      if (!res.cached) qc.invalidateQueries({ queryKey: ["vraagbaak_questions"] });
     } catch (err) {
       console.error(err);
       setAnswer({
@@ -150,6 +132,7 @@ function VraagbaakPage() {
         follow_ups: [],
         sources: [],
         has_sources: false,
+        cached: false,
       });
     } finally {
       setLoading(false);
@@ -158,6 +141,7 @@ function VraagbaakPage() {
 
   const onExample = (q: string) => {
     setQuestion(q);
+
     void submit(q);
     inputRef.current?.focus();
   };
