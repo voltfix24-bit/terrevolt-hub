@@ -13,6 +13,7 @@ import {
   Wallet,
   Users,
 } from "lucide-react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 const items = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard },
@@ -28,11 +29,10 @@ const items = [
   { label: "Instellingen", to: "/instellingen", icon: Settings },
 ] as const;
 
-export function Sidebar() {
+function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-
   return (
-    <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
+    <>
       <div className="flex items-center gap-2 px-6 py-6">
         <img src={logo.url} alt="TerreVolt" className="h-9 w-9 object-contain" />
         <div className="leading-tight">
@@ -41,7 +41,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 px-3 py-2 space-y-1">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
         {items.map((item) => {
           const active = pathname === item.to;
           const Icon = item.icon;
@@ -49,6 +49,7 @@ export function Sidebar() {
             <Link
               key={item.to}
               to={item.to}
+              onClick={onNavigate}
               className={[
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
                 active
@@ -69,6 +70,33 @@ export function Sidebar() {
           Bekijk de kennisbank of neem contact op met IT.
         </p>
       </div>
+    </>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
+      <NavContent />
     </aside>
+  );
+}
+
+export function MobileSidebar({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="left"
+        className="flex w-72 max-w-[85vw] flex-col bg-sidebar p-0"
+      >
+        <NavContent onNavigate={() => onOpenChange(false)} />
+      </SheetContent>
+    </Sheet>
   );
 }
