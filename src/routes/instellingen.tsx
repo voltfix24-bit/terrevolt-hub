@@ -1120,7 +1120,17 @@ function ArticleEditor({
             <button
               type="button"
               onClick={() =>
-                setDraft({ ...draft, file_url: "", file_name: "", file_size: 0 })
+                setDraft({
+                  ...draft,
+                  file_url: "",
+                  file_name: "",
+                  file_size: 0,
+                  file_path: "",
+                  extraction_status: "not_applicable",
+                  extraction_error: "",
+                  extracted_page_count: 0,
+                  extracted_at: null,
+                })
               }
               className="mt-1 text-xs font-medium text-muted-foreground hover:text-destructive"
             >
