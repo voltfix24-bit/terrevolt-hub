@@ -447,13 +447,39 @@ Deno.serve(async (req) => {
       }
     }
 
+    // 6. Backfill vraagbaak_questions embeddings (active rows without one)
+    let backfilled = 0;
+    const { data: pending } = await admin
+      .from("vraagbaak_questions")
+      .select("id,question")
+      .is("question_embedding", null)
+      .is("invalidated_at", null)
+      .gt("expires_at", new Date().toISOString())
+      .limit(500);
+    const pendingRows = (pending ?? []) as Array<{ id: string; question: string }>;
+    for (let i = 0; i < pendingRows.length; i += BATCH) {
+      const slice = pendingRows.slice(i, i + BATCH);
+      const vecs = await embedBatch(slice.map((r) => r.question.slice(0, 8000)));
+      await Promise.all(
+        slice.map((r, j) =>
+          admin
+            .from("vraagbaak_questions")
+            .update({ question_embedding: vecs[j] as unknown as string })
+            .eq("id", r.id),
+        ),
+      );
+      backfilled += slice.length;
+    }
+
     return json(200, {
       ok: true,
       total: all.length,
       counts,
       removed: stale.length,
+      backfilled_questions: backfilled,
       duration_ms: Date.now() - t0,
     });
+
   } catch (err) {
     console.error("reindex_all error", err);
     return json(500, { error: (err as Error).message });
