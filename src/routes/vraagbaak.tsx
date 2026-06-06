@@ -44,7 +44,7 @@ import { useSession } from "@/lib/auth";
 export const Route = createFileRoute("/vraagbaak")({
   head: () => ({
     meta: [
-      { title: "Vraagbaak — TerreVolt Hub" },
+      { title: "Vraagbaak - TerreVolt Hub" },
       {
         name: "description",
         content:
@@ -185,7 +185,7 @@ function VraagbaakPage() {
   return (
     <HubLayout>
       <SectionHeader
-        title="Stel je vraag — de hele Hub antwoordt"
+        title="Stel je vraag - de hele Hub antwoordt"
         subtitle="Vraag iets over procedures, opdrachtgevers, nieuws, applicaties of collega's. De Vraagbaak doorzoekt alle bronnen in TerreVolt Hub."
       />
 
@@ -197,7 +197,7 @@ function VraagbaakPage() {
           <div>
             <div className="font-semibold text-navy">Vraagbaak assistent</div>
             <div className="text-xs text-foreground/70">
-              Antwoorden zijn altijd voorzien van bronnen — kennisbank, nieuws, mensen, applicaties en meer.
+              Antwoorden zijn altijd voorzien van bronnen - kennisbank, nieuws, mensen, applicaties en meer.
             </div>
           </div>
         </div>
@@ -219,7 +219,7 @@ function VraagbaakPage() {
           />
           <div className="flex items-center justify-between gap-3 border-t border-border/60 px-3 py-2.5">
             <div className="px-2 text-xs text-muted-foreground">
-              Enter om te vragen · Shift+Enter voor nieuwe regel
+              Enter om te vragen � Shift+Enter voor nieuwe regel
             </div>
             <button
               onClick={() => void submit()}
@@ -290,7 +290,7 @@ function VraagbaakPage() {
           {answer.cached && (
             <div className="inline-flex items-center gap-1.5 rounded-full bg-lime-soft/60 px-3 py-1 text-[11px] font-medium text-navy">
               <Sparkles className="h-3 w-3" />
-              Beantwoord uit cache · {answer.cache_age_days ?? 0}{" "}
+              Beantwoord uit cache � {answer.cache_age_days ?? 0}{" "}
               {answer.cache_age_days === 1 ? "dag" : "dagen"} oud
               <button
                 onClick={() => void submit(answerForQuestion, { forceFresh: true })}
