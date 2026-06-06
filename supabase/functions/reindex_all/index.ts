@@ -464,14 +464,14 @@ Deno.serve(async (req) => {
       if (error) throw new Error(`Upsert failed: ${error.message}`);
     }
 
-    // 5. Delete chunks whose source no longer exists or is excluded.
-    // Build a set of (source_type, source_id) keys we just upserted.
+    // 5. Delete stale chunks — scoped to the source_types we just reindexed
+    // so a filtered run does not wipe other entity types.
     const validKeys = new Set(
       all.map((c) => `${c.source_type}:${c.source_id}`),
     );
-    const { data: existing, error: listErr } = await admin
-      .from("kb_chunks")
-      .select("id,source_type,source_id");
+    let listQ = admin.from("kb_chunks").select("id,source_type,source_id");
+    if (sourceFilter) listQ = listQ.in("source_type", sourceFilter);
+    const { data: existing, error: listErr } = await listQ;
     if (listErr) throw new Error(`List failed: ${listErr.message}`);
     const stale = (existing ?? []).filter(
       (r) => !validKeys.has(`${r.source_type}:${r.source_id}`),
