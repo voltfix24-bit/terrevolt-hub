@@ -1029,6 +1029,17 @@ export type Database = {
           summary: string
         }[]
       }
+      get_kb_chunks_by_ids: {
+        Args: { chunk_ids: string[] }
+        Returns: {
+          id: string
+          metadata: Json
+          source_id: string
+          source_type: Database["public"]["Enums"]["kb_chunk_source"]
+          title: string
+          visibility: Database["public"]["Enums"]["kb_chunk_visibility"]
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1053,6 +1064,7 @@ export type Database = {
           source_id: string
           source_type: Database["public"]["Enums"]["kb_chunk_source"]
           title: string
+          visibility: Database["public"]["Enums"]["kb_chunk_visibility"]
         }[]
       }
       pdf_extraction_stats: {

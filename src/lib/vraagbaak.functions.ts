@@ -78,6 +78,7 @@ type MatchRow = {
   title: string;
   content: string;
   metadata: Record<string, unknown>;
+  visibility: KbVisibility;
   similarity: number;
 };
 
@@ -307,8 +308,11 @@ REGELS:
         // Determine min visibility from the chunks actually used (or all rows if none cited)
         const visRows = usedRows.length > 0 ? usedRows : rows;
         const visIds = visRows.map((r) => r.id);
-        const visRank = await fetchMaxVisibilityRank(supabase, visIds);
-        const min_visibility: KbVisibility = rankVisibility(visRank);
+        const maxRank = visRows.reduce(
+          (m, r) => Math.max(m, visibilityRank(r.visibility)),
+          0,
+        );
+        const min_visibility: KbVisibility = rankVisibility(maxRank);
 
         // Insert via REST: cast through rpc-style any
         const sb = context.supabase as unknown as {
@@ -349,17 +353,6 @@ REGELS:
 
 /* -------- helpers -------- */
 
-async function fetchMaxVisibilityRank(
-  supabase: SupabaseLike,
-  chunkIds: string[],
-): Promise<number> {
-  if (chunkIds.length === 0) return 0;
-  const res = await supabase.from("kb_chunks").select("visibility").in("id", chunkIds);
-  const rows = (res.data as Array<{ visibility: KbVisibility }> | null) ?? [];
-  let max = 0;
-  for (const r of rows) max = Math.max(max, visibilityRank(r.visibility));
-  return max;
-}
 
 async function buildUrlResolver(
   supabase: SupabaseLike,
@@ -433,21 +426,23 @@ async function resolveSourcesFromChunkIds(
   similarity: number,
 ): Promise<ResolvedSource[]> {
   if (chunkIds.length === 0) return [];
-  const res = await supabase
-    .from("kb_chunks")
-    .select("id,source_type,source_id,title,metadata")
-    .in("id", chunkIds);
-  const rows = (res.data as Array<{
+  const { data, error } = await supabase.rpc("get_kb_chunks_by_ids", {
+    chunk_ids: chunkIds,
+  });
+  if (error) {
+    console.error("get_kb_chunks_by_ids error", error);
+    return [];
+  }
+  const rows = (data as Array<{
     id: string;
     source_type: KbChunkSource;
     source_id: string;
     title: string;
     metadata: Record<string, unknown>;
+    visibility: KbVisibility;
   }> | null) ?? [];
-  // preserve original chunkIds order
   const byId = new Map(rows.map((r) => [r.id, r]));
   const ordered = chunkIds.map((id) => byId.get(id)).filter(Boolean) as typeof rows;
-  // Build a fake MatchRow set so we can reuse the URL resolver
   const asMatch: MatchRow[] = ordered.map((r) => ({
     id: r.id,
     source_type: r.source_type,
@@ -456,6 +451,7 @@ async function resolveSourcesFromChunkIds(
     title: r.title,
     content: "",
     metadata: r.metadata ?? {},
+    visibility: r.visibility,
     similarity,
   }));
   const resolver = await buildUrlResolver(supabase, asMatch);
