@@ -267,7 +267,6 @@ function VraagbaakPage() {
           </div>
           <Link
             to="/auth"
-            search={{ redirect: "/vraagbaak" }}
             className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow-sm transition hover:opacity-90"
           >
             Inloggen
