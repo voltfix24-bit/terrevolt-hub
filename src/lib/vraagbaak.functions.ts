@@ -78,6 +78,7 @@ type MatchRow = {
   title: string;
   content: string;
   metadata: Record<string, unknown>;
+  visibility: KbVisibility;
   similarity: number;
 };
 
