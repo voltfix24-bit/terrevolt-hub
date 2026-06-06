@@ -5,16 +5,17 @@ import { SectionHeader } from "@/components/hub/SectionHeader";
 import {
   usePeople,
   usePeopleMutations,
+  usePersonSensitive,
+  usePersonSensitiveMutations,
   PERSON_TYPES,
   PERSON_STATUSES,
   EMPLOYMENT_TYPES,
   STATUS_STYLES,
   initials,
-  isAdminRole,
   type Person,
   type PersonStatus,
 } from "@/lib/people";
-import { useHubStore } from "@/lib/hub-store";
+import { useSession, useCurrentRole } from "@/lib/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Phone, Mail, MapPin, LayoutGrid, List, Copy, Plus, X, Pencil, Trash2 } from "lucide-react";
@@ -33,8 +34,9 @@ export const Route = createFileRoute("/smoelenboek")({
 type View = "grid" | "list";
 
 function SmoelenboekPage() {
-  const role = useHubStore((s) => s.role);
-  const admin = isAdminRole(role);
+  const { user } = useSession();
+  const { data: roleRow } = useCurrentRole(user);
+  const admin = roleRow?.role === "admin" || roleRow?.role === "management";
   const { data: people = [], isLoading } = usePeople();
 
   const [q, setQ] = useState("");
