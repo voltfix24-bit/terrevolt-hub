@@ -101,6 +101,7 @@ function VraagbaakPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const ask = useServerFn(askVraagbaak);
+  const { session, loading: sessionLoading } = useSession();
   const { data: recent = [] } = useVraagbaakRecent(6);
   const bookmark = useSaveBookmark();
   const feedback = useFeedbackMutation();
