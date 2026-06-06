@@ -1136,42 +1136,27 @@ export type Database = {
           retried: number
         }[]
       }
-      search_kb_chunks:
-        | {
-            Args: { match_count?: number; query_text: string }
-            Returns: {
-              chunk_index: number
-              content: string
-              id: string
-              metadata: Json
-              rank: number
-              source_id: string
-              source_type: Database["public"]["Enums"]["kb_chunk_source"]
-              title: string
-              visibility: Database["public"]["Enums"]["kb_chunk_visibility"]
-            }[]
-          }
-        | {
-            Args: {
-              date_from?: string
-              date_to?: string
-              match_count?: number
-              query_text: string
-              source_filter?: Database["public"]["Enums"]["kb_chunk_source"][]
-            }
-            Returns: {
-              chunk_index: number
-              content: string
-              id: string
-              match_kind: string
-              metadata: Json
-              rank: number
-              source_id: string
-              source_type: Database["public"]["Enums"]["kb_chunk_source"]
-              title: string
-              visibility: Database["public"]["Enums"]["kb_chunk_visibility"]
-            }[]
-          }
+      search_kb_chunks: {
+        Args: {
+          date_from?: string
+          date_to?: string
+          match_count?: number
+          query_text: string
+          source_filter?: Database["public"]["Enums"]["kb_chunk_source"][]
+        }
+        Returns: {
+          chunk_index: number
+          content: string
+          id: string
+          match_kind: string
+          metadata: Json
+          rank: number
+          source_id: string
+          source_type: Database["public"]["Enums"]["kb_chunk_source"]
+          title: string
+          visibility: Database["public"]["Enums"]["kb_chunk_visibility"]
+        }[]
+      }
       vraagbaak_cache_stats: {
         Args: never
         Returns: {

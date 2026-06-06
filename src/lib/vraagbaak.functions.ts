@@ -18,9 +18,12 @@ export type KbVisibility = "all" | "staff" | "admin";
 export type MatchKind =
   | "title_exact"
   | "title_contains"
+  | "title_all_tokens"
+  | "title_token"
   | "tag_or_category"
   | "fts_content"
-  | "content_like";
+  | "content_phrase"
+  | "content_token";
 
 export type ResolvedSource = {
   source_type: KbChunkSource;
@@ -31,6 +34,7 @@ export type ResolvedSource = {
   similarity: number;
   snippet?: string;
   match_kind?: MatchKind;
+  is_question?: boolean;
 };
 
 export type VraagbaakAnswer = {
@@ -39,6 +43,14 @@ export type VraagbaakAnswer = {
   summary: string;
   follow_ups: string[];
   sources: ResolvedSource[];
+  suggestions: ResolvedSource[];
+  direct_answer?: {
+    title: string;
+    content: string;
+    url: string;
+    external: boolean;
+    source_type: KbChunkSource;
+  };
   has_sources: boolean;
   cached: boolean;
   cache_age_days?: number;
@@ -130,7 +142,7 @@ export const askVraagbaak = createServerFn({ method: "POST" })
 
     const { data: matches, error } = await supabase.rpc("search_kb_chunks", {
       query_text: question,
-      match_count: 12,
+      match_count: 20,
       source_filter: filters.source_types,
       date_from: filters.date_from,
       date_to: filters.date_to,
@@ -144,14 +156,14 @@ export const askVraagbaak = createServerFn({ method: "POST" })
         summary: "",
         follow_ups: [],
         sources: [],
+        suggestions: [],
         has_sources: false,
         cached: false,
       };
     }
 
-    const rows = ((matches as SearchRow[] | null) ?? []).slice(0, 10);
+    const rows = ((matches as SearchRow[] | null) ?? []).slice(0, 20);
     if (rows.length === 0) {
-      // log miss (best-effort)
       try {
         await supabase.from("search_misses").insert({
           user_id: userId ?? null,
@@ -167,13 +179,16 @@ export const askVraagbaak = createServerFn({ method: "POST" })
         summary: "",
         follow_ups: [],
         sources: [],
+        suggestions: [],
         has_sources: false,
         cached: false,
       };
     }
 
     const resolver = await buildUrlResolver(supabase, rows);
-    const sources: ResolvedSource[] = rows.map((r) => {
+    const isQ = (t: string) => /\?\s*$/.test(t || "");
+
+    const all: Array<ResolvedSource & { _content: string }> = rows.map((r) => {
       const { url, external } = resolver(r);
       return {
         source_type: r.source_type,
@@ -184,15 +199,43 @@ export const askVraagbaak = createServerFn({ method: "POST" })
         similarity: Number(r.rank) || 0,
         snippet: buildSnippet(r.content, question),
         match_kind: r.match_kind,
+        is_question: isQ(r.title),
+        _content: r.content || "",
       };
     });
 
+    const stripContent = ({ _content, ...rest }: ResolvedSource & { _content: string }) =>
+      rest as ResolvedSource;
+
+    const suggestionsAll = all.filter((s) => s.is_question);
+    const otherAll = all.filter((s) => !s.is_question);
+    const suggestions = suggestionsAll.slice(0, 5).map(stripContent);
+    const sources = otherAll.slice(0, 5).map(stripContent);
+
+    // Direct answer: strong FAQ match (rank >= 0.85) with clear lead over #2
+    let direct_answer: VraagbaakAnswer["direct_answer"] | undefined;
+    const top = suggestionsAll[0];
+    if (top && top.similarity >= 0.85) {
+      const next = suggestionsAll[1]?.similarity ?? 0;
+      if (suggestionsAll.length === 1 || top.similarity - next >= 0.1) {
+        direct_answer = {
+          title: top.title,
+          content: top._content,
+          url: top.url,
+          external: top.external,
+          source_type: top.source_type,
+        };
+      }
+    }
+
     return {
-      short_answer: FOUND_PREFIX,
+      short_answer: direct_answer ? direct_answer.content : FOUND_PREFIX,
       steps: [],
       summary: "",
       follow_ups: [],
       sources,
+      suggestions,
+      direct_answer,
       has_sources: true,
       cached: false,
     };
