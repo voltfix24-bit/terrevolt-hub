@@ -533,31 +533,50 @@ function RolesTab() {
   );
 }
 
-/* ---------------- Quick Links ---------------- */
+/* ---------------- Quick Links (DB-backed) ---------------- */
 function QuickLinksTab() {
-  const { quickLinks, addQuickLink, updateQuickLink, deleteQuickLink, reorder } = useHubStore();
+  const { data: quickLinks = [], isLoading } = useQuickLinks();
+  const { add, update, remove, reorder } = useQuickLinkMutations();
   const fields: Field[] = [
     { key: "name", label: "Naam", type: "text" },
     { key: "icon", label: "Icoon", type: "icon" },
     { key: "href", label: "URL", type: "url" },
+    { key: "active", label: "Actief (zichtbaar)", type: "bool" },
   ];
-  const empty: Omit<QuickLink, "id"> = { name: "", href: "https://", icon: "link" };
+  const empty: QuickLinkInput = { name: "", href: "https://", icon: "link", active: true };
   return (
-    <EntityManager<QuickLink>
-      title="Quick links" description="Snelkoppelingen in het welkomstvak."
-      items={quickLinks} fields={fields} emptyItem={empty}
-      onAdd={addQuickLink} onUpdate={updateQuickLink} onDelete={deleteQuickLink}
-      onReorder={(f, t) => reorder("quickLinks", f, t)}
-      rowPreview={(q) => (
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-navy"><Icon name={q.icon ?? "link"} size={18} /></div>
-          <div className="min-w-0">
-            <div className="font-medium text-navy">{q.name}</div>
-            <div className="truncate text-xs text-muted-foreground">{q.href}</div>
+    <>
+      {isLoading && <div className="text-sm text-muted-foreground">Laden…</div>}
+      <EntityManager<QuickLink>
+        title="Quick links" description="Snelkoppelingen in het welkomstvak."
+        items={quickLinks} fields={fields} emptyItem={empty as Omit<QuickLink, "id">}
+        onAdd={(item) => add.mutate(item as QuickLinkInput)}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<QuickLink> })}
+        onDelete={(id) => remove.mutate(id)}
+        onReorder={(from, to) => {
+          if (from === to) return;
+          const next = quickLinks.slice();
+          const [m] = next.splice(from, 1);
+          next.splice(to, 0, m);
+          reorder.mutate({ items: next });
+        }}
+        rowPreview={(q) => (
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-navy"><Icon name={q.icon ?? "link"} size={18} /></div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="font-medium text-navy">{q.name}</div>
+                {!q.active && (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Inactief</span>
+                )}
+              </div>
+              <div className="truncate text-xs text-muted-foreground">{q.href}</div>
+            </div>
           </div>
-        </div>
-      )}
-    />
+        )}
+      />
+    </>
+
   );
 }
 
