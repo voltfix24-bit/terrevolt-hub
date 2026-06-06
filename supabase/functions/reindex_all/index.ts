@@ -356,7 +356,7 @@ Deno.serve(async (req) => {
     const [
       kb, news, fin, people, apps, sp, partners, quick, depts,
     ] = await Promise.all([
-      admin.from("kb_articles").select("id,title,slug,summary,content,important_notes,client,tags,section_id,file_url,status,updated_at"),
+      admin.from("kb_articles").select("id,title,slug,summary,content,important_notes,client,tags,section_id,file_url,status,updated_at,extracted_text,extraction_status,extracted_page_count"),
       admin.from("news").select("id,title,category,summary,content,publish_date,important,archived,updated_at").eq("archived", false),
       admin.from("finance_clients").select("id,slug,name,short_description,factuuradres,inkooporder_info,factuur_referenties,verplichte_bijlagen,btw_verlegd,g_rekening,betaaltermijn,factuur_email,veelgemaakte_fouten,voorbeeld_factuurtekst,interne_opmerkingen,archived,updated_at").eq("archived", false),
       admin.from("people").select("id,full_name,job_title,department,person_type,certifications,bei_authorization,notes,archived,updated_at").eq("archived", false),
