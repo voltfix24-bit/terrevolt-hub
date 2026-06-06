@@ -38,6 +38,7 @@ import {
   type VraagbaakFeedbackType,
 } from "@/lib/vraagbaak";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSession } from "@/lib/auth";
 
 
 export const Route = createFileRoute("/vraagbaak")({
