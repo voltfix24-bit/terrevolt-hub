@@ -1586,16 +1586,69 @@ function ReindexQueueCard({
                       {it.source_id}
                     </div>
                     {it.last_error && (
-                      <div className="mt-1 break-words text-destructive">{it.last_error}</div>
+                      <div className="mt-1 line-clamp-2 break-words text-destructive">{it.last_error}</div>
                     )}
                   </div>
-                  <button
-                    onClick={() => retry(it.id)}
-                    disabled={retrying === it.id}
-                    className="shrink-0 rounded-md border border-border bg-background px-2 py-1 text-xs font-medium hover:bg-muted disabled:opacity-50"
-                  >
-                    {retrying === it.id ? "…" : "Opnieuw"}
-                  </button>
+                  <div className="flex shrink-0 flex-col gap-1">
+                    <button
+                      onClick={() => retry(it.id)}
+                      disabled={retrying === it.id}
+                      className="rounded-md border border-border bg-background px-2 py-1 text-xs font-medium hover:bg-muted disabled:opacity-50"
+                    >
+                      {retrying === it.id ? "…" : "Opnieuw"}
+                    </button>
+                    <button
+                      onClick={() => setDetailItem(it)}
+                      className="rounded-md px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
+                    >
+                      Details
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <Dialog open={!!detailItem} onOpenChange={(o) => !o && setDetailItem(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Foutmelding</DialogTitle>
+            <DialogDescription>
+              {detailItem
+                ? `${detailItem.source_type} · ${detailItem.operation} · ${detailItem.attempts} poging(en)`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+          {detailItem && (
+            <div className="space-y-3 text-sm">
+              <div className="grid gap-1 text-xs text-muted-foreground">
+                <div><span className="font-medium text-navy">Source ID:</span> <code className="break-all">{detailItem.source_id}</code></div>
+                <div><span className="font-medium text-navy">In wachtrij sinds:</span> {new Date(detailItem.enqueued_at).toLocaleString("nl-NL")}</div>
+                {detailItem.last_attempt_at && (
+                  <div><span className="font-medium text-navy">Laatste poging:</span> {new Date(detailItem.last_attempt_at).toLocaleString("nl-NL")}</div>
+                )}
+              </div>
+              <div>
+                <div className="mb-1 text-xs font-medium text-navy">Volledige foutmelding</div>
+                <pre className="max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-destructive/20 bg-destructive/5 p-3 text-xs text-destructive">
+{detailItem.last_error || "(geen foutmelding beschikbaar)"}
+                </pre>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <button
+              onClick={() => detailItem && retry(detailItem.id)}
+              disabled={!detailItem || retrying === detailItem.id}
+              className="rounded-md bg-brand px-3 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+            >
+              {detailItem && retrying === detailItem.id ? "Bezig…" : "Opnieuw proberen"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
                 </div>
               </li>
             ))}
