@@ -24,6 +24,7 @@ export type VraagbaakSource = {
   id: string;
   question_id: string;
   article_id: string | null;
+  source_type: string;
   title: string;
   section_heading: string;
   page_number: number | null;
