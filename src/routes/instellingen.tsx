@@ -71,7 +71,7 @@ import {
 } from "@/lib/knowledge";
 import { Icon } from "@/components/hub/Icon";
 import { AdminGate } from "@/components/hub/AdminGate";
-import { RotateCcw, Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/instellingen")({
   head: () => ({ meta: [{ title: "Instellingen — TerreVolt Hub" }] }),
