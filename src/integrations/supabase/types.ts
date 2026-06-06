@@ -690,6 +690,39 @@ export type Database = {
         }
         Relationships: []
       }
+      reindex_queue: {
+        Row: {
+          attempts: number
+          enqueued_at: string
+          id: string
+          last_attempt_at: string | null
+          last_error: string
+          operation: string
+          source_id: string
+          source_type: Database["public"]["Enums"]["kb_chunk_source"]
+        }
+        Insert: {
+          attempts?: number
+          enqueued_at?: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string
+          operation: string
+          source_id: string
+          source_type: Database["public"]["Enums"]["kb_chunk_source"]
+        }
+        Update: {
+          attempts?: number
+          enqueued_at?: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string
+          operation?: string
+          source_id?: string
+          source_type?: Database["public"]["Enums"]["kb_chunk_source"]
+        }
+        Relationships: []
+      }
       sharepoint_config: {
         Row: {
           base_url: string
@@ -1036,6 +1069,37 @@ export type Database = {
         }[]
       }
       register_cache_hit: { Args: { question_id: string }; Returns: undefined }
+      reindex_queue_failed_items: {
+        Args: never
+        Returns: {
+          attempts: number
+          enqueued_at: string
+          id: string
+          last_attempt_at: string
+          last_error: string
+          operation: string
+          source_id: string
+          source_type: Database["public"]["Enums"]["kb_chunk_source"]
+        }[]
+      }
+      reindex_queue_retry: { Args: { item_id: string }; Returns: undefined }
+      reindex_queue_retry_all: { Args: never; Returns: number }
+      reindex_queue_stats: {
+        Args: never
+        Returns: {
+          failed: number
+          oldest_age_seconds: number
+          pending: number
+        }[]
+      }
+      reindex_sweep: {
+        Args: never
+        Returns: {
+          enqueued_deletes: number
+          enqueued_upserts: number
+          retried: number
+        }[]
+      }
       vraagbaak_cache_stats: {
         Args: never
         Returns: {
