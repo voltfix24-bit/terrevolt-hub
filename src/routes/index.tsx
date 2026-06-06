@@ -7,6 +7,8 @@ import { Icon } from "@/components/hub/Icon";
 import { RoleWidgets } from "@/components/hub/RoleWidgets";
 import { PeopleSearchWidget } from "@/components/hub/PeopleSearchWidget";
 import { useHubStore } from "@/lib/hub-store";
+import { useSession, useCurrentRole } from "@/lib/auth";
+import { roleLabel } from "@/lib/userRoles";
 import { useActiveApplications } from "@/lib/applications";
 import { usePublishedNews } from "@/lib/news";
 import { useKbSections } from "@/lib/knowledge";
@@ -39,7 +41,14 @@ function computeGreeting() {
 }
 
 function Dashboard() {
-  const role = useHubStore((s) => s.role);
+  const { user } = useSession();
+  const { data: roleRow } = useCurrentRole(user);
+  const displayName =
+    roleRow?.display_name ||
+    (user?.user_metadata?.display_name as string | undefined) ||
+    user?.email?.split("@")[0] ||
+    "";
+  const roleText = roleRow ? roleLabel(roleRow.role) : "gast";
   const { data: apps = [], isLoading } = useActiveApplications();
   const { data: news = [] } = usePublishedNews();
   const partners = useHubStore((s) => s.partners);
