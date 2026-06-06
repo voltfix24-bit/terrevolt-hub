@@ -1464,6 +1464,7 @@ function ReindexQueueCard({
 }) {
   const qc = useQueryClient();
   const [retrying, setRetrying] = useState<string | null>(null);
+  const [detailItem, setDetailItem] = useState<ReindexFailedItem | null>(null);
 
   const statsQ = useQuery({
     queryKey: ["reindex_queue_stats"],
