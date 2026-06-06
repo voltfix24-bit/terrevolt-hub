@@ -76,10 +76,10 @@ function Dashboard() {
           <div className="relative">
             <p className="text-sm font-medium text-brand">TerreVolt Hub</p>
             <h1 className="mt-2 text-4xl font-semibold tracking-tight text-navy lg:text-5xl">
-              {greeting} Hassan
+              {greeting}{displayName ? ` ${displayName}` : ""}
             </h1>
             <p className="mt-3 text-base text-foreground/70">
-              Welkom terug — je werkt als <span className="font-semibold text-navy">{role}</span>.
+              Welkom terug — je werkt als <span className="font-semibold text-navy">{roleText}</span>.
             </p>
             {quickLinks.length > 0 && (
               <div className="mt-6 flex flex-wrap gap-2">
@@ -104,8 +104,8 @@ function Dashboard() {
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
           <div>
             <SectionHeader
-              title={`Jouw ${role.toLowerCase()}-dashboard`}
-              subtitle="Widgets afgestemd op jouw rol. Wissel van rol via je profiel rechtsboven."
+              title={`Jouw ${roleText.toLowerCase()}-dashboard`}
+              subtitle="Widgets afgestemd op jouw rol in TerreVolt Hub."
             />
             <RoleWidgets />
           </div>
