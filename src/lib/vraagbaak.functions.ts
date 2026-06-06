@@ -15,6 +15,13 @@ export type KbChunkSource =
 
 export type KbVisibility = "all" | "staff" | "admin";
 
+export type MatchKind =
+  | "title_exact"
+  | "title_contains"
+  | "tag_or_category"
+  | "fts_content"
+  | "content_like";
+
 export type ResolvedSource = {
   source_type: KbChunkSource;
   source_id: string;
@@ -23,6 +30,7 @@ export type ResolvedSource = {
   external: boolean;
   similarity: number;
   snippet?: string;
+  match_kind?: MatchKind;
 };
 
 export type VraagbaakAnswer = {
@@ -38,9 +46,24 @@ export type VraagbaakAnswer = {
   question_id?: string;
 };
 
+const SOURCE_TYPES = [
+  "kb_article",
+  "news",
+  "finance_client",
+  "person",
+  "application",
+  "sharepoint_item",
+  "partner_link",
+  "quick_link",
+  "department",
+] as const;
+
 const Input = z.object({
-  question: z.string().trim().min(3).max(2000),
+  question: z.string().trim().min(2).max(2000),
   force_fresh: z.boolean().optional(),
+  source_types: z.array(z.enum(SOURCE_TYPES)).optional(),
+  date_from: z.string().datetime().optional(),
+  date_to: z.string().datetime().optional(),
 });
 
 const NO_SOURCE =
@@ -57,6 +80,7 @@ type SearchRow = {
   metadata: Record<string, unknown>;
   visibility: KbVisibility;
   rank: number;
+  match_kind: MatchKind;
 };
 
 type SupabaseLike = {
@@ -68,10 +92,11 @@ type SupabaseLike = {
     select: (cols: string) => {
       in: (col: string, vals: string[]) => Promise<{ data: unknown; error: unknown }>;
     };
+    insert: (row: Record<string, unknown>) => Promise<{ error: unknown }>;
   };
 };
 
-function buildSnippet(content: string, q: string, len = 200): string {
+function buildSnippet(content: string, q: string, len = 220): string {
   const text = (content || "").replace(/\s+/g, " ").trim();
   if (!text) return "";
   const lower = text.toLowerCase();
@@ -85,7 +110,7 @@ function buildSnippet(content: string, q: string, len = 200): string {
     if (idx !== -1) break;
   }
   if (idx === -1) return text.slice(0, len) + (text.length > len ? "…" : "");
-  const start = Math.max(0, idx - 60);
+  const start = Math.max(0, idx - 70);
   const end = Math.min(text.length, start + len);
   return (start > 0 ? "…" : "") + text.slice(start, end) + (end < text.length ? "…" : "");
 }
@@ -95,11 +120,20 @@ export const askVraagbaak = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => Input.parse(input))
   .handler(async ({ data, context }): Promise<VraagbaakAnswer> => {
     const supabase = context.supabase as unknown as SupabaseLike;
+    const userId = (context as { userId?: string }).userId;
     const question = data.question.trim();
+    const filters = {
+      source_types: data.source_types ?? null,
+      date_from: data.date_from ?? null,
+      date_to: data.date_to ?? null,
+    };
 
     const { data: matches, error } = await supabase.rpc("search_kb_chunks", {
       query_text: question,
-      match_count: 10,
+      match_count: 12,
+      source_filter: filters.source_types,
+      date_from: filters.date_from,
+      date_to: filters.date_to,
     });
 
     if (error) {
@@ -115,8 +149,18 @@ export const askVraagbaak = createServerFn({ method: "POST" })
       };
     }
 
-    const rows = ((matches as SearchRow[] | null) ?? []).slice(0, 8);
+    const rows = ((matches as SearchRow[] | null) ?? []).slice(0, 10);
     if (rows.length === 0) {
+      // log miss (best-effort)
+      try {
+        await supabase.from("search_misses").insert({
+          user_id: userId ?? null,
+          query: question,
+          filters,
+        });
+      } catch (e) {
+        console.error("search_misses insert error", e);
+      }
       return {
         short_answer: NO_SOURCE,
         steps: [],
@@ -139,6 +183,7 @@ export const askVraagbaak = createServerFn({ method: "POST" })
         external,
         similarity: Number(r.rank) || 0,
         snippet: buildSnippet(r.content, question),
+        match_kind: r.match_kind,
       };
     });
 
