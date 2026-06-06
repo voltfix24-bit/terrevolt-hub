@@ -38,7 +38,7 @@ export type VraagbaakAnswer = {
 };
 
 const Input = z.object({
-  question: z.string().min(1).max(2000),
+  question: z.string().trim().min(3).max(2000),
   force_fresh: z.boolean().optional(),
 });
 
@@ -46,6 +46,33 @@ const NO_SOURCE =
   "Ik kan dit niet met zekerheid vinden in de kennisbank. Controleer de originele documenten of vraag dit na bij de verantwoordelijke.";
 
 const CACHE_THRESHOLD = 0.92;
+const MIN_MATCH_SIMILARITY = 0.36;
+
+function sanitizeText(value: unknown, fallbackText = ""): string {
+  return typeof value === "string" ? value.trim() : fallbackText;
+}
+
+function sanitizeStringArray(value: unknown, limit: number): string[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, limit);
+}
+
+function uniqueValidSourceIndices(value: unknown, max: number): number[] {
+  if (!Array.isArray(value)) return [];
+  const seen = new Set<number>();
+  const indices: number[] = [];
+  for (const item of value) {
+    const n = typeof item === "number" ? item : Number(item);
+    if (!Number.isInteger(n) || n < 1 || n > max || seen.has(n)) continue;
+    seen.add(n);
+    indices.push(n);
+  }
+  return indices;
+}
 
 function extractJson(text: string): unknown | null {
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
@@ -167,10 +194,10 @@ export const askVraagbaak = createServerFn({ method: "POST" })
         void supabase.rpc("register_cache_hit", { question_id: hit.id });
 
         return {
-          short_answer: hit.short_answer,
-          steps: Array.isArray(hit.steps) ? (hit.steps as string[]) : [],
-          summary: hit.summary ?? "",
-          follow_ups: Array.isArray(hit.follow_ups) ? (hit.follow_ups as string[]) : [],
+          short_answer: sanitizeText(hit.short_answer),
+          steps: sanitizeStringArray(hit.steps, 6),
+          summary: sanitizeText(hit.summary),
+          follow_ups: sanitizeStringArray(hit.follow_ups, 4),
           sources,
           has_sources: hit.has_sources,
           cached: true,
@@ -194,19 +221,23 @@ export const askVraagbaak = createServerFn({ method: "POST" })
     if (rows.length === 0) {
       return fallback(NO_SOURCE);
     }
+    const strongRows = rows.filter((r) => r.similarity >= MIN_MATCH_SIMILARITY);
+    if (strongRows.length === 0) {
+      return fallback(NO_SOURCE);
+    }
 
     // 4. Resolve URLs (kb article slugs need extra lookups)
-    const urlResolver = await buildUrlResolver(supabase, rows);
+    const urlResolver = await buildUrlResolver(supabase, strongRows);
 
     // 5. Build LLM context
-    const docs = rows
+    const docs = strongRows
       .map((r, i) => {
         const meta = Object.entries(r.metadata ?? {})
           .filter(([, v]) => v !== null && v !== "" && v !== undefined)
           .map(([k, v]) => `${k}=${typeof v === "string" ? v : JSON.stringify(v)}`)
           .join(" · ");
         const body = (r.content || "").slice(0, 1800);
-        return `### [${i + 1}] ${r.title} (${r.source_type})\nMeta: ${meta}\n${body}`;
+        return `### [${i + 1}] ${r.title} (${r.source_type}, relevantie ${r.similarity.toFixed(2)})\nMeta: ${meta}\n${body}`;
       })
       .join("\n\n");
 
@@ -214,11 +245,12 @@ export const askVraagbaak = createServerFn({ method: "POST" })
 
 REGELS:
 - Baseer je antwoord UITSLUITEND op de meegegeven documenten.
+- Gebruik alleen documenten die de vraag direct beantwoorden. Noem geen details die slechts losjes verwant zijn.
 - Als het antwoord niet (volledig) in de documenten staat, schrijf in "short_answer": "${NO_SOURCE}"
 - Werkwijze bronvermelding:
   1) Bepaal "source_indices": de documentnummers (zoals [1], [2]...) die je daadwerkelijk gebruikt, in citatievolgorde.
   2) Voeg in "short_answer", elke stap in "steps" en in "summary" inline citaten toe in de vorm [k], waar k de POSITIE in source_indices is (1-gebaseerd).
-  3) Elke zin met inhoudelijke informatie krijgt minimaal één [k]-citaat.
+  3) Elke zin met inhoudelijke informatie krijgt minimaal een [k]-citaat.
 - Antwoord altijd in geldige JSON met dit exacte schema:
 {
   "short_answer": string,
@@ -270,9 +302,10 @@ REGELS:
       return fallback("Er ging iets mis bij het ophalen van het antwoord. Probeer het later opnieuw.");
     }
 
-    const indices = Array.isArray(parsed.source_indices) ? parsed.source_indices : [];
+    parsed.short_answer = sanitizeText(parsed.short_answer, NO_SOURCE);
+    const indices = uniqueValidSourceIndices(parsed.source_indices, strongRows.length);
     const usedRows: MatchRow[] = indices
-      .map((i: number) => rows[i - 1])
+      .map((i: number) => strongRows[i - 1])
       .filter((r): r is MatchRow => Boolean(r));
 
     const sources: ResolvedSource[] = usedRows.map((r) => {
@@ -292,11 +325,9 @@ REGELS:
 
     const answer: VraagbaakAnswer = {
       short_answer: parsed.short_answer.trim(),
-      steps: Array.isArray(parsed.steps) ? parsed.steps.filter(Boolean).slice(0, 6) : [],
-      summary: typeof parsed.summary === "string" ? parsed.summary : "",
-      follow_ups: Array.isArray(parsed.follow_ups)
-        ? parsed.follow_ups.filter(Boolean).slice(0, 4)
-        : [],
+      steps: sanitizeStringArray(parsed.steps, 6),
+      summary: sanitizeText(parsed.summary),
+      follow_ups: sanitizeStringArray(parsed.follow_ups, 4),
       sources,
       has_sources: !isNoSource,
       cached: false,
@@ -306,7 +337,7 @@ REGELS:
     if (!isNoSource) {
       try {
         // Determine min visibility from the chunks actually used (or all rows if none cited)
-        const visRows = usedRows.length > 0 ? usedRows : rows;
+        const visRows = usedRows.length > 0 ? usedRows : strongRows;
         const visIds = visRows.map((r) => r.id);
         const maxRank = visRows.reduce(
           (m, r) => Math.max(m, visibilityRank(r.visibility)),
