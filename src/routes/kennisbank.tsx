@@ -143,7 +143,26 @@ function IndexPage() {
           </div>
         </div>
 
-        <AskAssistant articles={articles} sections={sections} />
+        <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-brand/30 bg-gradient-to-br from-pastel/40 via-card to-lime-soft/30 p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-brand-foreground shadow-sm">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-navy">Stel een vraag aan de Vraagbaak</div>
+              <div className="text-xs text-muted-foreground">
+                Doorzoekt de hele Hub — kennisbank, nieuws, mensen, applicaties en meer.
+              </div>
+            </div>
+          </div>
+          <Link
+            to="/vraagbaak"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow-sm transition hover:opacity-90"
+          >
+            Open Vraagbaak
+          </Link>
+        </div>
+
 
         {/* Filters */}
         <div className="mt-8 mb-6 flex flex-wrap items-center gap-2 text-xs">
