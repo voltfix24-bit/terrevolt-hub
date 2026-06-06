@@ -61,34 +61,15 @@ const fallback = (short: string): VraagbaakAnswer => ({
 });
 
 export const askVraagbaak = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => Input.parse(input))
-  .handler(async ({ data }): Promise<VraagbaakAnswer> => {
+  .handler(async ({ data, context }): Promise<VraagbaakAnswer> => {
     const key = process.env.LOVABLE_API_KEY;
     if (!key) {
       return fallback("De AI-assistent is nog niet geactiveerd. Stel LOVABLE_API_KEY in.");
     }
+    const { supabase } = context;
 
-    // Use the request's bearer so match_kb_chunks runs with the caller's visibility.
-    const { requireSupabaseAuth } = await import("@/integrations/supabase/auth-middleware");
-    void requireSupabaseAuth; // typed import for editor; runtime uses helper below
-
-    // Authenticated Supabase client via the bearer token attached by the gateway.
-    const { getRequestHeader } = await import("@tanstack/react-start/server");
-    const authHeader = getRequestHeader("authorization") ?? "";
-    if (!authHeader) {
-      return fallback("Je moet ingelogd zijn om de Vraagbaak te gebruiken.");
-    }
-    const { createClient } = await import("@supabase/supabase-js");
-    const supabaseUrl = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
-    const supabaseKey =
-      process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-    if (!supabaseUrl || !supabaseKey) {
-      return fallback("Supabase configuratie ontbreekt op de server.");
-    }
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: authHeader } },
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
 
     // 1. Embed the question
     let queryEmbedding: number[];
