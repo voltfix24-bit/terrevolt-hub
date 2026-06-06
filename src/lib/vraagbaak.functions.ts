@@ -18,9 +18,12 @@ export type KbVisibility = "all" | "staff" | "admin";
 export type MatchKind =
   | "title_exact"
   | "title_contains"
+  | "title_all_tokens"
+  | "title_token"
   | "tag_or_category"
   | "fts_content"
-  | "content_like";
+  | "content_phrase"
+  | "content_token";
 
 export type ResolvedSource = {
   source_type: KbChunkSource;
@@ -31,6 +34,7 @@ export type ResolvedSource = {
   similarity: number;
   snippet?: string;
   match_kind?: MatchKind;
+  is_question?: boolean;
 };
 
 export type VraagbaakAnswer = {
@@ -39,6 +43,14 @@ export type VraagbaakAnswer = {
   summary: string;
   follow_ups: string[];
   sources: ResolvedSource[];
+  suggestions: ResolvedSource[];
+  direct_answer?: {
+    title: string;
+    content: string;
+    url: string;
+    external: boolean;
+    source_type: KbChunkSource;
+  };
   has_sources: boolean;
   cached: boolean;
   cache_age_days?: number;
