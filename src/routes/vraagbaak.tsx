@@ -110,6 +110,19 @@ function VraagbaakPage() {
   const submit = async (override?: string, opts?: { forceFresh?: boolean }) => {
     const q = (override ?? question).trim();
     if (!q || loading) return;
+    if (!session) {
+      setAnswer({
+        short_answer: "Log in om de Vraagbaak te gebruiken.",
+        steps: [],
+        summary: "",
+        follow_ups: [],
+        sources: [],
+        has_sources: false,
+        cached: false,
+      });
+      setAnswerForQuestion(q);
+      return;
+    }
     setQuestion(q);
     setLoading(true);
     setAnswer(null);
