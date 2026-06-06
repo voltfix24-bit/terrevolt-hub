@@ -1,10 +1,10 @@
-import { Bell, ChevronDown, Search, LogOut, LogIn } from "lucide-react";
+import { Bell, ChevronDown, Search, LogOut, LogIn, Menu } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useSession, useCurrentRole, signOut } from "@/lib/auth";
 import { roleLabel } from "@/lib/userRoles";
 
-export function TopBar() {
+export function TopBar({ onOpenMobileNav }: { onOpenMobileNav?: () => void }) {
   const navigate = useNavigate();
   const { user } = useSession();
   const { data: role } = useCurrentRole(user);
@@ -27,20 +27,29 @@ export function TopBar() {
   const initial = (displayName || "?").charAt(0).toUpperCase();
 
   return (
-    <header className="sticky top-0 z-10 flex items-center gap-4 border-b border-border bg-background/80 px-6 py-4 backdrop-blur">
-      <div className="relative flex-1 max-w-xl">
+    <header className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-background/80 px-4 py-3 backdrop-blur sm:gap-4 sm:px-6 sm:py-4">
+      <button
+        type="button"
+        onClick={onOpenMobileNav}
+        aria-label="Open menu"
+        className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground/70 hover:text-foreground md:hidden"
+      >
+        <Menu className="h-4 w-4" />
+      </button>
+
+      <div className="relative min-w-0 flex-1 sm:max-w-xl">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           type="search"
-          placeholder="Zoek in TerreVolt Hub..."
-          className="w-full rounded-xl border border-border bg-card pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand/40"
+          placeholder="Zoeken..."
+          className="w-full rounded-xl border border-border bg-card pl-10 pr-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-brand/40"
         />
       </div>
 
       <button
         type="button"
         aria-label="Meldingen"
-        className="relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-card text-foreground/70 hover:text-foreground"
+        className="relative inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground/70 hover:text-foreground"
       >
         <Bell className="h-4 w-4" />
         <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-brand" />
