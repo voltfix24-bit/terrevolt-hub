@@ -66,7 +66,7 @@ type Widget =
       bars: { label: string; value: number; total: number; tone?: "brand" | "warn" | "lime" }[];
     };
 
-const WIDGETS: Record<Role, Widget[]> = {
+const WIDGETS: Record<WidgetRole, Widget[]> = {
   Directeur: [
     {
       kind: "stats",
@@ -307,8 +307,10 @@ function WidgetShell({
 }
 
 export function RoleWidgets() {
-  const role = useHubStore((s) => s.role);
-  const widgets = WIDGETS[role] ?? [];
+  const { user } = useSession();
+  const { data: roleRow } = useCurrentRole(user);
+  const widgetRole = mapAppRole(roleRow?.role);
+  const widgets = WIDGETS[widgetRole] ?? [];
 
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
