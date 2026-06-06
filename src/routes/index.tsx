@@ -199,21 +199,40 @@ function Dashboard() {
         {/* Partner portals */}
         <section>
           <SectionHeader title="Partnerportalen" subtitle="Directe toegang tot externe omgevingen." />
-          <div className="flex flex-wrap gap-3">
-            {partners.map((p) => (
-              <a key={p.id} href={p.href} target="_blank" rel="noopener noreferrer"
-                 className="group inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-navy shadow-sm transition-all hover:border-brand/40 hover:bg-accent">
-                {p.icon ? (
-                  <Icon name={p.icon} size={16} className="text-brand" />
-                ) : (
-                  <span className="h-2 w-2 rounded-full bg-brand" />
-                )}
-                {p.name}
-                <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </a>
+          {partnersLoading && (
+            <div className="flex flex-wrap gap-3" aria-busy="true" aria-label="Partnerportalen laden">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-9 w-32 animate-pulse rounded-full bg-accent/60" />
+              ))}
+            </div>
+          )}
+          {!partnersLoading && partnersError && (
+            <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+              Partnerportalen konden niet geladen worden. Probeer de pagina te verversen.
+            </div>
+          )}
+          {!partnersLoading && !partnersError && partners.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">
+              Nog geen partnerportalen. Voeg er een toe via Instellingen.
+            </div>
+          )}
+          {!partnersLoading && !partnersError && partners.length > 0 && (
+            <div className="flex flex-wrap gap-3">
+              {partners.map((p) => (
+                <a key={p.id} href={p.href} target="_blank" rel="noopener noreferrer"
+                   className="group inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-navy shadow-sm transition-all hover:border-brand/40 hover:bg-accent">
+                  {p.icon ? (
+                    <Icon name={p.icon} size={16} className="text-brand" />
+                  ) : (
+                    <span className="h-2 w-2 rounded-full bg-brand" />
+                  )}
+                  {p.name}
+                  <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </a>
+              ))}
+            </div>
+          )}
 
-            ))}
-          </div>
         </section>
 
         {/* SharePoint */}
