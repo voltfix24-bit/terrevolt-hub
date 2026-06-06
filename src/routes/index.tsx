@@ -52,8 +52,8 @@ function Dashboard() {
   const roleText = roleRow ? roleLabel(roleRow.role) : "gast";
   const { data: apps = [], isLoading } = useActiveApplications();
   const { data: news = [] } = usePublishedNews();
-  const partners = useHubStore((s) => s.partners);
-  const quickLinks = useHubStore((s) => s.quickLinks);
+  const { data: partners = [] } = useActivePartnerLinks();
+  const { data: quickLinks = [] } = useActiveQuickLinks();
   const { data: knowledge = [] } = useKbSections();
   const { data: spRecent = [] } = useRecentSharePointLinks(6);
   const { data: spFavFolders = [] } = useFavoriteSharePointFolders();
