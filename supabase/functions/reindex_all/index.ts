@@ -138,7 +138,12 @@ function buildKbArticleChunks(rows: any[]): Chunk[] {
       Array.isArray(r.tags) && r.tags.length ? `Tags: ${r.tags.join(", ")}` : "",
       r.important_notes ? `Belangrijk: ${r.important_notes}` : "",
     ]);
-    const body = trim(r.content);
+    const bodyParts: string[] = [];
+    if (trim(r.content)) bodyParts.push(trim(r.content));
+    if (r.extraction_status === "ok" && trim(r.extracted_text)) {
+      bodyParts.push(`Documentinhoud:\n${trim(r.extracted_text)}`);
+    }
+    const body = bodyParts.join("\n\n");
     const parts = body.length > 4000 ? chunkParagraphs(body, 3500, 200) : [body];
     parts.forEach((part, idx) => {
       const text = joinNonEmpty([
@@ -156,6 +161,9 @@ function buildKbArticleChunks(rows: any[]): Chunk[] {
           slug: r.slug ?? null,
           file_url: r.file_url ?? null,
           client: r.client ?? null,
+          has_pdf: !!r.file_url,
+          extraction_status: r.extraction_status ?? "not_applicable",
+          page_count: r.extracted_page_count ?? 0,
         },
         visibility: "all",
         source_updated_at: r.updated_at ?? null,
