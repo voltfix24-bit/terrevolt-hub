@@ -16,7 +16,7 @@ import {
   documentTypeIcon,
   documentTypeLabel,
 } from "@/lib/knowledge";
-import { AskAssistant } from "@/components/hub/AskAssistant";
+
 
 export const Route = createFileRoute("/kennisbank")({
   head: () => ({
