@@ -1145,6 +1145,20 @@ function ArticleEditor({
             ))}
           </select>
         </Field>
+        <Field label="Zichtbaarheid">
+          <select
+            value={draft.visibility}
+            onChange={(e) => set("visibility", e.target.value as DocVisibility)}
+            className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+          >
+            {DOC_VISIBILITIES.map((v) => (
+              <option key={v.value} value={v.value} title={v.hint}>
+                {v.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+
         <Field label="Documenttype">
           <select
             value={draft.document_type}
