@@ -17,7 +17,7 @@ import {
 } from "@/lib/knowledge";
 
 export const Route = createFileRoute("/kennisbank/$slug")({
-  head: () => ({ meta: [{ title: "Kennisbank — TerreVolt Hub" }] }),
+  head: () => ({ meta: [{ title: "Kennisbank — TerreVolt Intranet" }] }),
   component: Page,
 });
 

@@ -9,7 +9,7 @@ export function Placeholder({ title, description }: { title: string; description
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-navy">{title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {description ?? "Deze sectie is binnenkort beschikbaar in TerreVolt Hub."}
+          {description ?? "Deze sectie is binnenkort beschikbaar in TerreVolt Intranet."}
         </p>
       </div>
     </div>

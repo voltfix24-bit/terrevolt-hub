@@ -25,9 +25,9 @@ import { useEffect, useState } from "react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "TerreVolt Hub — Dashboard" },
+      { title: "TerreVolt Intranet — Dashboard" },
       { name: "description", content: "Het centrale digitale startpunt voor TerreVolt medewerkers." },
-      { property: "og:title", content: "TerreVolt Hub" },
+      { property: "og:title", content: "TerreVolt Intranet" },
       { property: "og:description", content: "Snel toegang tot alle interne tools, nieuws en partnerportalen." },
     ],
   }),
@@ -93,7 +93,7 @@ function Dashboard() {
         <section className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-card via-card to-accent/40 p-6 sm:p-8 lg:p-10">
           <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-pastel/40 blur-3xl" />
           <div className="relative">
-            <p className="text-sm font-medium text-brand">TerreVolt Hub</p>
+            <p className="text-sm font-medium text-brand">TerreVolt Intranet</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-navy sm:text-4xl lg:text-5xl">
               {greeting}{displayName ? ` ${displayName}` : ""}
             </h1>
@@ -137,7 +137,7 @@ function Dashboard() {
           <div>
             <SectionHeader
               title={`Jouw ${roleText.toLowerCase()}-dashboard`}
-              subtitle="Widgets afgestemd op jouw rol in TerreVolt Hub."
+              subtitle="Widgets afgestemd op jouw rol in TerreVolt Intranet."
             />
             <RoleWidgets />
           </div>

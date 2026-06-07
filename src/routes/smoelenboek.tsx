@@ -24,7 +24,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/smoelenboek")({
   head: () => ({
     meta: [
-      { title: "Smoelenboek — TerreVolt Hub" },
+      { title: "Smoelenboek — TerreVolt Intranet" },
       { name: "description", content: "Vind snel collega's, monteurs, ZZP'ers en partners." },
     ],
   }),

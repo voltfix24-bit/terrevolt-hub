@@ -5,7 +5,7 @@ import { SectionHeader } from "@/components/hub/SectionHeader";
 import { usePublishedNews } from "@/lib/news";
 
 export const Route = createFileRoute("/nieuws")({
-  head: () => ({ meta: [{ title: "Nieuws — TerreVolt Hub" }] }),
+  head: () => ({ meta: [{ title: "Nieuws — TerreVolt Intranet" }] }),
   component: Page,
 });
 

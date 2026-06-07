@@ -7,7 +7,7 @@ import { useFinanceClients, financeClientCompletion } from "@/lib/finance";
 export const Route = createFileRoute("/finance-wiki")({
   head: () => ({
     meta: [
-      { title: "Finance Wiki — TerreVolt Hub" },
+      { title: "Finance Wiki — TerreVolt Intranet" },
       {
         name: "description",
         content:
