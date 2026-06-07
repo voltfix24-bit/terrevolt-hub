@@ -29,6 +29,7 @@ export type Database = {
           sort_order: number
           updated_at: string
           url: string
+          visibility: Database["public"]["Enums"]["doc_visibility"]
         }
         Insert: {
           accent?: string
@@ -44,6 +45,7 @@ export type Database = {
           sort_order?: number
           updated_at?: string
           url?: string
+          visibility?: Database["public"]["Enums"]["doc_visibility"]
         }
         Update: {
           accent?: string
@@ -59,6 +61,7 @@ export type Database = {
           sort_order?: number
           updated_at?: string
           url?: string
+          visibility?: Database["public"]["Enums"]["doc_visibility"]
         }
         Relationships: []
       }
@@ -557,6 +560,7 @@ export type Database = {
           name: string
           sort_order: number
           updated_at: string
+          visibility: Database["public"]["Enums"]["doc_visibility"]
         }
         Insert: {
           accent?: string
@@ -570,6 +574,7 @@ export type Database = {
           name: string
           sort_order?: number
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["doc_visibility"]
         }
         Update: {
           accent?: string
@@ -583,6 +588,7 @@ export type Database = {
           name?: string
           sort_order?: number
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["doc_visibility"]
         }
         Relationships: []
       }
@@ -703,6 +709,7 @@ export type Database = {
           name: string
           sort_order: number
           updated_at: string
+          visibility: Database["public"]["Enums"]["doc_visibility"]
         }
         Insert: {
           active?: boolean
@@ -713,6 +720,7 @@ export type Database = {
           name: string
           sort_order?: number
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["doc_visibility"]
         }
         Update: {
           active?: boolean
@@ -723,6 +731,7 @@ export type Database = {
           name?: string
           sort_order?: number
           updated_at?: string
+          visibility?: Database["public"]["Enums"]["doc_visibility"]
         }
         Relationships: []
       }
@@ -814,6 +823,7 @@ export type Database = {
           sort_order: number
           updated_at: string
           url: string
+          visibility: Database["public"]["Enums"]["doc_visibility"]
         }
         Insert: {
           created_at?: string
@@ -827,6 +837,7 @@ export type Database = {
           sort_order?: number
           updated_at?: string
           url: string
+          visibility?: Database["public"]["Enums"]["doc_visibility"]
         }
         Update: {
           created_at?: string
@@ -840,6 +851,7 @@ export type Database = {
           sort_order?: number
           updated_at?: string
           url?: string
+          visibility?: Database["public"]["Enums"]["doc_visibility"]
         }
         Relationships: []
       }
@@ -1096,6 +1108,13 @@ export type Database = {
     Functions: {
       can_manage: {
         Args: { _perm: Database["public"]["Enums"]["app_permission"] }
+        Returns: boolean
+      }
+      can_view_chunk_source: {
+        Args: {
+          _sid: string
+          _st: Database["public"]["Enums"]["kb_chunk_source"]
+        }
         Returns: boolean
       }
       can_view_doc: {

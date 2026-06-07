@@ -12,6 +12,7 @@ import {
   type SharePointItem,
   type SharePointKind,
 } from "@/lib/sharepoint";
+import { logAudit } from "@/lib/audit";
 import { ArrowUpRight, ExternalLink, Folder, Link2, Pencil, Plus, Save, Star, Trash2, X } from "lucide-react";
 
 export const Route = createFileRoute("/sharepoint")({
@@ -211,7 +212,10 @@ function ItemSection({
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => touch.mutate(item.id)}
+                onClick={() => {
+                  touch.mutate(item.id);
+                  void logAudit("document.open", { targetType: "sharepoint_item", targetId: item.id, metadata: { name: item.name } });
+                }}
                 className="mt-auto inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline"
               >
                 Openen in SharePoint <ArrowUpRight className="h-4 w-4" />

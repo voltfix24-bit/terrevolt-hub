@@ -16,6 +16,7 @@ import {
   formatFileSize,
   isExpired,
 } from "@/lib/knowledge";
+import { logAudit } from "@/lib/audit";
 
 export const Route = createFileRoute("/kennisbank/$slug/$articleSlug")({
   head: () => ({ meta: [{ title: "Document — Kennisbank" }] }),
@@ -178,6 +179,7 @@ function Page() {
                 href={article.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => void logAudit("document.download", { targetType: "kb_article", targetId: article.id, metadata: { title: article.title, file_name: article.file_name } })}
                 className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:border-brand/40 hover:bg-accent/40"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-navy">
