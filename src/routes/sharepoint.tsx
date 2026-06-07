@@ -203,7 +203,11 @@ function ItemSection({
                   </button>
                   <button
                     onClick={() => {
-                      if (confirm(`"${item.name}" verwijderen?`)) remove.mutate(item.id);
+                      if (confirm(`"${item.name}" verwijderen?`)) {
+                        remove.mutate(item.id, {
+                          onSuccess: () => void logAudit("settings.update", { targetType: "sharepoint_item", targetId: item.id, metadata: { tab: "sharepoint", op: "delete", name: item.name } }),
+                        });
+                      }
                     }}
                     className="rounded-lg p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600"
                   >
@@ -215,6 +219,9 @@ function ItemSection({
                 <div className="flex items-center gap-2">
                   <h3 className="truncate font-semibold text-navy">{item.name}</h3>
                   {item.favorite && <Star className="h-3.5 w-3.5 fill-brand text-brand" />}
+                </div>
+                <div className="mt-1.5">
+                  <VisibilityBadge value={item.visibility} />
                 </div>
                 {item.description && (
                   <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
