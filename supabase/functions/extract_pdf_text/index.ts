@@ -175,6 +175,7 @@ Deno.serve(async (req) => {
     .select("role")
     .eq("user_id", userData.user.id)
     .eq("role", "admin")
+    .eq("active", true)
     .maybeSingle();
   if (!isAdminRow) return json(403, { error: "Admin only" });
 

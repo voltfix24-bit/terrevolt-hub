@@ -308,6 +308,22 @@ Deno.serve(async (req) => {
     return json(500, { error: "Missing env vars" });
   }
 
+  // Require service-role bearer (pg_cron sends this). Rejects anonymous callers
+  // so this expensive embedding endpoint can't be abused.
+  const auth = req.headers.get("authorization") ?? "";
+  const token = auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
+  const expected = SERVICE_ROLE;
+  const ok =
+    token.length === expected.length &&
+    token.length > 0 &&
+    (() => {
+      let diff = 0;
+      for (let i = 0; i < token.length; i++) diff |= token.charCodeAt(i) ^ expected.charCodeAt(i);
+      return diff === 0;
+    })();
+  if (!ok) return json(401, { error: "Unauthorized" });
+
+
   const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
   const t0 = Date.now();
 
