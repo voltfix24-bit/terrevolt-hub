@@ -263,6 +263,7 @@ function ItemForm({
     url: initial.url,
     icon: initial.icon,
     favorite: initial.favorite,
+    visibility: initial.visibility ?? "all_staff",
   });
 
   return (
