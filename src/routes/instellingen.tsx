@@ -108,6 +108,7 @@ const TABS = [
   { id: "quick", label: "Quick links" },
   { id: "departments", label: "Afdelingen" },
   { id: "roles", label: "Rollen" },
+  { id: "access", label: "Toegang & rechten" },
   { id: "kb-sections", label: "KB secties" },
   { id: "kb-cats", label: "KB sub-categorieën" },
   { id: "kb-articles", label: "KB kennisitems" },
