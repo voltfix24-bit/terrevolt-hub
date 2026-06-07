@@ -1178,7 +1178,14 @@ export type Database = {
         | "Rapportage"
         | "Externe systemen"
         | "Overig"
-      app_role: "admin" | "management" | "kantoor" | "monteur" | "zzper"
+      app_role:
+        | "admin"
+        | "management"
+        | "kantoor"
+        | "monteur"
+        | "zzper"
+        | "finance"
+        | "planning"
       kb_chunk_source:
         | "kb_article"
         | "news"
@@ -1348,7 +1355,15 @@ export const Constants = {
         "Externe systemen",
         "Overig",
       ],
-      app_role: ["admin", "management", "kantoor", "monteur", "zzper"],
+      app_role: [
+        "admin",
+        "management",
+        "kantoor",
+        "monteur",
+        "zzper",
+        "finance",
+        "planning",
+      ],
       kb_chunk_source: [
         "kb_article",
         "news",
