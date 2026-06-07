@@ -37,7 +37,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
         <img src={logo.url} alt="TerreVolt" className="h-9 w-9 object-contain" />
         <div className="leading-tight">
           <div className="font-semibold text-navy">TerreVolt</div>
-          <div className="text-xs text-muted-foreground">Hub</div>
+          <div className="text-xs text-muted-foreground">Intranet</div>
         </div>
       </div>
 
