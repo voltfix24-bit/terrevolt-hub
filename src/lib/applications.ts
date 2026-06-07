@@ -25,6 +25,7 @@ export type Application = {
   active: boolean;
   accent: AppAccent;
   sort_order: number;
+  visibility: DocVisibility;
 };
 
 export type ApplicationInput = Omit<Application, "id" | "sort_order"> & {
