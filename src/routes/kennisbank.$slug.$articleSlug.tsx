@@ -16,6 +16,7 @@ import {
   formatFileSize,
   isExpired,
 } from "@/lib/knowledge";
+import { logAudit } from "@/lib/audit";
 
 export const Route = createFileRoute("/kennisbank/$slug/$articleSlug")({
   head: () => ({ meta: [{ title: "Document — Kennisbank" }] }),
