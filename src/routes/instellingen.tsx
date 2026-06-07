@@ -832,7 +832,9 @@ function KbArticlesTab() {
       attachments: a.attachments,
       related_ids: a.related_ids,
       status: a.status,
+      visibility: a.visibility,
     });
+
   };
   const cancel = () => {
     setAdding(false);
