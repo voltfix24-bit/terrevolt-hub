@@ -582,5 +582,7 @@ export function emptyArticleInput(sectionId?: string): KbArticleInput {
     attachments: [],
     related_ids: [],
     status: "active",
+    visibility: "all_staff",
+
   };
 }
