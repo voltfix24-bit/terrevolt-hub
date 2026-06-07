@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { DocVisibility } from "@/lib/knowledge";
 
 export type SharePointKind = "link" | "folder";
 
@@ -15,6 +16,7 @@ export type SharePointItem = {
   sort_order: number;
   created_at: string;
   updated_at: string;
+  visibility: DocVisibility;
 };
 
 export type SharePointItemInput = Omit<
