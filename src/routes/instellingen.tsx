@@ -150,6 +150,7 @@ function SettingsPage() {
         {tab === "quick" && <QuickLinksTab />}
         {tab === "departments" && <DepartmentsTab />}
         {tab === "roles" && <RolesTab />}
+        {tab === "access" && <AccessTab />}
         {tab === "kb-sections" && <KbSectionsTab />}
         {tab === "kb-cats" && <KbCategoriesTab />}
         {tab === "kb-articles" && <KbArticlesTab />}
