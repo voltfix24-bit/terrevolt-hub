@@ -79,6 +79,9 @@ import {
   type KbDocumentType,
   type DocVisibility,
 } from "@/lib/knowledge";
+import { useAuditLogs } from "@/lib/audit";
+import { usePerms } from "@/lib/auth";
+
 
 import { Icon } from "@/components/hub/Icon";
 import { PermissionGate } from "@/components/hub/PermissionGate";
