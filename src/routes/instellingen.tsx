@@ -28,10 +28,14 @@ import {
 import {
   useUserRoles,
   useUserRoleMutations,
+  useAllUserPermissions,
+  useUserPermissionMutations,
   APP_ROLES,
+  APP_PERMISSIONS,
   roleLabel,
   type UserRole,
   type UserRoleInput,
+  type AppPermission,
 } from "@/lib/userRoles";
 import {
   useApplications,
