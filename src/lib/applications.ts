@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { DocVisibility } from "@/lib/knowledge";
 
 export const APP_CATEGORIES = [
   "Operationeel",
@@ -24,6 +25,7 @@ export type Application = {
   active: boolean;
   accent: AppAccent;
   sort_order: number;
+  visibility: DocVisibility;
 };
 
 export type ApplicationInput = Omit<Application, "id" | "sort_order"> & {

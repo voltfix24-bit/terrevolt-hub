@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { DocVisibility } from "@/lib/knowledge";
 
 export type QuickLink = {
   id: string;
@@ -8,6 +9,7 @@ export type QuickLink = {
   icon: string;
   active: boolean;
   sort_order: number;
+  visibility: DocVisibility;
 };
 
 export type QuickLinkInput = Omit<QuickLink, "id" | "sort_order"> & {

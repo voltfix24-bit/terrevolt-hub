@@ -79,7 +79,7 @@ import {
   type KbDocumentType,
   type DocVisibility,
 } from "@/lib/knowledge";
-import { useAuditLogs } from "@/lib/audit";
+import { useAuditLogs, logAudit } from "@/lib/audit";
 import { usePerms } from "@/lib/auth";
 
 
@@ -94,6 +94,29 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+
+function VisibilityBadge({ value }: { value: DocVisibility | null | undefined }) {
+  const v = value ?? "all_staff";
+  const def = DOC_VISIBILITIES.find((x) => x.value === v);
+  const tone =
+    v === "admin_only" ? "bg-red-100 text-red-700"
+    : v === "finance" ? "bg-emerald-100 text-emerald-700"
+    : v === "planning" ? "bg-blue-100 text-blue-700"
+    : v === "management" ? "bg-amber-100 text-amber-700"
+    : "bg-accent text-foreground/70";
+  return (
+    <span className={"rounded-full px-2 py-0.5 text-xs font-medium " + tone} title={def?.hint ?? ""}>
+      {def?.label ?? v}
+    </span>
+  );
+}
+
+const VISIBILITY_FIELD: Field = {
+  key: "visibility",
+  label: "Zichtbaarheid",
+  type: "select",
+  options: DOC_VISIBILITIES.map((v) => ({ value: v.value, label: v.label })),
+};
 
 export const Route = createFileRoute("/instellingen")({
   head: () => ({ meta: [{ title: "Instellingen — TerreVolt Intranet" }] }),
@@ -256,6 +279,12 @@ function AppsTab() {
     { key: "featured", label: "Uitgelicht (grote kaart)", type: "bool" },
     { key: "new_tab", label: "Openen in nieuw tabblad", type: "bool" },
     { key: "active", label: "Actief (zichtbaar op homepage)", type: "bool" },
+    {
+      key: "visibility",
+      label: "Zichtbaarheid",
+      type: "select",
+      options: DOC_VISIBILITIES.map((v) => ({ value: v.value, label: v.label })),
+    },
   ];
 
   const empty: ApplicationInput = {
@@ -268,6 +297,7 @@ function AppsTab() {
     featured: false,
     active: true,
     accent: "brand",
+    visibility: "all_staff",
   };
 
   return (
@@ -279,15 +309,15 @@ function AppsTab() {
         items={apps}
         fields={fields}
         emptyItem={empty as Omit<Application, "id">}
-        onAdd={(item) => add.mutate(item as ApplicationInput)}
-        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<Application> })}
-        onDelete={(id) => remove.mutate(id)}
+        onAdd={(item) => add.mutate(item as ApplicationInput, { onSuccess: () => logAudit("settings.update", { targetType: "application", metadata: { tab: "applications", op: "create", name: (item as ApplicationInput).name } }) })}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<Application> }, { onSuccess: () => logAudit("settings.update", { targetType: "application", targetId: id, metadata: { tab: "applications", op: "update", changed: Object.keys(patch ?? {}) } }) })}
+        onDelete={(id) => remove.mutate(id, { onSuccess: () => logAudit("settings.update", { targetType: "application", targetId: id, metadata: { tab: "applications", op: "delete" } }) })}
         onReorder={(from, to) => {
           if (from === to) return;
           const next = apps.slice();
           const [m] = next.splice(from, 1);
           next.splice(to, 0, m);
-          reorder.mutate({ items: next });
+          reorder.mutate({ items: next }, { onSuccess: () => logAudit("settings.update", { targetType: "application", metadata: { tab: "applications", op: "reorder" } }) });
         }}
         rowPreview={(a) => (
           <div className="flex items-center gap-3">
@@ -307,6 +337,7 @@ function AppsTab() {
                     Inactief
                   </span>
                 )}
+                <VisibilityBadge value={a.visibility} />
               </div>
               <div className="truncate text-xs text-muted-foreground">
                 {a.category} · {a.url}
@@ -413,6 +444,7 @@ function PartnersTab() {
       options: PARTNER_CATEGORIES.map((c) => ({ value: c, label: c })),
     },
     { key: "active", label: "Actief (zichtbaar)", type: "bool" },
+    VISIBILITY_FIELD,
   ];
   const empty: PartnerLinkInput = {
     name: "",
@@ -422,6 +454,7 @@ function PartnersTab() {
     accent: "brand",
     category: "Opdrachtgever",
     active: true,
+    visibility: "all_staff",
   };
   return (
     <>
@@ -432,15 +465,15 @@ function PartnersTab() {
         items={partners}
         fields={fields}
         emptyItem={empty as Omit<PartnerLink, "id">}
-        onAdd={(item) => add.mutate(item as PartnerLinkInput)}
-        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<PartnerLink> })}
-        onDelete={(id) => remove.mutate(id)}
+        onAdd={(item) => add.mutate(item as PartnerLinkInput, { onSuccess: () => logAudit("settings.update", { targetType: "partner_link", metadata: { tab: "partners", op: "create", name: (item as PartnerLinkInput).name } }) })}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<PartnerLink> }, { onSuccess: () => logAudit("settings.update", { targetType: "partner_link", targetId: id, metadata: { tab: "partners", op: "update", changed: Object.keys(patch ?? {}) } }) })}
+        onDelete={(id) => remove.mutate(id, { onSuccess: () => logAudit("settings.update", { targetType: "partner_link", targetId: id, metadata: { tab: "partners", op: "delete" } }) })}
         onReorder={(from, to) => {
           if (from === to) return;
           const next = partners.slice();
           const [m] = next.splice(from, 1);
           next.splice(to, 0, m);
-          reorder.mutate({ items: next });
+          reorder.mutate({ items: next }, { onSuccess: () => logAudit("settings.update", { targetType: "partner_link", metadata: { tab: "partners", op: "reorder" } }) });
         }}
         rowPreview={(p) => (
           <div className="flex items-center gap-3">
@@ -458,6 +491,7 @@ function PartnersTab() {
                     Inactief
                   </span>
                 )}
+                <VisibilityBadge value={p.visibility} />
               </div>
               <div className="truncate text-xs text-muted-foreground">{p.href}</div>
             </div>
@@ -705,23 +739,24 @@ function QuickLinksTab() {
     { key: "icon", label: "Icoon", type: "icon" },
     { key: "href", label: "URL", type: "url" },
     { key: "active", label: "Actief (zichtbaar)", type: "bool" },
+    VISIBILITY_FIELD,
   ];
-  const empty: QuickLinkInput = { name: "", href: "https://", icon: "link", active: true };
+  const empty: QuickLinkInput = { name: "", href: "https://", icon: "link", active: true, visibility: "all_staff" };
   return (
     <>
       {isLoading && <div className="text-sm text-muted-foreground">Laden…</div>}
       <EntityManager<QuickLink>
         title="Quick links" description="Snelkoppelingen in het welkomstvak."
         items={quickLinks} fields={fields} emptyItem={empty as Omit<QuickLink, "id">}
-        onAdd={(item) => add.mutate(item as QuickLinkInput)}
-        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<QuickLink> })}
-        onDelete={(id) => remove.mutate(id)}
+        onAdd={(item) => add.mutate(item as QuickLinkInput, { onSuccess: () => logAudit("settings.update", { targetType: "quick_link", metadata: { tab: "quick_links", op: "create", name: (item as QuickLinkInput).name } }) })}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<QuickLink> }, { onSuccess: () => logAudit("settings.update", { targetType: "quick_link", targetId: id, metadata: { tab: "quick_links", op: "update", changed: Object.keys(patch ?? {}) } }) })}
+        onDelete={(id) => remove.mutate(id, { onSuccess: () => logAudit("settings.update", { targetType: "quick_link", targetId: id, metadata: { tab: "quick_links", op: "delete" } }) })}
         onReorder={(from, to) => {
           if (from === to) return;
           const next = quickLinks.slice();
           const [m] = next.splice(from, 1);
           next.splice(to, 0, m);
-          reorder.mutate({ items: next });
+          reorder.mutate({ items: next }, { onSuccess: () => logAudit("settings.update", { targetType: "quick_link", metadata: { tab: "quick_links", op: "reorder" } }) });
         }}
         rowPreview={(q) => (
           <div className="flex items-center gap-3">
@@ -732,6 +767,7 @@ function QuickLinksTab() {
                 {!q.active && (
                   <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Inactief</span>
                 )}
+                <VisibilityBadge value={q.visibility} />
               </div>
               <div className="truncate text-xs text-muted-foreground">{q.href}</div>
             </div>

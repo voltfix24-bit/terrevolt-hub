@@ -13,6 +13,7 @@ import {
   type SharePointKind,
 } from "@/lib/sharepoint";
 import { logAudit } from "@/lib/audit";
+import { DOC_VISIBILITIES, type DocVisibility } from "@/lib/knowledge";
 import { ArrowUpRight, ExternalLink, Folder, Link2, Pencil, Plus, Save, Star, Trash2, X } from "lucide-react";
 
 export const Route = createFileRoute("/sharepoint")({
@@ -116,13 +117,14 @@ function ItemSection({
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
 
-  const emptyDraft = {
+  const emptyDraft: DraftValues = {
     kind,
     name: "",
     description: "",
     url: "",
     icon: kind === "folder" ? "folder" : "link",
     favorite: false,
+    visibility: "all_staff",
   };
 
   return (
@@ -143,7 +145,12 @@ function ItemSection({
           submitLabel="Toevoegen"
           onCancel={() => setAdding(false)}
           onSubmit={(values) =>
-            add.mutate(values, { onSuccess: () => setAdding(false) })
+            add.mutate(values, {
+              onSuccess: () => {
+                setAdding(false);
+                void logAudit("settings.update", { targetType: "sharepoint_item", metadata: { tab: "sharepoint", op: "create", name: values.name, visibility: values.visibility } });
+              },
+            })
           }
         />
       )}
@@ -159,7 +166,12 @@ function ItemSection({
                 onSubmit={(values) =>
                   update.mutate(
                     { id: item.id, patch: values },
-                    { onSuccess: () => setEditing(null) },
+                    {
+                      onSuccess: () => {
+                        setEditing(null);
+                        void logAudit("settings.update", { targetType: "sharepoint_item", targetId: item.id, metadata: { tab: "sharepoint", op: "update", changed: Object.keys(values), visibility: values.visibility } });
+                      },
+                    },
                   )
                 }
               />
@@ -191,7 +203,11 @@ function ItemSection({
                   </button>
                   <button
                     onClick={() => {
-                      if (confirm(`"${item.name}" verwijderen?`)) remove.mutate(item.id);
+                      if (confirm(`"${item.name}" verwijderen?`)) {
+                        remove.mutate(item.id, {
+                          onSuccess: () => void logAudit("settings.update", { targetType: "sharepoint_item", targetId: item.id, metadata: { tab: "sharepoint", op: "delete", name: item.name } }),
+                        });
+                      }
                     }}
                     className="rounded-lg p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600"
                   >
@@ -203,6 +219,9 @@ function ItemSection({
                 <div className="flex items-center gap-2">
                   <h3 className="truncate font-semibold text-navy">{item.name}</h3>
                   {item.favorite && <Star className="h-3.5 w-3.5 fill-brand text-brand" />}
+                </div>
+                <div className="mt-1.5">
+                  <VisibilityBadge value={item.visibility} />
                 </div>
                 {item.description && (
                   <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
@@ -240,6 +259,7 @@ type DraftValues = {
   url: string;
   icon: string;
   favorite: boolean;
+  visibility: DocVisibility;
 };
 
 function ItemForm({
@@ -260,6 +280,7 @@ function ItemForm({
     url: initial.url,
     icon: initial.icon,
     favorite: initial.favorite,
+    visibility: initial.visibility ?? "all_staff",
   });
 
   return (
@@ -303,6 +324,20 @@ function ItemForm({
             Tonen op homepage
           </label>
         </Labeled>
+        <Labeled label="Zichtbaarheid" className="sm:col-span-2">
+          <select
+            value={values.visibility}
+            onChange={(e) => setValues({ ...values, visibility: e.target.value as DocVisibility })}
+            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-brand focus:outline-none"
+          >
+            {DOC_VISIBILITIES.map((v) => (
+              <option key={v.value} value={v.value}>{v.label}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Bepaalt wie dit item ziet. Wordt ook door RLS afgedwongen.
+          </p>
+        </Labeled>
       </div>
       <div className="mt-5 flex justify-end gap-2">
         <button
@@ -339,5 +374,21 @@ function Labeled({
       <span className="mb-1.5 block text-xs font-medium text-foreground/70">{label}</span>
       {children}
     </label>
+  );
+}
+
+function VisibilityBadge({ value }: { value: DocVisibility | null | undefined }) {
+  const v = value ?? "all_staff";
+  const def = DOC_VISIBILITIES.find((x) => x.value === v);
+  const tone =
+    v === "admin_only" ? "bg-red-100 text-red-700"
+    : v === "finance" ? "bg-emerald-100 text-emerald-700"
+    : v === "planning" ? "bg-blue-100 text-blue-700"
+    : v === "management" ? "bg-amber-100 text-amber-700"
+    : "bg-accent text-foreground/70";
+  return (
+    <span className={"inline-block rounded-full px-2 py-0.5 text-xs font-medium " + tone} title={def?.hint ?? ""}>
+      {def?.label ?? v}
+    </span>
   );
 }
