@@ -502,10 +502,10 @@ function AnswerCard({
                   Beste match
                 </div>
                 <div className="mb-2 text-sm font-semibold text-navy">
-                  {answer.direct_answer.title}
+                  {highlightSnippet(answer.direct_answer.title, question)}
                 </div>
                 <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
-                  {answer.direct_answer.content}
+                  {highlightSnippet(answer.direct_answer.content, question)}
                 </p>
                 {answer.direct_answer.url && (
                   answer.direct_answer.external ? (
@@ -546,7 +546,14 @@ function AnswerCard({
                         className="group flex items-start gap-2 rounded-xl border border-border bg-card px-3 py-2 text-left text-sm text-navy shadow-sm transition hover:border-brand/40 hover:bg-pastel/30"
                       >
                         <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-                        <span className="flex-1">{s.title}</span>
+                        <span className="flex-1">
+                          <span className="block">{highlightSnippet(s.title, question)}</span>
+                          {s.snippet && (
+                            <span className="mt-0.5 block line-clamp-2 text-xs font-normal text-muted-foreground">
+                              {highlightSnippet(s.snippet, question)}
+                            </span>
+                          )}
+                        </span>
                         <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:text-brand" />
                       </button>
                     ))}
@@ -632,20 +639,64 @@ const MATCH_LABEL: Record<string, string> = {
   content_token: "Tekst (woord)",
 };
 
+// Synonym groups — mirror the server-side expansion in search_kb_chunks
+// so highlighted terms match what the search actually found.
+const SYNONYM_GROUPS: string[][] = [
+  ["msr", "middenspanningsruimte", "station"],
+  ["imsr", "intelligente"],
+  ["rmu", "ring", "main", "unit"],
+  ["svk", "storingsverklikker"],
+  ["da", "distributieautomatisering"],
+  ["lsrek", "laagspanningsrek", "ls", "rek"],
+  ["safeplus", "abb"],
+  ["bluegis", "siemens"],
+  ["magnefix", "eaton"],
+  ["iec", "nen", "norm"],
+  ["trafo", "distributietransformator"],
+  ["cilinder", "sleutel", "sleutelkluis"],
+  ["rookmelder", "brandmelder"],
+  ["kabelkelder", "waterdicht"],
+  ["vluchtweg", "vluchtroute"],
+  ["aarding", "aardelektrode"],
+];
+
+function expandTerms(query: string): string[] {
+  const raw = query
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((t) => t.length >= 2);
+  const set = new Set<string>(raw);
+  for (const tk of raw) {
+    for (const group of SYNONYM_GROUPS) {
+      if (group.includes(tk)) group.forEach((g) => set.add(g));
+    }
+  }
+  return Array.from(set).filter((t) => t.length >= 2);
+}
+
+function buildClientSnippet(text: string, terms: string[], len = 220): string {
+  const clean = (text || "").replace(/\s+/g, " ").trim();
+  if (!clean) return "";
+  const lower = clean.toLowerCase();
+  let idx = -1;
+  for (const t of terms) {
+    const i = lower.indexOf(t);
+    if (i !== -1 && (idx === -1 || i < idx)) idx = i;
+  }
+  if (idx === -1) return clean.slice(0, len) + (clean.length > len ? "…" : "");
+  const start = Math.max(0, idx - 70);
+  const end = Math.min(clean.length, start + len);
+  return (
+    (start > 0 ? "…" : "") + clean.slice(start, end) + (end < clean.length ? "…" : "")
+  );
+}
+
 function highlightSnippet(text: string, query: string): React.ReactNode {
   if (!text) return null;
-  const terms = Array.from(
-    new Set(
-      query
-        .toLowerCase()
-        .split(/\s+/)
-        .map((t) => t.replace(/[^\p{L}\p{N}]/gu, ""))
-        .filter((t) => t.length >= 3),
-    ),
-  );
+  const terms = expandTerms(query);
   if (terms.length === 0) return text;
   const escaped = terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  const re = new RegExp(`(${escaped.join("|")})`, "gi");
+  const re = new RegExp(`(${escaped.join("|")})`, "giu");
   const parts = text.split(re);
   return parts.map((p, i) =>
     terms.includes(p.toLowerCase()) ? (
@@ -676,7 +727,9 @@ function SourceRow({
         <SourceIcon type={source.source_type} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium text-navy">{source.title}</div>
+        <div className="truncate text-sm font-medium text-navy">
+          {highlightSnippet(source.title, query)}
+        </div>
         <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           <span>{SOURCE_LABEL[source.source_type]}</span>
           {source.match_kind && (
