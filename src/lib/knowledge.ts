@@ -30,6 +30,16 @@ export type KbStatus = "active" | "draft" | "expired" | "archived";
 
 export const KB_STATUSES: KbStatus[] = ["active", "draft", "expired", "archived"];
 
+export type DocVisibility = "all_staff" | "management" | "finance" | "planning" | "admin_only";
+
+export const DOC_VISIBILITIES: { value: DocVisibility; label: string; hint: string }[] = [
+  { value: "all_staff", label: "Iedereen (medewerkers)", hint: "Alle ingelogde medewerkers" },
+  { value: "management", label: "Management", hint: "Admin + management" },
+  { value: "finance", label: "Finance", hint: "Admin, management, finance of view_finance" },
+  { value: "planning", label: "Planning", hint: "Admin, management, planning of view_planning" },
+  { value: "admin_only", label: "Alleen admin", hint: "Uitsluitend admin-rol" },
+];
+
 export const KB_DOCUMENT_TYPES = [
   "wiki",
   "pdf",
@@ -41,6 +51,7 @@ export const KB_DOCUMENT_TYPES = [
   "overig",
 ] as const;
 export type KbDocumentType = (typeof KB_DOCUMENT_TYPES)[number];
+
 
 export type KbArticle = {
   id: string;
