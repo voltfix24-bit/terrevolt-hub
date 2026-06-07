@@ -77,7 +77,7 @@ import {
   type KbDocumentType,
 } from "@/lib/knowledge";
 import { Icon } from "@/components/hub/Icon";
-import { AdminGate } from "@/components/hub/AdminGate";
+import { PermissionGate } from "@/components/hub/PermissionGate";
 import { Upload, X, Loader2 } from "lucide-react";
 import {
   Dialog,
@@ -95,11 +95,15 @@ export const Route = createFileRoute("/instellingen")({
 
 function SettingsPageGated() {
   return (
-    <AdminGate>
+    <PermissionGate
+      permissions={["manage_settings", "manage_users"]}
+      deniedMessage="Alleen beheerders met instellingen- of gebruikersrechten kunnen deze pagina openen."
+    >
       <SettingsPage />
-    </AdminGate>
+    </PermissionGate>
   );
 }
+
 
 const TABS = [
   { id: "apps", label: "Applicaties" },
