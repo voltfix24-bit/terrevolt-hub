@@ -117,13 +117,14 @@ function ItemSection({
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
 
-  const emptyDraft = {
+  const emptyDraft: DraftValues = {
     kind,
     name: "",
     description: "",
     url: "",
     icon: kind === "folder" ? "folder" : "link",
     favorite: false,
+    visibility: "all_staff",
   };
 
   return (
