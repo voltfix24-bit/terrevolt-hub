@@ -256,6 +256,12 @@ function AppsTab() {
     { key: "featured", label: "Uitgelicht (grote kaart)", type: "bool" },
     { key: "new_tab", label: "Openen in nieuw tabblad", type: "bool" },
     { key: "active", label: "Actief (zichtbaar op homepage)", type: "bool" },
+    {
+      key: "visibility",
+      label: "Zichtbaarheid",
+      type: "select",
+      options: DOC_VISIBILITIES.map((v) => ({ value: v.value, label: v.label })),
+    },
   ];
 
   const empty: ApplicationInput = {
@@ -268,6 +274,7 @@ function AppsTab() {
     featured: false,
     active: true,
     accent: "brand",
+    visibility: "all_staff",
   };
 
   return (
@@ -279,15 +286,15 @@ function AppsTab() {
         items={apps}
         fields={fields}
         emptyItem={empty as Omit<Application, "id">}
-        onAdd={(item) => add.mutate(item as ApplicationInput)}
-        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<Application> })}
-        onDelete={(id) => remove.mutate(id)}
+        onAdd={(item) => add.mutate(item as ApplicationInput, { onSuccess: () => logAudit("settings.update", { targetType: "application", metadata: { tab: "applications", op: "create", name: (item as ApplicationInput).name } }) })}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<Application> }, { onSuccess: () => logAudit("settings.update", { targetType: "application", targetId: id, metadata: { tab: "applications", op: "update", changed: Object.keys(patch ?? {}) } }) })}
+        onDelete={(id) => remove.mutate(id, { onSuccess: () => logAudit("settings.update", { targetType: "application", targetId: id, metadata: { tab: "applications", op: "delete" } }) })}
         onReorder={(from, to) => {
           if (from === to) return;
           const next = apps.slice();
           const [m] = next.splice(from, 1);
           next.splice(to, 0, m);
-          reorder.mutate({ items: next });
+          reorder.mutate({ items: next }, { onSuccess: () => logAudit("settings.update", { targetType: "application", metadata: { tab: "applications", op: "reorder" } }) });
         }}
         rowPreview={(a) => (
           <div className="flex items-center gap-3">
@@ -307,6 +314,7 @@ function AppsTab() {
                     Inactief
                   </span>
                 )}
+                <VisibilityBadge value={a.visibility} />
               </div>
               <div className="truncate text-xs text-muted-foreground">
                 {a.category} · {a.url}
