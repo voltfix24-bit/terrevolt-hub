@@ -748,15 +748,15 @@ function QuickLinksTab() {
       <EntityManager<QuickLink>
         title="Quick links" description="Snelkoppelingen in het welkomstvak."
         items={quickLinks} fields={fields} emptyItem={empty as Omit<QuickLink, "id">}
-        onAdd={(item) => add.mutate(item as QuickLinkInput)}
-        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<QuickLink> })}
-        onDelete={(id) => remove.mutate(id)}
+        onAdd={(item) => add.mutate(item as QuickLinkInput, { onSuccess: () => logAudit("settings.update", { targetType: "quick_link", metadata: { tab: "quick_links", op: "create", name: (item as QuickLinkInput).name } }) })}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<QuickLink> }, { onSuccess: () => logAudit("settings.update", { targetType: "quick_link", targetId: id, metadata: { tab: "quick_links", op: "update", changed: Object.keys(patch ?? {}) } }) })}
+        onDelete={(id) => remove.mutate(id, { onSuccess: () => logAudit("settings.update", { targetType: "quick_link", targetId: id, metadata: { tab: "quick_links", op: "delete" } }) })}
         onReorder={(from, to) => {
           if (from === to) return;
           const next = quickLinks.slice();
           const [m] = next.splice(from, 1);
           next.splice(to, 0, m);
-          reorder.mutate({ items: next });
+          reorder.mutate({ items: next }, { onSuccess: () => logAudit("settings.update", { targetType: "quick_link", metadata: { tab: "quick_links", op: "reorder" } }) });
         }}
         rowPreview={(q) => (
           <div className="flex items-center gap-3">
@@ -767,6 +767,7 @@ function QuickLinksTab() {
                 {!q.active && (
                   <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Inactief</span>
                 )}
+                <VisibilityBadge value={q.visibility} />
               </div>
               <div className="truncate text-xs text-muted-foreground">{q.href}</div>
             </div>
