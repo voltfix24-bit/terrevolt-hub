@@ -285,6 +285,8 @@ function normalizeArticle(r: Record<string, unknown>): KbArticle {
     attachments: (r.attachments as KbAttachment[]) ?? [],
     related_ids: (r.related_ids as string[]) ?? [],
     status: ((r.status as KbStatus) ?? "active"),
+    visibility: ((r.visibility as DocVisibility) ?? "all_staff"),
+
     sort_order: Number(r.sort_order ?? 0),
     updated_at: (r.updated_at as string) ?? "",
     created_at: (r.created_at as string) ?? "",
