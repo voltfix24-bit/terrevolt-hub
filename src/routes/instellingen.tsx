@@ -506,12 +506,14 @@ function RolesTab() {
       type: "select",
       options: APP_ROLES.map((r) => ({ value: r.value, label: `${r.label} — ${r.description}` })),
     },
+    { key: "active", label: "Actief (toegang tot intranet)", type: "bool" },
   ];
   const empty: UserRoleInput = {
     user_id: "00000000-0000-0000-0000-000000000000",
     display_name: "",
     email: "",
     role: "kantoor",
+    active: true,
   };
   return (
     <>
