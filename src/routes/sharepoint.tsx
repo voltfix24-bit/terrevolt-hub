@@ -145,7 +145,12 @@ function ItemSection({
           submitLabel="Toevoegen"
           onCancel={() => setAdding(false)}
           onSubmit={(values) =>
-            add.mutate(values, { onSuccess: () => setAdding(false) })
+            add.mutate(values, {
+              onSuccess: () => {
+                setAdding(false);
+                void logAudit("settings.update", { targetType: "sharepoint_item", metadata: { tab: "sharepoint", op: "create", name: values.name, visibility: values.visibility } });
+              },
+            })
           }
         />
       )}
@@ -161,7 +166,12 @@ function ItemSection({
                 onSubmit={(values) =>
                   update.mutate(
                     { id: item.id, patch: values },
-                    { onSuccess: () => setEditing(null) },
+                    {
+                      onSuccess: () => {
+                        setEditing(null);
+                        void logAudit("settings.update", { targetType: "sharepoint_item", targetId: item.id, metadata: { tab: "sharepoint", op: "update", changed: Object.keys(values), visibility: values.visibility } });
+                      },
+                    },
                   )
                 }
               />
