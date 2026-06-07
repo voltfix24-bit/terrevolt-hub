@@ -444,6 +444,7 @@ function PartnersTab() {
       options: PARTNER_CATEGORIES.map((c) => ({ value: c, label: c })),
     },
     { key: "active", label: "Actief (zichtbaar)", type: "bool" },
+    VISIBILITY_FIELD,
   ];
   const empty: PartnerLinkInput = {
     name: "",
@@ -453,6 +454,7 @@ function PartnersTab() {
     accent: "brand",
     category: "Opdrachtgever",
     active: true,
+    visibility: "all_staff",
   };
   return (
     <>
@@ -463,15 +465,15 @@ function PartnersTab() {
         items={partners}
         fields={fields}
         emptyItem={empty as Omit<PartnerLink, "id">}
-        onAdd={(item) => add.mutate(item as PartnerLinkInput)}
-        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<PartnerLink> })}
-        onDelete={(id) => remove.mutate(id)}
+        onAdd={(item) => add.mutate(item as PartnerLinkInput, { onSuccess: () => logAudit("settings.update", { targetType: "partner_link", metadata: { tab: "partners", op: "create", name: (item as PartnerLinkInput).name } }) })}
+        onUpdate={(id, patch) => update.mutate({ id, patch: patch as Partial<PartnerLink> }, { onSuccess: () => logAudit("settings.update", { targetType: "partner_link", targetId: id, metadata: { tab: "partners", op: "update", changed: Object.keys(patch ?? {}) } }) })}
+        onDelete={(id) => remove.mutate(id, { onSuccess: () => logAudit("settings.update", { targetType: "partner_link", targetId: id, metadata: { tab: "partners", op: "delete" } }) })}
         onReorder={(from, to) => {
           if (from === to) return;
           const next = partners.slice();
           const [m] = next.splice(from, 1);
           next.splice(to, 0, m);
-          reorder.mutate({ items: next });
+          reorder.mutate({ items: next }, { onSuccess: () => logAudit("settings.update", { targetType: "partner_link", metadata: { tab: "partners", op: "reorder" } }) });
         }}
         rowPreview={(p) => (
           <div className="flex items-center gap-3">
@@ -489,6 +491,7 @@ function PartnersTab() {
                     Inactief
                   </span>
                 )}
+                <VisibilityBadge value={p.visibility} />
               </div>
               <div className="truncate text-xs text-muted-foreground">{p.href}</div>
             </div>
