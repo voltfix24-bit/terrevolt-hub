@@ -307,6 +307,20 @@ function ItemForm({
             Tonen op homepage
           </label>
         </Labeled>
+        <Labeled label="Zichtbaarheid" className="sm:col-span-2">
+          <select
+            value={values.visibility}
+            onChange={(e) => setValues({ ...values, visibility: e.target.value as DocVisibility })}
+            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-brand focus:outline-none"
+          >
+            {DOC_VISIBILITIES.map((v) => (
+              <option key={v.value} value={v.value}>{v.label}</option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Bepaalt wie dit item ziet. Wordt ook door RLS afgedwongen.
+          </p>
+        </Labeled>
       </div>
       <div className="mt-5 flex justify-end gap-2">
         <button
