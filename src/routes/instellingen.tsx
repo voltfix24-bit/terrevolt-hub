@@ -63,7 +63,9 @@ import {
   emptyArticleInput,
   KB_STATUSES,
   KB_DOCUMENT_TYPES,
+  DOC_VISIBILITIES,
   statusLabel,
+
   documentTypeLabel,
   formatFileSize,
   type KbCategory,
