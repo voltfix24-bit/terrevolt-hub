@@ -377,7 +377,7 @@ function Labeled({
   );
 }
 
-function VisibilityBadge({ value }: { value: DocVisibility | null | undefined }) {
+export function VisibilityBadge({ value }: { value: DocVisibility | null | undefined }) {
   const v = value ?? "all_staff";
   const def = DOC_VISIBILITIES.find((x) => x.value === v);
   const tone =
