@@ -62,6 +62,39 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
       departments: {
         Row: {
           accent: string
@@ -203,6 +236,7 @@ export type Database = {
           valid_from: string | null
           valid_until: string | null
           version: string
+          visibility: Database["public"]["Enums"]["doc_visibility"]
         }
         Insert: {
           attachments?: Json
@@ -239,6 +273,7 @@ export type Database = {
           valid_from?: string | null
           valid_until?: string | null
           version?: string
+          visibility?: Database["public"]["Enums"]["doc_visibility"]
         }
         Update: {
           attachments?: Json
@@ -275,6 +310,7 @@ export type Database = {
           valid_from?: string | null
           valid_until?: string | null
           version?: string
+          visibility?: Database["public"]["Enums"]["doc_visibility"]
         }
         Relationships: [
           {
@@ -1062,6 +1098,10 @@ export type Database = {
         Args: { _perm: Database["public"]["Enums"]["app_permission"] }
         Returns: boolean
       }
+      can_view_doc: {
+        Args: { _vis: Database["public"]["Enums"]["doc_visibility"] }
+        Returns: boolean
+      }
       can_view_finance: { Args: never; Returns: boolean }
       can_view_planning: { Args: never; Returns: boolean }
       can_view_sensitive_people: { Args: never; Returns: boolean }
@@ -1115,6 +1155,15 @@ export type Database = {
       is_active_user: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      log_audit: {
+        Args: {
+          _action: string
+          _metadata?: Json
+          _target_id?: string
+          _target_type?: string
+        }
+        Returns: undefined
+      }
       match_kb_chunks: {
         Args: {
           match_count?: number
@@ -1237,6 +1286,12 @@ export type Database = {
         | "zzper"
         | "finance"
         | "planning"
+      doc_visibility:
+        | "all_staff"
+        | "management"
+        | "finance"
+        | "planning"
+        | "admin_only"
       kb_chunk_source:
         | "kb_article"
         | "news"
@@ -1424,6 +1479,13 @@ export const Constants = {
         "zzper",
         "finance",
         "planning",
+      ],
+      doc_visibility: [
+        "all_staff",
+        "management",
+        "finance",
+        "planning",
+        "admin_only",
       ],
       kb_chunk_source: [
         "kb_article",

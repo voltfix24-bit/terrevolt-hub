@@ -30,6 +30,16 @@ export type KbStatus = "active" | "draft" | "expired" | "archived";
 
 export const KB_STATUSES: KbStatus[] = ["active", "draft", "expired", "archived"];
 
+export type DocVisibility = "all_staff" | "management" | "finance" | "planning" | "admin_only";
+
+export const DOC_VISIBILITIES: { value: DocVisibility; label: string; hint: string }[] = [
+  { value: "all_staff", label: "Iedereen (medewerkers)", hint: "Alle ingelogde medewerkers" },
+  { value: "management", label: "Management", hint: "Admin + management" },
+  { value: "finance", label: "Finance", hint: "Admin, management, finance of view_finance" },
+  { value: "planning", label: "Planning", hint: "Admin, management, planning of view_planning" },
+  { value: "admin_only", label: "Alleen admin", hint: "Uitsluitend admin-rol" },
+];
+
 export const KB_DOCUMENT_TYPES = [
   "wiki",
   "pdf",
@@ -41,6 +51,7 @@ export const KB_DOCUMENT_TYPES = [
   "overig",
 ] as const;
 export type KbDocumentType = (typeof KB_DOCUMENT_TYPES)[number];
+
 
 export type KbArticle = {
   id: string;
@@ -72,6 +83,8 @@ export type KbArticle = {
   attachments: KbAttachment[];
   related_ids: string[];
   status: KbStatus;
+  visibility: DocVisibility;
+
   sort_order: number;
   updated_at: string;
   created_at: string;
@@ -272,6 +285,8 @@ function normalizeArticle(r: Record<string, unknown>): KbArticle {
     attachments: (r.attachments as KbAttachment[]) ?? [],
     related_ids: (r.related_ids as string[]) ?? [],
     status: ((r.status as KbStatus) ?? "active"),
+    visibility: ((r.visibility as DocVisibility) ?? "all_staff"),
+
     sort_order: Number(r.sort_order ?? 0),
     updated_at: (r.updated_at as string) ?? "",
     created_at: (r.created_at as string) ?? "",
@@ -567,5 +582,7 @@ export function emptyArticleInput(sectionId?: string): KbArticleInput {
     attachments: [],
     related_ids: [],
     status: "active",
+    visibility: "all_staff",
+
   };
 }

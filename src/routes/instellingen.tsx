@@ -63,7 +63,9 @@ import {
   emptyArticleInput,
   KB_STATUSES,
   KB_DOCUMENT_TYPES,
+  DOC_VISIBILITIES,
   statusLabel,
+
   documentTypeLabel,
   formatFileSize,
   type KbCategory,
@@ -75,7 +77,12 @@ import {
   type KbAttachment,
   type KbStatus,
   type KbDocumentType,
+  type DocVisibility,
 } from "@/lib/knowledge";
+import { useAuditLogs } from "@/lib/audit";
+import { usePerms } from "@/lib/auth";
+
+
 import { Icon } from "@/components/hub/Icon";
 import { PermissionGate } from "@/components/hub/PermissionGate";
 import { Upload, X, Loader2 } from "lucide-react";
@@ -117,6 +124,8 @@ const TABS = [
   { id: "kb-cats", label: "KB sub-categorieën" },
   { id: "kb-articles", label: "KB kennisitems" },
   { id: "search-index", label: "Zoekindex" },
+  { id: "audit", label: "Audit log" },
+
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
@@ -159,6 +168,8 @@ function SettingsPage() {
         {tab === "kb-cats" && <KbCategoriesTab />}
         {tab === "kb-articles" && <KbArticlesTab />}
         {tab === "search-index" && <SearchIndexTab />}
+        {tab === "audit" && <AuditLogTab />}
+
       </div>
     </HubLayout>
   );
@@ -832,7 +843,9 @@ function KbArticlesTab() {
       attachments: a.attachments,
       related_ids: a.related_ids,
       status: a.status,
+      visibility: a.visibility,
     });
+
   };
   const cancel = () => {
     setAdding(false);
@@ -1143,6 +1156,20 @@ function ArticleEditor({
             ))}
           </select>
         </Field>
+        <Field label="Zichtbaarheid">
+          <select
+            value={draft.visibility}
+            onChange={(e) => set("visibility", e.target.value as DocVisibility)}
+            className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+          >
+            {DOC_VISIBILITIES.map((v) => (
+              <option key={v.value} value={v.value} title={v.hint}>
+                {v.label}
+              </option>
+            ))}
+          </select>
+        </Field>
+
         <Field label="Documenttype">
           <select
             value={draft.document_type}
@@ -2137,3 +2164,77 @@ function PdfExtractionCard() {
   );
 }
 
+
+/* ============================================================
+ * Audit log viewer (admin only)
+ * ============================================================ */
+function AuditLogTab() {
+  const { data: logs = [], isLoading } = useAuditLogs(300);
+  const perms = usePerms();
+
+  if (!perms.isAdmin) {
+    return (
+      <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+        Alleen admins kunnen het audit-log inzien.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="text-sm text-muted-foreground">
+        Laatste {logs.length} gevoelige acties. Schrijven gebeurt server-side via{" "}
+        <code>log_audit()</code>; niemand kan logs aanpassen of verwijderen.
+      </div>
+      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
+            <tr>
+              <th className="px-3 py-2">Tijd</th>
+              <th className="px-3 py-2">Gebruiker</th>
+              <th className="px-3 py-2">Actie</th>
+              <th className="px-3 py-2">Doel</th>
+              <th className="px-3 py-2">Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading && (
+              <tr>
+                <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
+                  Laden…
+                </td>
+              </tr>
+            )}
+            {!isLoading && logs.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
+                  Nog geen audit-records.
+                </td>
+              </tr>
+            )}
+            {logs.map((l) => (
+              <tr key={l.id} className="border-t border-border align-top">
+                <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">
+                  {new Date(l.created_at).toLocaleString("nl-NL")}
+                </td>
+                <td className="px-3 py-2 text-xs">{l.actor_email ?? "—"}</td>
+                <td className="px-3 py-2 text-xs font-medium text-navy">{l.action}</td>
+                <td className="px-3 py-2 text-xs">
+                  {l.target_type ?? "—"}
+                  {l.target_id ? ` · ${l.target_id.slice(0, 8)}` : ""}
+                </td>
+                <td className="px-3 py-2 text-xs">
+                  {Object.keys(l.metadata ?? {}).length ? (
+                    <code className="text-[11px]">{JSON.stringify(l.metadata)}</code>
+                  ) : (
+                    "—"
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

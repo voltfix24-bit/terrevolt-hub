@@ -1,9 +1,12 @@
+import { useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Wallet, ArrowUpRight, Sparkles, FileText } from "lucide-react";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
 import { PermissionGate } from "@/components/hub/PermissionGate";
 import { useFinanceClients, financeClientCompletion } from "@/lib/finance";
+import { logAudit } from "@/lib/audit";
+
 
 export const Route = createFileRoute("/finance-wiki")({
   head: () => ({
@@ -29,6 +32,12 @@ export const Route = createFileRoute("/finance-wiki")({
 function FinanceWikiPage() {
   const { data: clients = [], isLoading } = useFinanceClients();
   const active = clients.filter((c) => !c.archived);
+
+  useEffect(() => {
+    logAudit("finance.view", { targetType: "finance_wiki" });
+  }, []);
+
+
 
   return (
     <HubLayout>
