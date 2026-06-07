@@ -83,6 +83,8 @@ export type KbArticle = {
   attachments: KbAttachment[];
   related_ids: string[];
   status: KbStatus;
+  visibility: DocVisibility;
+
   sort_order: number;
   updated_at: string;
   created_at: string;
