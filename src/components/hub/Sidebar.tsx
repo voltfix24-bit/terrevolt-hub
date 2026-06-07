@@ -12,25 +12,46 @@ import {
   Sparkles,
   Wallet,
   Users,
+  type LucideIcon,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { usePerms, type Perms } from "@/lib/auth";
 
-const items = [
+type NavItem = {
+  label: string;
+  to: string;
+  icon: LucideIcon;
+  show?: (p: Perms) => boolean;
+};
+
+const items: NavItem[] = [
   { label: "Dashboard", to: "/", icon: LayoutDashboard },
   { label: "Vraagbaak", to: "/vraagbaak", icon: Sparkles },
   { label: "Applicaties", to: "/applicaties", icon: AppWindow },
   { label: "Nieuws", to: "/nieuws", icon: Newspaper },
   { label: "Kennisbank", to: "/kennisbank", icon: BookOpen },
-  { label: "Finance Wiki", to: "/finance-wiki", icon: Wallet },
+  {
+    label: "Finance Wiki",
+    to: "/finance-wiki",
+    icon: Wallet,
+    show: (p) => p.canViewFinance,
+  },
   { label: "Smoelenboek", to: "/smoelenboek", icon: Users },
   { label: "SharePoint", to: "/sharepoint", icon: Cloud },
   { label: "Documenten", to: "/documenten", icon: FileText },
   { label: "Partnerportalen", to: "/partnerportalen", icon: ExternalLink },
-  { label: "Instellingen", to: "/instellingen", icon: Settings },
-] as const;
+  {
+    label: "Instellingen",
+    to: "/instellingen",
+    icon: Settings,
+    show: (p) => p.isAdmin,
+  },
+];
 
 function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const perms = usePerms();
+  const visible = items.filter((i) => !i.show || i.show(perms));
   return (
     <>
       <div className="flex items-center gap-2 px-6 py-6">
@@ -42,7 +63,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
-        {items.map((item) => {
+        {visible.map((item) => {
           const active = pathname === item.to;
           const Icon = item.icon;
           return (
