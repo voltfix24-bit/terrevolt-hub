@@ -44,8 +44,10 @@ const items: NavItem[] = [
     label: "Instellingen",
     to: "/instellingen",
     icon: Settings,
-    show: (p) => p.isAdmin,
+    show: (p) =>
+      p.isAdmin || p.hasPermission("manage_settings") || p.hasPermission("manage_users"),
   },
+
 ];
 
 function NavContent({ onNavigate }: { onNavigate?: () => void }) {
