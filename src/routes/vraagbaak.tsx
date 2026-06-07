@@ -632,20 +632,64 @@ const MATCH_LABEL: Record<string, string> = {
   content_token: "Tekst (woord)",
 };
 
+// Synonym groups — mirror the server-side expansion in search_kb_chunks
+// so highlighted terms match what the search actually found.
+const SYNONYM_GROUPS: string[][] = [
+  ["msr", "middenspanningsruimte", "station"],
+  ["imsr", "intelligente"],
+  ["rmu", "ring", "main", "unit"],
+  ["svk", "storingsverklikker"],
+  ["da", "distributieautomatisering"],
+  ["lsrek", "laagspanningsrek", "ls", "rek"],
+  ["safeplus", "abb"],
+  ["bluegis", "siemens"],
+  ["magnefix", "eaton"],
+  ["iec", "nen", "norm"],
+  ["trafo", "distributietransformator"],
+  ["cilinder", "sleutel", "sleutelkluis"],
+  ["rookmelder", "brandmelder"],
+  ["kabelkelder", "waterdicht"],
+  ["vluchtweg", "vluchtroute"],
+  ["aarding", "aardelektrode"],
+];
+
+function expandTerms(query: string): string[] {
+  const raw = query
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter((t) => t.length >= 2);
+  const set = new Set<string>(raw);
+  for (const tk of raw) {
+    for (const group of SYNONYM_GROUPS) {
+      if (group.includes(tk)) group.forEach((g) => set.add(g));
+    }
+  }
+  return Array.from(set).filter((t) => t.length >= 2);
+}
+
+function buildClientSnippet(text: string, terms: string[], len = 220): string {
+  const clean = (text || "").replace(/\s+/g, " ").trim();
+  if (!clean) return "";
+  const lower = clean.toLowerCase();
+  let idx = -1;
+  for (const t of terms) {
+    const i = lower.indexOf(t);
+    if (i !== -1 && (idx === -1 || i < idx)) idx = i;
+  }
+  if (idx === -1) return clean.slice(0, len) + (clean.length > len ? "…" : "");
+  const start = Math.max(0, idx - 70);
+  const end = Math.min(clean.length, start + len);
+  return (
+    (start > 0 ? "…" : "") + clean.slice(start, end) + (end < clean.length ? "…" : "")
+  );
+}
+
 function highlightSnippet(text: string, query: string): React.ReactNode {
   if (!text) return null;
-  const terms = Array.from(
-    new Set(
-      query
-        .toLowerCase()
-        .split(/\s+/)
-        .map((t) => t.replace(/[^\p{L}\p{N}]/gu, ""))
-        .filter((t) => t.length >= 3),
-    ),
-  );
+  const terms = expandTerms(query);
   if (terms.length === 0) return text;
   const escaped = terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
-  const re = new RegExp(`(${escaped.join("|")})`, "gi");
+  const re = new RegExp(`(${escaped.join("|")})`, "giu");
   const parts = text.split(re);
   return parts.map((p, i) =>
     terms.includes(p.toLowerCase()) ? (
