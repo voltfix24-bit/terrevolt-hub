@@ -33,6 +33,12 @@ function FinanceWikiPage() {
   const { data: clients = [], isLoading } = useFinanceClients();
   const active = clients.filter((c) => !c.archived);
 
+  useEffect(() => {
+    logAudit("finance.view", { targetType: "finance_wiki" });
+  }, []);
+
+
+
   return (
     <HubLayout>
       <SectionHeader
