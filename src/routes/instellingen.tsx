@@ -545,11 +545,138 @@ function RolesTab() {
               <span className="rounded-full bg-brand/15 px-2 py-0.5 text-xs font-medium text-brand">
                 {roleLabel(r.role)}
               </span>
+              {!r.active && (
+                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                  Inactief
+                </span>
+              )}
             </div>
             <div className="truncate text-xs text-muted-foreground">{r.email || r.user_id}</div>
           </div>
         )}
       />
+    </>
+  );
+}
+
+/* ---------------- Access matrix (extra permissions) ---------------- */
+function AccessTab() {
+  const { data: roles = [], isLoading } = useUserRoles();
+  const { data: perms = [], isLoading: pLoading } = useAllUserPermissions();
+  const { update } = useUserRoleMutations();
+  const { grant, revoke } = useUserPermissionMutations();
+
+  if (isLoading || pLoading) {
+    return <div className="text-sm text-muted-foreground">Laden…</div>;
+  }
+
+  const permByUser = new Map<string, Set<AppPermission>>();
+  for (const p of perms) {
+    if (!permByUser.has(p.user_id)) permByUser.set(p.user_id, new Set());
+    permByUser.get(p.user_id)!.add(p.permission as AppPermission);
+  }
+
+  const toggle = (user_id: string, permission: AppPermission, has: boolean) => {
+    if (has) revoke.mutate({ user_id, permission });
+    else grant.mutate({ user_id, permission });
+  };
+
+  return (
+    <>
+      <div className="mb-4 rounded-2xl border border-border bg-card/60 p-4 text-sm text-foreground/70">
+        <p className="font-medium text-navy">Toegang & extra rechten</p>
+        <p className="mt-1">
+          Zet gebruikers actief/inactief en ken extra module-rechten toe. Admins hebben automatisch
+          alle rechten; management/finance/planning hebben standaard toegang tot hun module.
+        </p>
+      </div>
+
+      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
+        <table className="min-w-full text-sm">
+          <thead className="bg-accent/40 text-left text-xs uppercase text-muted-foreground">
+            <tr>
+              <th className="px-4 py-3 font-medium">Gebruiker</th>
+              <th className="px-4 py-3 font-medium">Rol</th>
+              <th className="px-4 py-3 font-medium">Actief</th>
+              {APP_PERMISSIONS.map((p) => (
+                <th key={p.value} className="px-3 py-3 font-medium" title={p.description}>
+                  {p.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {roles.map((u) => {
+              const userPerms = permByUser.get(u.user_id) ?? new Set<AppPermission>();
+              return (
+                <tr key={u.id} className="border-t border-border/60">
+                  <td className="px-4 py-3">
+                    <div className="font-medium text-navy">
+                      {u.display_name || u.email || "Onbekend"}
+                    </div>
+                    <div className="text-xs text-muted-foreground">{u.email}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
+                      className="rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+                      value={u.role}
+                      onChange={(e) =>
+                        update.mutate({
+                          id: u.id,
+                          patch: { role: e.target.value as UserRole["role"] },
+                        })
+                      }
+                    >
+                      {APP_ROLES.map((r) => (
+                        <option key={r.value} value={r.value}>
+                          {r.label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    <label className="inline-flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={u.active}
+                        onChange={(e) =>
+                          update.mutate({ id: u.id, patch: { active: e.target.checked } })
+                        }
+                      />
+                      <span className="text-xs text-muted-foreground">
+                        {u.active ? "Ja" : "Nee"}
+                      </span>
+                    </label>
+                  </td>
+                  {APP_PERMISSIONS.map((p) => {
+                    const has = userPerms.has(p.value);
+                    return (
+                      <td key={p.value} className="px-3 py-3 text-center">
+                        <input
+                          type="checkbox"
+                          checked={has}
+                          onChange={() => toggle(u.user_id, p.value, has)}
+                          aria-label={`${p.label} voor ${u.display_name || u.email}`}
+                        />
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+            {roles.length === 0 && (
+              <tr>
+                <td
+                  colSpan={3 + APP_PERMISSIONS.length}
+                  className="px-4 py-8 text-center text-sm text-muted-foreground"
+                >
+                  Nog geen gebruikers. Voeg ze eerst toe via het tabblad "Rollen".
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 }
