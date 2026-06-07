@@ -13,6 +13,7 @@ import {
   type SharePointKind,
 } from "@/lib/sharepoint";
 import { logAudit } from "@/lib/audit";
+import { DOC_VISIBILITIES, type DocVisibility } from "@/lib/knowledge";
 import { ArrowUpRight, ExternalLink, Folder, Link2, Pencil, Plus, Save, Star, Trash2, X } from "lucide-react";
 
 export const Route = createFileRoute("/sharepoint")({
