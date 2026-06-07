@@ -514,7 +514,7 @@ function RolesTab() {
         <p className="mt-1">
           Wijs één van vijf rollen toe aan een gebruiker:{" "}
           {APP_ROLES.map((r) => r.label).join(", ")}. Rollen worden later gekoppeld aan
-          inloggegevens voor automatische rechten in de Hub.
+          inloggegevens voor automatische rechten in het TerreVolt Intranet.
         </p>
       </div>
       {isLoading && <div className="text-sm text-muted-foreground">Laden…</div>}

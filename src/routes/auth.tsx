@@ -34,7 +34,7 @@ function AuthPage() {
           <img src={logo.url} alt="TerreVolt" className="h-10 w-10 object-contain" />
           <div className="leading-tight">
             <div className="font-semibold text-navy">TerreVolt</div>
-            <div className="text-xs text-muted-foreground">Hub</div>
+            <div className="text-xs text-muted-foreground">Intranet</div>
           </div>
         </Link>
 
