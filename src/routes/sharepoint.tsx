@@ -12,6 +12,7 @@ import {
   type SharePointItem,
   type SharePointKind,
 } from "@/lib/sharepoint";
+import { logAudit } from "@/lib/audit";
 import { ArrowUpRight, ExternalLink, Folder, Link2, Pencil, Plus, Save, Star, Trash2, X } from "lucide-react";
 
 export const Route = createFileRoute("/sharepoint")({
