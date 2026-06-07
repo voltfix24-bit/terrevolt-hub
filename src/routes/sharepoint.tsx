@@ -17,7 +17,7 @@ import { ArrowUpRight, ExternalLink, Folder, Link2, Pencil, Plus, Save, Star, Tr
 export const Route = createFileRoute("/sharepoint")({
   head: () => ({
     meta: [
-      { title: "SharePoint — TerreVolt Hub" },
+      { title: "SharePoint — TerreVolt Intranet" },
       { name: "description", content: "Centrale SharePoint integratie: quick links en favoriete mappen." },
     ],
   }),

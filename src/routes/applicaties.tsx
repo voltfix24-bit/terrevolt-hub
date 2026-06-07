@@ -6,7 +6,7 @@ import { SectionHeader } from "@/components/hub/SectionHeader";
 import { useActiveApplications, APP_CATEGORIES } from "@/lib/applications";
 
 export const Route = createFileRoute("/applicaties")({
-  head: () => ({ meta: [{ title: "Applicaties — TerreVolt Hub" }] }),
+  head: () => ({ meta: [{ title: "Applicaties — TerreVolt Intranet" }] }),
   component: Page,
 });
 

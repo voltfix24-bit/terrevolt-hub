@@ -77,10 +77,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "TerreVolt Hub" },
+      { title: "TerreVolt Intranet" },
       { name: "description", content: "Het centrale digitale startpunt voor TerreVolt medewerkers." },
       { name: "author", content: "TerreVolt" },
-      { property: "og:title", content: "TerreVolt Hub" },
+      { property: "og:title", content: "TerreVolt Intranet" },
       { property: "og:description", content: "Snel toegang tot interne tools, nieuws en partnerportalen." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

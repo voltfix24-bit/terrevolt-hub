@@ -33,7 +33,7 @@ import { useKbArticles, useKbSections } from "@/lib/knowledge";
 export const Route = createFileRoute("/finance-wiki/$slug")({
   head: ({ params }) => ({
     meta: [
-      { title: `Hoe factureer ik ${labelFromSlug(params.slug)}? — TerreVolt Hub` },
+      { title: `Hoe factureer ik ${labelFromSlug(params.slug)}? — TerreVolt Intranet` },
       {
         name: "description",
         content: `Structurele instructies om correct te factureren naar ${labelFromSlug(

@@ -21,7 +21,7 @@ import {
 export const Route = createFileRoute("/kennisbank")({
   head: () => ({
     meta: [
-      { title: "Kennisbank — TerreVolt Hub" },
+      { title: "Kennisbank — TerreVolt Intranet" },
       {
         name: "description",
         content:

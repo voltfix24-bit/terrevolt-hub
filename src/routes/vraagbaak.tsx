@@ -44,11 +44,11 @@ import { useSession } from "@/lib/auth";
 export const Route = createFileRoute("/vraagbaak")({
   head: () => ({
     meta: [
-      { title: "Vraagbaak - TerreVolt Hub" },
+      { title: "Vraagbaak - TerreVolt Intranet" },
       {
         name: "description",
         content:
-          "Doorzoek interne kennis, procedures en documenten in de TerreVolt Hub.",
+          "Doorzoek interne kennis, procedures en documenten in de TerreVolt Intranet.",
       },
     ],
   }),

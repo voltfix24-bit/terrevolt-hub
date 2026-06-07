@@ -7,7 +7,7 @@ import { useActivePartnerLinks, PARTNER_CATEGORIES } from "@/lib/partners";
 import { ArrowUpRight, Search } from "lucide-react";
 
 export const Route = createFileRoute("/partnerportalen")({
-  head: () => ({ meta: [{ title: "Partnerportalen — TerreVolt Hub" }] }),
+  head: () => ({ meta: [{ title: "Partnerportalen — TerreVolt Intranet" }] }),
   component: Page,
 });
 

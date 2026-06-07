@@ -85,7 +85,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/instellingen")({
-  head: () => ({ meta: [{ title: "Instellingen — TerreVolt Hub" }] }),
+  head: () => ({ meta: [{ title: "Instellingen — TerreVolt Intranet" }] }),
   component: SettingsPageGated,
 });
 
@@ -520,7 +520,7 @@ function RolesTab() {
       {isLoading && <div className="text-sm text-muted-foreground">Laden…</div>}
       <EntityManager<UserRole>
         title="Gebruikersrollen"
-        description="Beheer wie welke rol heeft binnen TerreVolt Hub."
+        description="Beheer wie welke rol heeft binnen TerreVolt Intranet."
         items={roles}
         fields={fields}
         emptyItem={empty as Omit<UserRole, "id">}
