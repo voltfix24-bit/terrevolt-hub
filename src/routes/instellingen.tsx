@@ -739,8 +739,9 @@ function QuickLinksTab() {
     { key: "icon", label: "Icoon", type: "icon" },
     { key: "href", label: "URL", type: "url" },
     { key: "active", label: "Actief (zichtbaar)", type: "bool" },
+    VISIBILITY_FIELD,
   ];
-  const empty: QuickLinkInput = { name: "", href: "https://", icon: "link", active: true };
+  const empty: QuickLinkInput = { name: "", href: "https://", icon: "link", active: true, visibility: "all_staff" };
   return (
     <>
       {isLoading && <div className="text-sm text-muted-foreground">Laden…</div>}
