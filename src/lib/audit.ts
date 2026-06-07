@@ -36,11 +36,12 @@ export async function logAudit(
   try {
     await supabase.rpc("log_audit", {
       _action: action,
-      _target_type: opts.targetType ?? null,
-      _target_id: opts.targetId ?? null,
+      _target_type: opts.targetType ?? undefined,
+      _target_id: opts.targetId ?? undefined,
       _metadata: (opts.metadata as never) ?? {},
     });
   } catch {
+
     /* ignore */
   }
 }
