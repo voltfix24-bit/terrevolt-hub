@@ -80,3 +80,50 @@ export function useUserRoleMutations() {
     }),
   };
 }
+
+/* ---------- user_permissions ---------- */
+const PKEY = ["user_permissions"] as const;
+
+export function useAllUserPermissions() {
+  return useQuery({
+    queryKey: PKEY,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_permissions")
+        .select("user_id, permission");
+      if (error) throw error;
+      return (data ?? []) as Pick<UserPermissionRow, "user_id" | "permission">[];
+    },
+  });
+}
+
+export function useUserPermissionMutations() {
+  const qc = useQueryClient();
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: PKEY });
+    qc.invalidateQueries({ queryKey: ["current-permissions"] });
+  };
+  return {
+    grant: useMutation({
+      mutationFn: async ({ user_id, permission }: { user_id: string; permission: AppPermission }) => {
+        const { error } = await supabase
+          .from("user_permissions")
+          .insert({ user_id, permission });
+        if (error && !`${error.message}`.includes("duplicate")) throw error;
+      },
+      onSuccess: invalidate,
+    }),
+    revoke: useMutation({
+      mutationFn: async ({ user_id, permission }: { user_id: string; permission: AppPermission }) => {
+        const { error } = await supabase
+          .from("user_permissions")
+          .delete()
+          .eq("user_id", user_id)
+          .eq("permission", permission);
+        if (error) throw error;
+      },
+      onSuccess: invalidate,
+    }),
+  };
+}
+
