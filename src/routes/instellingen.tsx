@@ -79,7 +79,7 @@ import {
   type KbDocumentType,
   type DocVisibility,
 } from "@/lib/knowledge";
-import { useAuditLogs } from "@/lib/audit";
+import { useAuditLogs, logAudit } from "@/lib/audit";
 import { usePerms } from "@/lib/auth";
 
 
