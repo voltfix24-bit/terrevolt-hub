@@ -21,6 +21,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { HubLayout } from "@/components/hub/HubLayout";
+import { PermissionGate } from "@/components/hub/PermissionGate";
 import {
   useFinanceClients,
   useFinanceClientMutations,
@@ -42,7 +43,14 @@ export const Route = createFileRoute("/finance-wiki/$slug")({
       },
     ],
   }),
-  component: FinanceClientPage,
+  component: () => (
+    <PermissionGate
+      check={(p) => p.canViewFinance}
+      deniedMessage="Finance Wiki is alleen toegankelijk voor admin, management, finance of gebruikers met het recht 'Finance bekijken'."
+    >
+      <FinanceClientPage />
+    </PermissionGate>
+  ),
 });
 
 function labelFromSlug(slug: string) {

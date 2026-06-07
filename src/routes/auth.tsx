@@ -1,18 +1,41 @@
-import { useState, type FormEvent } from "react";
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useState, useEffect, type FormEvent } from "react";
+import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-router";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/terrevolt-logo.png.asset.json";
 
+const searchSchema = z.object({
+  redirect: z.string().optional(),
+});
+
 export const Route = createFileRoute("/auth")({
+  validateSearch: searchSchema,
   component: AuthPage,
 });
 
+function safeRedirectTarget(input?: string): string {
+  if (!input) return "/";
+  // Only same-origin paths starting with a single slash.
+  if (!input.startsWith("/") || input.startsWith("//")) return "/";
+  if (input.startsWith("/auth")) return "/";
+  return input;
+}
+
 function AuthPage() {
   const navigate = useNavigate();
+  const search = useSearch({ from: "/auth" });
+  const target = safeRedirectTarget(search.redirect);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // If already signed in, leave /auth immediately.
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) navigate({ to: target, replace: true });
+    });
+  }, [navigate, target]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -24,7 +47,7 @@ function AuthPage() {
       setError("Onjuiste gegevens. Controleer je e-mailadres en wachtwoord.");
       return;
     }
-    navigate({ to: "/" });
+    navigate({ to: target, replace: true });
   }
 
   return (
@@ -40,7 +63,7 @@ function AuthPage() {
 
         <h1 className="text-2xl font-semibold text-navy">Inloggen</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Log in met je TerreVolt account om toegang te krijgen tot beheerfuncties.
+          Log in met je TerreVolt account om toegang te krijgen tot het intranet.
         </p>
 
         <form onSubmit={onSubmit} className="mt-6 space-y-4">

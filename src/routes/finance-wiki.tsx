@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Wallet, ArrowUpRight, Sparkles, FileText } from "lucide-react";
 import { HubLayout } from "@/components/hub/HubLayout";
 import { SectionHeader } from "@/components/hub/SectionHeader";
+import { PermissionGate } from "@/components/hub/PermissionGate";
 import { useFinanceClients, financeClientCompletion } from "@/lib/finance";
 
 export const Route = createFileRoute("/finance-wiki")({
@@ -15,7 +16,14 @@ export const Route = createFileRoute("/finance-wiki")({
       },
     ],
   }),
-  component: FinanceWikiPage,
+  component: () => (
+    <PermissionGate
+      check={(p) => p.canViewFinance}
+      deniedMessage="Finance Wiki is alleen toegankelijk voor admin, management, finance of gebruikers met het recht 'Finance bekijken'."
+    >
+      <FinanceWikiPage />
+    </PermissionGate>
+  ),
 });
 
 function FinanceWikiPage() {
