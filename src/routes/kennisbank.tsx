@@ -151,7 +151,7 @@ function IndexPage() {
             <div>
               <div className="text-sm font-semibold text-navy">Stel een vraag aan de Vraagbaak</div>
               <div className="text-xs text-muted-foreground">
-                Doorzoekt de hele Hub — kennisbank, nieuws, mensen, applicaties en meer.
+                Doorzoekt het hele TerreVolt Intranet — kennisbank, nieuws, mensen, applicaties en meer.
               </div>
             </div>
           </div>
