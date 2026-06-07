@@ -242,6 +242,7 @@ type DraftValues = {
   url: string;
   icon: string;
   favorite: boolean;
+  visibility: DocVisibility;
 };
 
 function ItemForm({
