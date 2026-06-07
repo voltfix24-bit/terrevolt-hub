@@ -77,7 +77,9 @@ import {
   type KbAttachment,
   type KbStatus,
   type KbDocumentType,
+  type DocVisibility,
 } from "@/lib/knowledge";
+
 import { Icon } from "@/components/hub/Icon";
 import { PermissionGate } from "@/components/hub/PermissionGate";
 import { Upload, X, Loader2 } from "lucide-react";
