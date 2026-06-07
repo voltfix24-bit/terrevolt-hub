@@ -121,6 +121,8 @@ const TABS = [
   { id: "kb-cats", label: "KB sub-categorieën" },
   { id: "kb-articles", label: "KB kennisitems" },
   { id: "search-index", label: "Zoekindex" },
+  { id: "audit", label: "Audit log" },
+
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
 
