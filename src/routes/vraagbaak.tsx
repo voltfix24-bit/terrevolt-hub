@@ -502,10 +502,10 @@ function AnswerCard({
                   Beste match
                 </div>
                 <div className="mb-2 text-sm font-semibold text-navy">
-                  {answer.direct_answer.title}
+                  {highlightSnippet(answer.direct_answer.title, question)}
                 </div>
                 <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
-                  {answer.direct_answer.content}
+                  {highlightSnippet(answer.direct_answer.content, question)}
                 </p>
                 {answer.direct_answer.url && (
                   answer.direct_answer.external ? (
@@ -546,7 +546,14 @@ function AnswerCard({
                         className="group flex items-start gap-2 rounded-xl border border-border bg-card px-3 py-2 text-left text-sm text-navy shadow-sm transition hover:border-brand/40 hover:bg-pastel/30"
                       >
                         <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-                        <span className="flex-1">{s.title}</span>
+                        <span className="flex-1">
+                          <span className="block">{highlightSnippet(s.title, question)}</span>
+                          {s.snippet && (
+                            <span className="mt-0.5 block line-clamp-2 text-xs font-normal text-muted-foreground">
+                              {highlightSnippet(s.snippet, question)}
+                            </span>
+                          )}
+                        </span>
                         <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:text-brand" />
                       </button>
                     ))}
