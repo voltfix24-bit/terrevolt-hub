@@ -807,8 +807,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_permissions: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          permission: Database["public"]["Enums"]["app_permission"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          permission: Database["public"]["Enums"]["app_permission"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          permission?: Database["public"]["Enums"]["app_permission"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
+          active: boolean
           created_at: string
           display_name: string
           email: string
@@ -818,6 +843,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          active?: boolean
           created_at?: string
           display_name?: string
           email?: string
@@ -827,6 +853,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          active?: boolean
           created_at?: string
           display_name?: string
           email?: string
@@ -1031,6 +1058,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_manage: {
+        Args: { _perm: Database["public"]["Enums"]["app_permission"] }
+        Returns: boolean
+      }
+      can_view_finance: { Args: never; Returns: boolean }
+      can_view_planning: { Args: never; Returns: boolean }
+      can_view_sensitive_people: { Args: never; Returns: boolean }
       count_kb_chunks: {
         Args: never
         Returns: {
@@ -1064,6 +1098,13 @@ export type Database = {
           visibility: Database["public"]["Enums"]["kb_chunk_visibility"]
         }[]
       }
+      has_permission: {
+        Args: {
+          _perm: Database["public"]["Enums"]["app_permission"]
+          _user: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1071,6 +1112,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_active_user: { Args: never; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       match_kb_chunks: {
@@ -1178,6 +1220,15 @@ export type Database = {
         | "Rapportage"
         | "Externe systemen"
         | "Overig"
+      app_permission:
+        | "view_finance"
+        | "view_planning"
+        | "manage_users"
+        | "manage_knowledge"
+        | "manage_documents"
+        | "manage_news"
+        | "view_sensitive_people_data"
+        | "manage_settings"
       app_role:
         | "admin"
         | "management"
@@ -1354,6 +1405,16 @@ export const Constants = {
         "Rapportage",
         "Externe systemen",
         "Overig",
+      ],
+      app_permission: [
+        "view_finance",
+        "view_planning",
+        "manage_users",
+        "manage_knowledge",
+        "manage_documents",
+        "manage_news",
+        "view_sensitive_people_data",
+        "manage_settings",
       ],
       app_role: [
         "admin",
