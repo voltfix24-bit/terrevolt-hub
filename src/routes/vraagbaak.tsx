@@ -727,7 +727,9 @@ function SourceRow({
         <SourceIcon type={source.source_type} />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium text-navy">{source.title}</div>
+        <div className="truncate text-sm font-medium text-navy">
+          {highlightSnippet(source.title, query)}
+        </div>
         <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           <span>{SOURCE_LABEL[source.source_type]}</span>
           {source.match_kind && (
