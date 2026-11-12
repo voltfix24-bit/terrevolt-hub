@@ -63,14 +63,14 @@ export function EntityManager<T extends Row>({
 
   return (
     <div className="space-y-5">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight text-navy">{title}</h2>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+        <div className="min-w-0">
+          <h2 className="break-words text-xl font-semibold tracking-tight text-navy">{title}</h2>
           {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
         </div>
         <button
           onClick={startAdd}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm font-medium text-brand-foreground shadow-sm hover:opacity-90"
+          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 self-start rounded-xl bg-brand px-3.5 py-2 sm:self-auto text-sm font-medium text-brand-foreground shadow-sm hover:opacity-90"
         >
           <Plus className="h-4 w-4" /> Toevoegen
         </button>
@@ -109,15 +109,15 @@ export function EntityManager<T extends Row>({
           return (
             <div
               key={item.id}
-              className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 shadow-sm"
+              className="flex min-w-0 flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3 shadow-sm sm:flex-nowrap sm:gap-3"
             >
-              <div className="flex flex-col gap-0.5">
+              <div className="flex shrink-0 flex-col gap-0.5">
                 <button
                   type="button"
                   aria-label="Omhoog"
                   disabled={idx === 0}
                   onClick={() => onReorder(idx, idx - 1)}
-                  className="rounded-md p-1 text-muted-foreground hover:bg-accent disabled:opacity-30"
+                  className="rounded-md p-1.5 text-muted-foreground hover:bg-accent disabled:opacity-30"
                 >
                   <ArrowUp className="h-3.5 w-3.5" />
                 </button>
@@ -126,13 +126,13 @@ export function EntityManager<T extends Row>({
                   aria-label="Omlaag"
                   disabled={idx === items.length - 1}
                   onClick={() => onReorder(idx, idx + 1)}
-                  className="rounded-md p-1 text-muted-foreground hover:bg-accent disabled:opacity-30"
+                  className="rounded-md p-1.5 text-muted-foreground hover:bg-accent disabled:opacity-30"
                 >
                   <ArrowDown className="h-3.5 w-3.5" />
                 </button>
               </div>
-              <div className="min-w-0 flex-1">{rowPreview(item)}</div>
-              <div className="flex items-center gap-1">
+              <div className="min-w-0 flex-1 break-words [overflow-wrap:anywhere]">{rowPreview(item)}</div>
+              <div className="ml-auto flex shrink-0 items-center gap-1">
                 <button
                   onClick={() => startEdit(item)}
                   className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
@@ -174,31 +174,31 @@ function EditorCard({
   const set = (key: string, value: unknown) => setDraft({ ...draft, [key]: value });
 
   return (
-    <div className="rounded-lg border border-brand/40 bg-card p-5 shadow-sm">
+    <div className="min-w-0 rounded-lg border border-brand/40 bg-card p-3 shadow-sm sm:p-5">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {fields.map((f) => {
           const v = draft[f.key];
           if (f.type === "textarea") {
             return (
-              <label key={f.key} className="md:col-span-2 text-sm">
+              <label key={f.key} className="block min-w-0 text-sm md:col-span-2">
                 <span className="mb-1 block font-medium text-foreground/80">{f.label}</span>
                 <textarea
                   rows={3}
                   value={(v as string) ?? ""}
                   onChange={(e) => set(f.key, e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+                  className="w-full min-w-0 rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
                 />
               </label>
             );
           }
           if (f.type === "select") {
             return (
-              <label key={f.key} className="text-sm">
+              <label key={f.key} className="block min-w-0 text-sm">
                 <span className="mb-1 block font-medium text-foreground/80">{f.label}</span>
                 <select
                   value={(v as string) ?? ""}
                   onChange={(e) => set(f.key, e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+                  className="w-full min-w-0 rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
                 >
                   {f.options.map((o) => (
                     <option key={o.value} value={o.value}>
@@ -224,7 +224,7 @@ function EditorCard({
           }
           if (f.type === "icon") {
             return (
-              <div key={f.key} className="md:col-span-2 text-sm">
+              <div key={f.key} className="min-w-0 text-sm md:col-span-2">
                 <span className="mb-1 block font-medium text-foreground/80">{f.label}</span>
                 <IconPicker value={(v as string) ?? ""} onChange={(name) => set(f.key, name)} />
               </div>
@@ -232,7 +232,7 @@ function EditorCard({
           }
           if (f.type === "image") {
             return (
-              <label key={f.key} className="md:col-span-2 text-sm">
+              <label key={f.key} className="block min-w-0 text-sm md:col-span-2">
                 <span className="mb-1 block font-medium text-foreground/80">{f.label}</span>
                 <div className="flex flex-col gap-2">
                   <input
@@ -240,7 +240,7 @@ function EditorCard({
                     placeholder="URL of upload hieronder"
                     value={(v as string) ?? ""}
                     onChange={(e) => set(f.key, e.target.value)}
-                    className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+                    className="w-full min-w-0 rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
                   />
                   <input
                     type="file"
@@ -252,29 +252,29 @@ function EditorCard({
                       reader.onload = () => set(f.key, reader.result as string);
                       reader.readAsDataURL(file);
                     }}
-                    className="text-xs text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-accent file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-navy hover:file:opacity-80"
+                    className="w-full min-w-0 max-w-full text-xs text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-accent file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-navy hover:file:opacity-80"
                   />
                   {typeof v === "string" && v && (
-                    <img src={v} alt="" className="h-24 w-40 rounded-lg object-cover" />
+                    <img src={v} alt="" className="h-24 w-40 max-w-full rounded-lg object-cover" />
                   )}
                 </div>
               </label>
             );
           }
           return (
-            <label key={f.key} className="text-sm">
+            <label key={f.key} className="block min-w-0 text-sm">
               <span className="mb-1 block font-medium text-foreground/80">{f.label}</span>
               <input
                 type={f.type === "date" ? "text" : f.type}
                 value={(v as string) ?? ""}
                 onChange={(e) => set(f.key, e.target.value)}
-                className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
+                className="w-full min-w-0 rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
               />
             </label>
           );
         })}
       </div>
-      <div className="mt-5 flex justify-end gap-2">
+      <div className="mt-5 flex flex-wrap justify-end gap-2">
         <button
           onClick={onCancel}
           className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-sm font-medium hover:bg-accent"
@@ -283,7 +283,7 @@ function EditorCard({
         </button>
         <button
           onClick={onSave}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-3.5 py-2 text-sm font-medium text-brand-foreground hover:opacity-90"
+          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 self-start rounded-xl bg-brand px-3.5 py-2 sm:self-auto text-sm font-medium text-brand-foreground hover:opacity-90"
         >
           <Check className="h-4 w-4" /> Opslaan
         </button>
