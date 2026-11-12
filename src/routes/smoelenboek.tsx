@@ -440,11 +440,11 @@ function PersonEditor({ person, onClose }: { person: Person | null; onClose: () 
 
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-card p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-navy/40 p-3 sm:items-center sm:p-4" role="dialog" aria-modal="true">
+      <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl overflow-y-auto overscroll-contain rounded-xl bg-card p-4 pb-safe shadow-xl sm:p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-navy">{person ? "Profiel bewerken" : "Nieuw profiel"}</h2>
-          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-accent"><X className="h-4 w-4" /></button>
+          <button onClick={onClose} aria-label="Sluiten" className="rounded-lg p-2 hover:bg-accent"><X className="h-5 w-5" /></button>
         </div>
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
