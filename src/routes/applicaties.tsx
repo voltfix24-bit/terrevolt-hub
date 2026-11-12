@@ -25,14 +25,14 @@ function Page() {
 
   return (
     <HubLayout>
-      <div className="mx-auto max-w-7xl space-y-10">
+      <div className="mx-auto max-w-7xl space-y-6">
         <SectionHeader title="Applicaties" subtitle="Alle interne tools op één plek." />
         <input
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Zoek apps op naam of categorie…"
-          className="w-full max-w-md rounded-full border border-border bg-card px-4 py-2 text-sm text-navy shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+          className="h-11 w-full max-w-md rounded-lg border border-border bg-card px-3 text-navy shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
         />
         {isLoading && (
           <div className="text-sm text-muted-foreground">Laden…</div>
@@ -42,8 +42,8 @@ function Page() {
           if (inCat.length === 0) return null;
           return (
             <section key={cat}>
-              <h2 className="mb-4 text-lg font-semibold text-navy">{cat}</h2>
-              <div className="grid auto-rows-fr grid-cols-1 gap-4 sm:gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <h2 className="mb-3 text-base font-semibold text-navy">{cat}</h2>
+              <div className="grid auto-rows-fr grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {inCat.map((a) => <AppCard key={a.id} app={a} />)}
               </div>
             </section>
