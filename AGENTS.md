@@ -1,0 +1,2 @@
+- Mobile zoom/scroll rules live in `src/styles.css` (form controls forced to 16px, root `touch-action: pan-y`) plus the root viewport meta; never add horizontal scrollers/tables on mobile — use stacked cards instead, because the app must scroll vertically only.
+- The global top-bar search hands queries to `/vraagbaak?q=`; the Vraagbaak route runs that query once on load, so keep `validateSearch` on that route.
