@@ -22,13 +22,13 @@ export function PeopleSearchWidget() {
   }, [people, q]);
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-semibold text-navy">
-          <Users className="h-4 w-4 text-brand" /> Snel collega zoeken
+          <Users className="h-4 w-4 text-brand" /> Collega zoeken
         </div>
         <Link to="/smoelenboek" className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline">
-          Smoelenboek <ArrowUpRight className="h-3 w-3" />
+          Alle collega's <ArrowUpRight className="h-3 w-3" />
         </Link>
       </div>
 
