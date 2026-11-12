@@ -132,11 +132,9 @@
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
     touch-action: pan-y;
-    overflow-x: clip;
   }
   body {
     touch-action: pan-y;
-    overflow-x: clip;
     overflow-wrap: break-word;
     min-width: 0;
   }
