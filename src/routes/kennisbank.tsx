@@ -131,75 +131,62 @@ function IndexPage() {
         />
 
         {/* Search + ask assistant */}
-        <div className="mb-6 grid gap-4 lg:grid-cols-[1fr_auto]">
+        <div className="mb-4">
           <div className="relative">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Zoek in titel, samenvatting, tags, opdrachtgever…"
-              className="w-full rounded-lg border border-border bg-card py-3.5 pl-11 pr-4 text-sm shadow-sm outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
+              className="w-full rounded-lg border border-border bg-card h-11 pl-11 pr-4 shadow-sm outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
             />
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-between gap-3 rounded-lg border border-brand/30 bg-card p-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-brand-foreground shadow-sm">
-              <Sparkles className="h-5 w-5" />
+        <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand/15 text-navy">
+              <Sparkles className="h-4 w-4" />
             </div>
-            <div>
-              <div className="text-sm font-semibold text-navy">Stel een vraag aan de Vraagbaak</div>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-navy">Liever een vraag stellen?</div>
               <div className="text-xs text-muted-foreground">
-                Doorzoekt het hele TerreVolt Intranet — kennisbank, nieuws, mensen, applicaties en meer.
+                De Vraagbaak zoekt in kennisbank, nieuws, collega's, applicaties en meer.
               </div>
             </div>
           </div>
           <Link
             to="/vraagbaak"
-            className="inline-flex items-center gap-1.5 rounded-xl bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow-sm transition hover:opacity-90"
+            search={{ q: q.trim() || undefined }}
+            className="inline-flex h-10 shrink-0 items-center justify-center rounded-lg bg-navy px-4 text-sm font-medium text-brand-foreground hover:opacity-90"
           >
             Open Vraagbaak
           </Link>
         </div>
 
-
-        {/* Filters */}
-        <div className="mt-8 mb-6 flex flex-wrap items-center gap-2 text-xs">
-          <FilterPill
-            label="Alle secties"
-            active={!activeSection}
-            onClick={() => setActiveSection(null)}
+        {/* Filters — compact selects, stack on mobile */}
+        <div className="mb-6 mt-5 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <FilterSelect
+            label="Sectie"
+            value={activeSection}
+            onChange={setActiveSection}
+            allLabel="Alle secties"
+            options={sections.map((s) => ({ value: s.id, label: s.name }))}
           />
-          {sections.map((s) => (
-            <FilterPill
-              key={s.id}
-              label={s.name}
-              active={activeSection === s.id}
-              onClick={() =>
-                setActiveSection(activeSection === s.id ? null : s.id)
-              }
-            />
-          ))}
-          <span className="mx-1 h-4 w-px bg-border" />
-          {(["active", "expired", "draft"] as const).map((st) => (
-            <FilterPill
-              key={st}
-              label={statusLabel(st)}
-              tone={st === "expired" ? "warn" : st === "draft" ? "muted" : "ok"}
-              active={activeStatus === st}
-              onClick={() => setActiveStatus(activeStatus === st ? null : st)}
-            />
-          ))}
-          {clients.length > 0 && <span className="mx-1 h-4 w-px bg-border" />}
-          {clients.slice(0, 6).map((c) => (
-            <FilterPill
-              key={c}
-              label={c}
-              active={activeClient === c}
-              onClick={() => setActiveClient(activeClient === c ? null : c)}
-            />
-          ))}
+          <FilterSelect
+            label="Status"
+            value={activeStatus}
+            onChange={setActiveStatus}
+            allLabel="Alle statussen"
+            options={(["active", "expired", "draft"] as const).map((st) => ({ value: st, label: statusLabel(st) }))}
+          />
+          <FilterSelect
+            label="Opdrachtgever"
+            value={activeClient}
+            onChange={setActiveClient}
+            allLabel="Alle opdrachtgevers"
+            options={clients.map((c) => ({ value: c, label: c }))}
+          />
         </div>
 
         {/* Section grid (no filter / no query) */}
@@ -243,7 +230,7 @@ function IndexPage() {
                 </div>
                 <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {expiring.map((a) => (
-                    <ItemRow key={a.id} a={a} sectionName={sectionById.get(a.section_id ?? "")?.name} />
+                    <ItemRow key={a.id} a={a} section={sectionById.get(a.section_id ?? "")} />
                   ))}
                 </ul>
               </section>
@@ -258,7 +245,7 @@ function IndexPage() {
                 </div>
                 <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {important.map((a) => (
-                    <ItemRow key={a.id} a={a} sectionName={sectionById.get(a.section_id ?? "")?.name} />
+                    <ItemRow key={a.id} a={a} section={sectionById.get(a.section_id ?? "")} />
                   ))}
                 </ul>
               </section>
@@ -273,7 +260,7 @@ function IndexPage() {
                 </div>
                 <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {recent.map((a) => (
-                    <ItemRow key={a.id} a={a} sectionName={sectionById.get(a.section_id ?? "")?.name} />
+                    <ItemRow key={a.id} a={a} section={sectionById.get(a.section_id ?? "")} />
                   ))}
                 </ul>
               </section>
@@ -297,7 +284,7 @@ function IndexPage() {
                   <ItemRow
                     key={a.id}
                     a={a}
-                    sectionName={sectionById.get(a.section_id ?? "")?.name}
+                    section={sectionById.get(a.section_id ?? "")}
                   />
                 ))}
               </ul>
@@ -309,47 +296,52 @@ function IndexPage() {
   );
 }
 
-function FilterPill({
+function FilterSelect({
   label,
-  active,
-  onClick,
-  tone = "default",
+  value,
+  onChange,
+  allLabel,
+  options,
 }: {
   label: string;
-  active: boolean;
-  onClick: () => void;
-  tone?: "default" | "ok" | "warn" | "muted";
+  value: string | null;
+  onChange: (v: string | null) => void;
+  allLabel: string;
+  options: { value: string; label: string }[];
 }) {
-  const toneClass = active
-    ? tone === "warn"
-      ? "bg-destructive text-destructive-foreground border-destructive"
-      : tone === "muted"
-        ? "bg-navy text-white border-navy"
-        : "bg-brand text-brand-foreground border-brand"
-    : "bg-card text-foreground/70 border-border hover:bg-accent hover:text-navy";
   return (
-    <button
-      onClick={onClick}
-      className={`inline-flex items-center rounded-full border px-3 py-1.5 font-medium transition ${toneClass}`}
-    >
-      {label}
-    </button>
+    <label className="block min-w-0">
+      <span className="sr-only">{label}</span>
+      <select
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value || null)}
+        className="h-11 w-full min-w-0 rounded-lg border border-border bg-card px-3 text-navy outline-none focus:ring-2 focus:ring-brand/30"
+      >
+        <option value="">{allLabel}</option>
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
 function ItemRow({
   a,
-  sectionName,
+  section,
 }: {
   a: import("@/lib/knowledge").KbArticle;
-  sectionName?: string;
+  section?: { slug: string; name: string };
 }) {
+  const sectionName = section?.name;
   const eff = effectiveStatus(a);
   return (
     <li>
       <Link
         to="/kennisbank/$slug/$articleSlug"
-        params={{ slug: sectionName ? slugifyClient(sectionName) : "item", articleSlug: a.slug }}
+        params={{ slug: section?.slug ?? "item", articleSlug: a.slug }}
         className="group flex h-full items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-navy">
@@ -357,7 +349,7 @@ function ItemRow({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <div className="truncate font-medium text-navy">{a.title}</div>
+            <div className="min-w-0 break-words font-medium leading-snug text-navy">{a.title}</div>
             <span
               className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${statusColor(eff)}`}
             >
@@ -383,13 +375,4 @@ function ItemRow({
       </Link>
     </li>
   );
-}
-
-function slugifyClient(s: string): string {
-  return s
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
 }
