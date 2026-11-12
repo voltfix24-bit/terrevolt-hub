@@ -125,12 +125,14 @@ function VraagbaakPage() {
 
   // Query handed over from the global search bar (?q=...) — fill in and run once per value.
   useEffect(() => {
-    if (!initialQ || sessionLoading || lastAutoQ.current === initialQ) return;
+    // Wait until the session is known and no search is running; only then mark
+    // the query as handled, so a new ?q= arriving mid-search is not lost.
+    if (!initialQ || sessionLoading || loading || lastAutoQ.current === initialQ) return;
     lastAutoQ.current = initialQ;
     setQuestion(initialQ);
     void submit(initialQ);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialQ, sessionLoading]);
+  }, [initialQ, sessionLoading, loading]);
 
   const toggleSource = (t: KbChunkSource) => {
     setSourceFilter((prev) =>

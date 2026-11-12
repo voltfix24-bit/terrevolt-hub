@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ChevronLeft, Paperclip, ArrowUpRight, ExternalLink, AlertTriangle } from "lucide-react";
 import { HubLayout } from "@/components/hub/HubLayout";
@@ -24,6 +24,15 @@ export const Route = createFileRoute("/kennisbank/$slug/$articleSlug")({
 });
 
 function Page() {
+  // Desktop-only PDF preview; decided after mount so phones never load the iframe.
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 768px)");
+    const on = () => setShowPdfPreview(mql.matches);
+    on();
+    mql.addEventListener("change", on);
+    return () => mql.removeEventListener("change", on);
+  }, []);
   const { slug, articleSlug } = Route.useParams();
   const { data: sections = [] } = useKbSections();
   const { data: articles = [] } = useKbArticles();
@@ -148,31 +157,37 @@ function Page() {
         {(article.file_url || article.external_url) && (
           <section className="mb-10">
             {article.file_url && isPdf ? (
-              <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-                <div className="flex items-center justify-between border-b border-border bg-card px-4 py-2.5 text-sm">
-                  <span className="flex items-center gap-2 text-navy">
-                    <Paperclip className="h-4 w-4" />
-                    <span className="font-medium">{article.file_name || "Document"}</span>
-                    {article.file_size > 0 && (
-                      <span className="text-xs text-muted-foreground">
-                        {formatFileSize(article.file_size)}
-                      </span>
-                    )}
+              <div className="rounded-lg border border-border bg-card shadow-sm">
+                <div className="flex flex-col gap-2 border-b border-border px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                  <span className="flex min-w-0 items-start gap-2 text-navy">
+                    <Paperclip className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span className="min-w-0">
+                      <span className="block break-all font-medium">{article.file_name || "Document"}</span>
+                      {article.file_size > 0 && (
+                        <span className="text-xs text-muted-foreground">
+                          PDF · {formatFileSize(article.file_size)}
+                        </span>
+                      )}
+                    </span>
                   </span>
                   <a
                     href={article.file_url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 rounded-lg bg-brand px-3 py-1.5 text-xs font-medium text-brand-foreground hover:opacity-90"
+                    onClick={() => void logAudit("document.open", { targetType: "kb_article", targetId: article.id, metadata: { title: article.title, file_name: article.file_name } })}
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-brand-foreground hover:opacity-90"
                   >
-                    Openen <ArrowUpRight className="h-3 w-3" />
+                    Open document in nieuw tabblad <ArrowUpRight className="h-4 w-4" />
                   </a>
                 </div>
-                <iframe
-                  src={article.file_url}
-                  title={article.file_name || article.title}
-                  className="h-[640px] w-full bg-background"
-                />
+                {/* Embedded preview only on desktop: on phones a PDF iframe creates its own scroll/zoom area. */}
+                {showPdfPreview && (
+                  <iframe
+                    src={article.file_url}
+                    title={article.file_name || article.title}
+                    className="hidden h-[640px] w-full rounded-b-lg bg-background md:block"
+                  />
+                )}
               </div>
             ) : article.file_url ? (
               <a

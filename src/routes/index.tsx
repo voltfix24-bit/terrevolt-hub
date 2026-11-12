@@ -162,15 +162,15 @@ function Dashboard() {
           {!quickLinks.isLoading && !quickLinks.error && (quickLinks.data ?? []).length > 0 && (
             <ul className="mt-3 flex flex-wrap gap-2">
               {(quickLinks.data ?? []).map((q) => (
-                <li key={q.id}>
+                <li key={q.id} className="min-w-0 max-w-full">
                   <a
                     href={q.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-card px-3 text-sm font-medium text-navy hover:border-brand/50"
+                    className="inline-flex min-h-9 max-w-full min-w-0 items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-navy hover:border-brand/50"
                   >
-                    {q.icon && <Icon name={q.icon} size={15} className="text-brand" />}
-                    {q.name}
+                    {q.icon && <Icon name={q.icon} size={15} className="shrink-0 text-brand" />}
+                    <span className="min-w-0 break-words [overflow-wrap:anywhere]">{q.name}</span>
                   </a>
                 </li>
               ))}

@@ -11,6 +11,9 @@ import {
   documentTypeLabel,
   formatKbDate,
   KB_DOCUMENT_TYPES,
+  effectiveStatus,
+  statusLabel,
+  statusColor,
 } from "@/lib/knowledge";
 import { useSharePointItems, useSharePointMutations } from "@/lib/sharepoint";
 import { logAudit } from "@/lib/audit";
@@ -173,13 +176,20 @@ function DocumentsPage() {
                             <Link
                               to="/kennisbank/$slug/$articleSlug"
                               params={{ slug: sec.slug, articleSlug: a.slug }}
-                              className="break-words font-medium leading-snug text-navy hover:text-brand"
+                              className="break-words font-medium leading-snug text-navy [overflow-wrap:anywhere] hover:text-brand"
                             >
                               {a.title}
                             </Link>
                           ) : (
                             <span className="break-words font-medium leading-snug text-navy">
                               {a.title}
+                            </span>
+                          )}
+                          {effectiveStatus(a) !== "active" && (
+                            <span
+                              className={`mt-1 block w-fit rounded-full px-2 py-0.5 text-[11px] font-medium ${statusColor(effectiveStatus(a))}`}
+                            >
+                              {statusLabel(effectiveStatus(a))}
                             </span>
                           )}
                           <div className="mt-0.5 flex flex-wrap gap-x-2 text-xs text-muted-foreground">
