@@ -136,7 +136,7 @@ function ClientView({ client }: { client: FinanceClient }) {
   return (
     <>
       {/* Hero */}
-      <div className="mb-6 overflow-hidden rounded-xl border border-brand/30 bg-gradient-to-br from-pastel/50 via-card to-lime-soft/40 p-6 shadow-sm md:p-8">
+      <div className="mb-6 overflow-hidden rounded-xl border border-brand/30 bg-card p-6 shadow-sm md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand text-brand-foreground shadow-sm">

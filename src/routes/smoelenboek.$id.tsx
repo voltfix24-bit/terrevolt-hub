@@ -50,8 +50,7 @@ function PersonDetail() {
         </Link>
 
         {/* Header */}
-        <div className="relative overflow-hidden rounded-xl border border-border bg-gradient-to-br from-card via-card to-pastel/30 p-8">
-          <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-lime-soft/50 blur-3xl" />
+        <div className="relative overflow-hidden rounded-xl border border-border bg-card p-8">
           <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
             <Avatar person={person} size={104} />
             <div className="min-w-0 flex-1">

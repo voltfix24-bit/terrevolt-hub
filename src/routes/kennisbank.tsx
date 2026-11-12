@@ -143,7 +143,7 @@ function IndexPage() {
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-between gap-3 rounded-lg border border-brand/30 bg-gradient-to-br from-pastel/40 via-card to-lime-soft/30 p-4 shadow-sm">
+        <div className="mt-6 flex items-center justify-between gap-3 rounded-lg border border-brand/30 bg-card p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-brand-foreground shadow-sm">
               <Sparkles className="h-5 w-5" />
@@ -210,9 +210,8 @@ function IndexPage() {
                 <button
                   key={sec.id}
                   onClick={() => setActiveSection(sec.id)}
-                  className="group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-border bg-gradient-to-br from-card via-card to-accent/30 p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40"
+                  className="group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-border bg-card p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40"
                 >
-                  <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-pastel/40 blur-2xl transition-opacity group-hover:opacity-80" />
                   <div className="relative flex items-center justify-between">
                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand text-brand-foreground shadow-sm">
                       <Icon name={sec.icon} size={22} />

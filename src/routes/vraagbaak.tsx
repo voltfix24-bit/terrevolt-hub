@@ -227,7 +227,7 @@ function VraagbaakPage() {
         subtitle="Zoek in interne kennis, procedures en documenten."
       />
 
-      <div className="relative overflow-hidden rounded-xl border border-brand/30 bg-gradient-to-br from-pastel/50 via-card to-lime-soft/40 p-6 shadow-sm md:p-8">
+      <div className="relative overflow-hidden rounded-xl border border-brand/30 bg-card p-6 shadow-sm md:p-8">
         <div className="mb-4 flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-brand text-brand-foreground shadow-sm">
             <Sparkles className="h-5 w-5" />

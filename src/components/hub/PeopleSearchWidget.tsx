@@ -22,7 +22,7 @@ export function PeopleSearchWidget() {
   }, [people, q]);
 
   return (
-    <div className="rounded-xl border border-border bg-gradient-to-br from-card via-card to-lime-soft/30 p-5 shadow-sm">
+    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-semibold text-navy">
           <Users className="h-4 w-4 text-brand" /> Snel collega zoeken

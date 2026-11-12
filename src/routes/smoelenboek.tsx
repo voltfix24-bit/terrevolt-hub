@@ -335,7 +335,7 @@ export function Avatar({ person, size = 40 }: { person: Person; size?: number })
   return (
     <div
       style={{ width: size, height: size, fontSize: size * 0.35 }}
-      className="flex items-center justify-center rounded-full bg-gradient-to-br from-pastel to-lime-soft font-semibold text-navy"
+      className="flex items-center justify-center rounded-full bg-pastel font-semibold text-navy"
     >
       {initials(person.full_name)}
     </div>

@@ -46,7 +46,7 @@ function FinanceWikiPage() {
         subtitle="Per klant gestructureerde instructies: factuuradres, referenties, bijlagen, BTW, G-rekening en betaaltermijn. De Vraagbaak gebruikt deze pagina's als bron."
       />
 
-      <div className="mb-6 flex items-center gap-3 rounded-lg border border-brand/30 bg-gradient-to-br from-pastel/40 via-card to-lime-soft/30 p-4 shadow-sm">
+      <div className="mb-6 flex items-center gap-3 rounded-lg border border-brand/30 bg-card p-4 shadow-sm">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-brand-foreground">
           <Sparkles className="h-5 w-5" />
         </div>
