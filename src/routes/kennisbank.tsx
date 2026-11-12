@@ -197,7 +197,7 @@ function IndexPage() {
                 <button
                   key={sec.id}
                   onClick={() => setActiveSection(sec.id)}
-                  className="group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-border bg-card p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40"
+                  className="group relative flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-card p-4 text-left shadow-sm transition-colors hover:border-brand/50"
                 >
                   <div className="relative flex items-center justify-between">
                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand text-brand-foreground shadow-sm">
@@ -221,7 +221,7 @@ function IndexPage() {
 
             {/* Expired warnings */}
             {expiring.length > 0 && (
-              <section className="mt-12">
+              <section className="mt-8">
                 <div className="mb-4 flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-destructive" />
                   <h2 className="text-base font-semibold text-navy">
@@ -238,7 +238,7 @@ function IndexPage() {
 
             {/* Important docs */}
             {important.length > 0 && (
-              <section className="mt-12">
+              <section className="mt-8">
                 <div className="mb-4 flex items-center gap-2">
                   <Pin className="h-4 w-4 text-brand" />
                   <h2 className="text-base font-semibold text-navy">Belangrijke documenten</h2>
@@ -253,7 +253,7 @@ function IndexPage() {
 
             {/* Recent */}
             {recent.length > 0 && (
-              <section className="mt-12">
+              <section className="mt-8">
                 <div className="mb-4 flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <h2 className="text-base font-semibold text-navy">Recent bijgewerkt</h2>
@@ -342,7 +342,7 @@ function ItemRow({
       <Link
         to="/kennisbank/$slug/$articleSlug"
         params={{ slug: section?.slug ?? "item", articleSlug: a.slug }}
-        className="group flex h-full items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
+        className="group flex h-full items-start gap-3 rounded-lg border border-border bg-card p-3.5 shadow-sm transition-colors hover:border-brand/50"
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-navy">
           <Icon name={documentTypeIcon(a.document_type)} size={18} />
