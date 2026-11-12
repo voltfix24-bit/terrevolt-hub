@@ -228,7 +228,44 @@ export const askVraagbaak = createServerFn({ method: "POST" })
       }
     }
 
+    // Persist the search so users can bookmark / give feedback and it shows in "Recente vragen".
+    let question_id: string | undefined;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sb = context.supabase as any;
+      const used = [...(direct_answer ? [suggestionsAll[0]] : []), ...sources].slice(0, 6);
+      const { data: qrow, error: qerr } = await sb
+        .from("vraagbaak_questions")
+        .insert({
+          question,
+          short_answer: direct_answer ? direct_answer.content : FOUND_PREFIX,
+          has_sources: true,
+          asked_by: userId ?? "",
+        })
+        .select("id")
+        .single();
+      if (qerr) throw qerr;
+      question_id = (qrow as { id: string }).id;
+      if (used.length > 0) {
+        const { error: serr } = await sb.from("vraagbaak_sources").insert(
+          used.map((s, i) => ({
+            question_id,
+            article_id: s.source_type === "kb_article" ? s.source_id : null,
+            source_type: s.source_type,
+            title: s.title,
+            external_url: s.external ? s.url : "",
+            file_url: s.external ? "" : s.url,
+            sort_order: i,
+          })),
+        );
+        if (serr) console.error("vraagbaak_sources insert error", serr);
+      }
+    } catch (e) {
+      console.error("vraagbaak_questions insert error", e);
+    }
+
     return {
+      question_id,
       short_answer: direct_answer ? direct_answer.content : FOUND_PREFIX,
       steps: [],
       summary: "",
