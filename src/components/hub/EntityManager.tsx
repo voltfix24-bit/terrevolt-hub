@@ -82,7 +82,7 @@ export function EntityManager<T extends Row>({
 
       <div className="space-y-2">
         {items.length === 0 && !adding && (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
             Nog geen items. Klik op "Toevoegen" om te beginnen.
           </div>
         )}
@@ -103,7 +103,7 @@ export function EntityManager<T extends Row>({
           return (
             <div
               key={item.id}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm"
+              className="flex items-center gap-3 rounded-lg border border-border bg-card p-3 shadow-sm"
             >
               <div className="flex flex-col gap-0.5">
                 <button
@@ -168,7 +168,7 @@ function EditorCard({
   const set = (key: string, value: unknown) => setDraft({ ...draft, [key]: value });
 
   return (
-    <div className="rounded-2xl border border-brand/40 bg-card p-5 shadow-sm">
+    <div className="rounded-lg border border-brand/40 bg-card p-5 shadow-sm">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {fields.map((f) => {
           const v = draft[f.key];

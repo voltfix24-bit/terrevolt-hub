@@ -50,12 +50,12 @@ function Page() {
           );
         })}
         {!isLoading && apps.length > 0 && filtered.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
             Geen apps gevonden voor "{query}".
           </div>
         )}
         {!isLoading && apps.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
             Nog geen applicaties.
           </div>
         )}

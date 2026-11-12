@@ -95,7 +95,7 @@ function SmoelenboekPage() {
         />
 
         {/* Search + view toggle */}
-        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -141,11 +141,11 @@ function SmoelenboekPage() {
         </div>
 
         {isLoading ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-12 text-center text-sm text-muted-foreground">
             Laden…
           </div>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-12 text-center text-sm text-muted-foreground">
             Geen profielen gevonden met deze filters.
           </div>
         ) : view === "grid" ? (
@@ -189,7 +189,7 @@ function FilterSelect({
 
 function ProfileCard({ person, admin, onEdit }: { person: Person; admin: boolean; onEdit: () => void }) {
   return (
-    <div className="group relative flex flex-col rounded-3xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40">
+    <div className="group relative flex flex-col rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40">
       <Link to="/smoelenboek/$id" params={{ id: person.id }} className="flex items-start gap-4">
         <Avatar person={person} size={56} />
         <div className="min-w-0 flex-1">
@@ -273,7 +273,7 @@ function PeopleList({ people, admin, onEdit }: { people: Person[]; admin: boolea
         </li>
       ))}
     </ul>
-    <div className="hidden overflow-hidden rounded-2xl border border-border bg-card shadow-sm lg:block">
+    <div className="hidden overflow-hidden rounded-lg border border-border bg-card shadow-sm lg:block">
       <table className="w-full table-fixed text-sm">
         <thead className="bg-accent/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
           <tr>

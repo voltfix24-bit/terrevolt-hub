@@ -163,7 +163,7 @@ function SettingsPage() {
         </div>
 
 
-        <div className="mb-6 flex flex-wrap gap-1 rounded-2xl border border-border bg-card p-1.5 shadow-sm">
+        <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-border bg-card p-1.5 shadow-sm">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -566,7 +566,7 @@ function RolesTab() {
   };
   return (
     <>
-      <div className="mb-4 rounded-2xl border border-border bg-card/60 p-4 text-sm text-foreground/70">
+      <div className="mb-4 rounded-lg border border-border bg-card/60 p-4 text-sm text-foreground/70">
         <p className="font-medium text-navy">Rolbeheer</p>
         <p className="mt-1">
           Wijs één van vijf rollen toe aan een gebruiker:{" "}
@@ -632,7 +632,7 @@ function AccessTab() {
 
   return (
     <>
-      <div className="mb-4 rounded-2xl border border-border bg-card/60 p-4 text-sm text-foreground/70">
+      <div className="mb-4 rounded-lg border border-border bg-card/60 p-4 text-sm text-foreground/70">
         <p className="font-medium text-navy">Toegang & extra rechten</p>
         <p className="mt-1">
           Zet gebruikers actief/inactief en ken extra module-rechten toe. Admins hebben automatisch
@@ -641,7 +641,7 @@ function AccessTab() {
       </div>
 
       {roles.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">
+        <div className="rounded-lg border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">
           Nog geen gebruikers. Voeg ze eerst toe via het tabblad "Rollen".
         </div>
       ) : (
@@ -923,7 +923,7 @@ function KbArticlesTab() {
       </div>
 
       {sections.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-border bg-card/50 p-6 text-sm text-muted-foreground">
+        <div className="rounded-lg border border-dashed border-border bg-card/50 p-6 text-sm text-muted-foreground">
           Maak eerst een hoofdsectie aan op het tabblad "KB secties".
         </div>
       )}
@@ -972,7 +972,7 @@ function KbArticlesTab() {
 
       <div className="space-y-2">
         {visible.length === 0 && !adding && (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
             Geen kennisitems.
           </div>
         )}
@@ -981,7 +981,7 @@ function KbArticlesTab() {
           return (
             <div
               key={a.id}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm"
+              className="flex items-center gap-3 rounded-lg border border-border bg-card p-4 shadow-sm"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -1119,7 +1119,7 @@ function ArticleEditor({
   const subCats = categories;
 
   return (
-    <div className="space-y-5 rounded-2xl border border-brand/40 bg-card p-5 shadow-sm">
+    <div className="space-y-5 rounded-lg border border-brand/40 bg-card p-5 shadow-sm">
       {/* Basics */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Field label="Titel" full>
@@ -1579,7 +1579,7 @@ function SearchIndexTab() {
       <PdfExtractionCard />
       <VraagbaakCacheCard />
 
-      <details className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <details className="rounded-lg border border-border bg-card p-5 shadow-sm">
         <summary className="cursor-pointer text-sm font-medium text-navy">
           Geavanceerd: volledige herindexering
         </summary>
@@ -1724,7 +1724,7 @@ function ReindexQueueCard({
   const items = failedQ.data ?? [];
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="text-sm">
           <div className="font-medium text-navy">Automatische verwerking</div>
@@ -1892,7 +1892,7 @@ function VraagbaakCacheCard() {
 
   const s = stats.data;
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-navy">Vraagbaak cache</div>
@@ -2102,7 +2102,7 @@ function PdfExtractionCard() {
   const s = statsQuery.data;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-navy">PDF-extractie</h3>
@@ -2196,7 +2196,7 @@ function AuditLogTab() {
 
   if (!perms.isAdmin) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+      <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
         Alleen admins kunnen het audit-log inzien.
       </div>
     );

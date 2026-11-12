@@ -227,9 +227,9 @@ function VraagbaakPage() {
         subtitle="Zoek in interne kennis, procedures en documenten."
       />
 
-      <div className="relative overflow-hidden rounded-3xl border border-brand/30 bg-gradient-to-br from-pastel/50 via-card to-lime-soft/40 p-6 shadow-sm md:p-8">
+      <div className="relative overflow-hidden rounded-xl border border-brand/30 bg-gradient-to-br from-pastel/50 via-card to-lime-soft/40 p-6 shadow-sm md:p-8">
         <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand text-brand-foreground shadow-sm">
+          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-brand text-brand-foreground shadow-sm">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
@@ -240,7 +240,7 @@ function VraagbaakPage() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card shadow-sm">
+        <div className="rounded-lg border border-border bg-card shadow-sm">
           <textarea
             ref={inputRef}
             value={question}
@@ -253,7 +253,7 @@ function VraagbaakPage() {
             }}
             rows={2}
             placeholder="Bijv. BEI-3, factureren Van Gelder, aardingsprocedure..."
-            className="block w-full resize-none rounded-2xl bg-transparent px-5 py-4 text-base outline-none placeholder:text-muted-foreground"
+            className="block w-full resize-none rounded-lg bg-transparent px-5 py-4 text-base outline-none placeholder:text-muted-foreground"
           />
           <div className="flex items-center justify-between gap-3 border-t border-border/60 px-3 py-2.5">
             <div className="px-2 text-xs text-muted-foreground">
@@ -345,7 +345,7 @@ function VraagbaakPage() {
       </div>
 
       {needsLogin && !session && (
-        <div className="mt-6 flex flex-col items-start gap-3 rounded-3xl border border-border bg-card p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-6 flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <div className="rounded-full bg-pastel/60 p-2 text-brand">
               <AlertTriangle className="h-5 w-5" />
@@ -369,7 +369,7 @@ function VraagbaakPage() {
 
       {loading && (
 
-        <div className="mt-6 space-y-3 rounded-3xl border border-border bg-card p-6 shadow-sm">
+        <div className="mt-6 space-y-3 rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="h-4 w-32 animate-pulse rounded-full bg-muted" />
           <div className="h-6 w-3/4 animate-pulse rounded-full bg-muted" />
           <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
@@ -420,7 +420,7 @@ function VraagbaakPage() {
               <button
                 key={r.id}
                 onClick={() => onExample(r.question)}
-                className="group flex items-start justify-between gap-3 rounded-2xl border border-border bg-card p-4 text-left shadow-sm transition hover:border-brand/40 hover:bg-pastel/30"
+                className="group flex items-start justify-between gap-3 rounded-lg border border-border bg-card p-4 text-left shadow-sm transition hover:border-brand/40 hover:bg-pastel/30"
               >
                 <div className="min-w-0">
                   <div className="truncate text-sm font-medium text-navy">{r.question}</div>
@@ -462,7 +462,7 @@ function AnswerCard({
   const noSource = !answer.has_sources;
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
       <div className="flex items-start justify-between gap-4 border-b border-border/60 px-6 py-5">
         <div className="min-w-0">
           <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -483,11 +483,11 @@ function AnswerCard({
       <div className="space-y-5 px-6 py-5">
         {noSource ? (
           <div className="space-y-4">
-            <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
               <div>{answer.short_answer}</div>
             </div>
-            <div className="rounded-2xl border border-border bg-card p-4 text-sm">
+            <div className="rounded-lg border border-border bg-card p-4 text-sm">
               <div className="mb-2 font-semibold text-navy">Wat kun je nu proberen?</div>
               <ul className="list-disc space-y-1 pl-5 text-foreground/80">
                 <li>Probeer andere of bredere zoekwoorden (synoniemen, afkortingen).</li>
@@ -511,7 +511,7 @@ function AnswerCard({
         ) : (
           <div className="space-y-4">
             {answer.direct_answer ? (
-              <div className="rounded-2xl border border-brand/30 bg-pastel/40 p-4">
+              <div className="rounded-lg border border-brand/30 bg-pastel/40 p-4">
                 <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand">
                   Beste match
                 </div>
@@ -765,7 +765,7 @@ function SourceRow({
 
 
   const className =
-    "group flex items-center gap-3 rounded-2xl border border-border bg-card px-3.5 py-2.5 shadow-sm transition hover:border-brand/40 hover:bg-pastel/30";
+    "group flex items-center gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5 shadow-sm transition hover:border-brand/40 hover:bg-pastel/30";
 
   if (source.external && source.url) {
     return (

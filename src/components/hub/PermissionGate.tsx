@@ -48,7 +48,7 @@ export function PermissionGate({
     return (
       <HubLayout>
         <div className="mx-auto max-w-md py-20 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-pastel">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-pastel">
             <Lock className="h-6 w-6 text-navy" />
           </div>
           <h2 className="mt-4 text-xl font-semibold text-navy">Geen toegang</h2>

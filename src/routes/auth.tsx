@@ -52,7 +52,7 @@ function AuthPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pastel/40 via-background to-lime-soft/40 px-4">
-      <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-xl">
+      <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 shadow-xl">
         <Link to="/" className="flex items-center gap-2 mb-6">
           <img src={logo.url} alt="TerreVolt" className="h-10 w-10 object-contain" />
           <div className="leading-tight">

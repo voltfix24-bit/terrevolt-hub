@@ -90,7 +90,7 @@ function Dashboard() {
     <HubLayout>
       <div className="mx-auto max-w-7xl space-y-12">
         {/* Welcome */}
-        <section className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-card via-card to-accent/40 p-6 sm:p-8 lg:p-10">
+        <section className="relative overflow-hidden rounded-xl border border-border bg-gradient-to-br from-card via-card to-accent/40 p-6 sm:p-8 lg:p-10">
           <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-pastel/40 blur-3xl" />
           <div className="relative">
             <p className="text-sm font-medium text-brand">TerreVolt Intranet</p>
@@ -169,12 +169,12 @@ function Dashboard() {
             </div>
           )}
           {!isLoading && apps.length > 0 && filteredApps.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
               Geen apps gevonden voor "{appQuery}".
             </div>
           )}
           {!isLoading && apps.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
               Nog geen applicaties. Voeg er een toe via Instellingen.
             </div>
           )}
@@ -207,12 +207,12 @@ function Dashboard() {
             </div>
           )}
           {!partnersLoading && partnersError && (
-            <div className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+            <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
               Partnerportalen konden niet geladen worden. Probeer de pagina te verversen.
             </div>
           )}
           {!partnersLoading && !partnersError && partners.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">
               Nog geen partnerportalen. Voeg er een toe via Instellingen.
             </div>
           )}
@@ -268,7 +268,7 @@ function Dashboard() {
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
               {spRecent.length > 0 && (
-                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
                   <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-navy">
                     <Icon name="link" size={16} className="text-brand" /> Recente SharePoint links
                   </div>
@@ -300,7 +300,7 @@ function Dashboard() {
               )}
 
               {spFavFolders.length > 0 && (
-                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
                   <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-navy">
                     <Icon name="folder" size={16} className="text-brand" /> Favoriete mappen
                   </div>
@@ -338,7 +338,7 @@ function Dashboard() {
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {knowledge.map((cat) => (
               <a key={cat.id} href={`/kennisbank/${cat.slug}`}
-                 className="group flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40">
+                 className="group flex flex-col gap-3 rounded-lg border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-navy"><Icon name={cat.icon} size={20} /></div>
                 <div>
                   <div className="font-semibold text-navy">{cat.name}</div>

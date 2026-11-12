@@ -138,12 +138,12 @@ function IndexPage() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Zoek in titel, samenvatting, tags, opdrachtgever…"
-              className="w-full rounded-2xl border border-border bg-card py-3.5 pl-11 pr-4 text-sm shadow-sm outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
+              className="w-full rounded-lg border border-border bg-card py-3.5 pl-11 pr-4 text-sm shadow-sm outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
             />
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-brand/30 bg-gradient-to-br from-pastel/40 via-card to-lime-soft/30 p-4 shadow-sm">
+        <div className="mt-6 flex items-center justify-between gap-3 rounded-lg border border-brand/30 bg-gradient-to-br from-pastel/40 via-card to-lime-soft/30 p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-brand-foreground shadow-sm">
               <Sparkles className="h-5 w-5" />
@@ -210,11 +210,11 @@ function IndexPage() {
                 <button
                   key={sec.id}
                   onClick={() => setActiveSection(sec.id)}
-                  className="group relative flex flex-col gap-4 overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-card via-card to-accent/30 p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40"
+                  className="group relative flex flex-col gap-4 overflow-hidden rounded-xl border border-border bg-gradient-to-br from-card via-card to-accent/30 p-6 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40"
                 >
                   <div className="absolute -right-12 -top-12 h-32 w-32 rounded-full bg-pastel/40 blur-2xl transition-opacity group-hover:opacity-80" />
                   <div className="relative flex items-center justify-between">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-brand-foreground shadow-sm">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand text-brand-foreground shadow-sm">
                       <Icon name={sec.icon} size={22} />
                     </div>
                     <span className="rounded-full bg-card px-2.5 py-0.5 text-xs font-medium text-brand">
@@ -289,7 +289,7 @@ function IndexPage() {
               {filtered.length} {filtered.length === 1 ? "resultaat" : "resultaten"}
             </div>
             {filtered.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">
+              <div className="rounded-lg border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">
                 Geen kennisitems gevonden met deze filters.
               </div>
             ) : (
@@ -351,7 +351,7 @@ function ItemRow({
       <Link
         to="/kennisbank/$slug/$articleSlug"
         params={{ slug: sectionName ? slugifyClient(sectionName) : "item", articleSlug: a.slug }}
-        className="group flex h-full items-start gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
+        className="group flex h-full items-start gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent text-navy">
           <Icon name={documentTypeIcon(a.document_type)} size={18} />

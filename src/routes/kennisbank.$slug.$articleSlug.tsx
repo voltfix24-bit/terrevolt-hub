@@ -52,7 +52,7 @@ function Page() {
           >
             <ChevronLeft className="h-4 w-4" /> Kennisbank
           </Link>
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">
             Document niet gevonden.
           </div>
         </div>
@@ -76,7 +76,7 @@ function Page() {
         </Link>
 
         {expired && (
-          <div className="mb-6 flex items-start gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
+          <div className="mb-6 flex items-start gap-3 rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <div>
               <div className="font-semibold">Dit document is verlopen</div>
@@ -136,7 +136,7 @@ function Page() {
         </header>
 
         {article.important_notes && (
-          <section className="mb-8 rounded-2xl border border-brand/30 bg-pastel/30 p-5">
+          <section className="mb-8 rounded-lg border border-brand/30 bg-pastel/30 p-5">
             <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand">
               Belangrijke notities
             </div>
@@ -148,7 +148,7 @@ function Page() {
         {(article.file_url || article.external_url) && (
           <section className="mb-10">
             {article.file_url && isPdf ? (
-              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+              <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                 <div className="flex items-center justify-between border-b border-border bg-card px-4 py-2.5 text-sm">
                   <span className="flex items-center gap-2 text-navy">
                     <Paperclip className="h-4 w-4" />
@@ -180,7 +180,7 @@ function Page() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => void logAudit("document.download", { targetType: "kb_article", targetId: article.id, metadata: { title: article.title, file_name: article.file_name } })}
-                className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:border-brand/40 hover:bg-accent/40"
+                className="flex items-center gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition hover:border-brand/40 hover:bg-accent/40"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-navy">
                   <Icon name={documentTypeIcon(article.document_type)} size={22} />
@@ -203,7 +203,7 @@ function Page() {
                 href={article.external_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-3 flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:border-brand/40 hover:bg-accent/40"
+                className="mt-3 flex items-center gap-3 rounded-lg border border-border bg-card p-4 shadow-sm transition hover:border-brand/40 hover:bg-accent/40"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent text-navy">
                   <ExternalLink className="h-5 w-5" />
@@ -308,7 +308,7 @@ function Page() {
                         slug: rSec?.slug ?? slug,
                         articleSlug: r.slug,
                       }}
-                      className="block rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:border-brand/40 hover:bg-accent/40"
+                      className="block rounded-lg border border-border bg-card p-4 shadow-sm transition hover:border-brand/40 hover:bg-accent/40"
                     >
                       {rSec && (
                         <div className="text-xs font-medium text-brand">{rSec.name}</div>

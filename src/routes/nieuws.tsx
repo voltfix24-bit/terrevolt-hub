@@ -18,7 +18,7 @@ function Page() {
         {isLoading ? (
           <div className="text-sm text-muted-foreground">Laden…</div>
         ) : news.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
             Nog geen nieuwsberichten.
           </div>
         ) : (

@@ -30,7 +30,7 @@ function PersonDetail() {
           <Link to="/smoelenboek" className="inline-flex items-center gap-1 text-sm text-brand hover:underline">
             <ArrowLeft className="h-4 w-4" /> Terug
           </Link>
-          <div className="mt-6 rounded-2xl border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
+          <div className="mt-6 rounded-lg border border-dashed border-border p-12 text-center text-sm text-muted-foreground">
             Profiel niet gevonden.
           </div>
         </div>
@@ -50,7 +50,7 @@ function PersonDetail() {
         </Link>
 
         {/* Header */}
-        <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-card via-card to-pastel/30 p-8">
+        <div className="relative overflow-hidden rounded-xl border border-border bg-gradient-to-br from-card via-card to-pastel/30 p-8">
           <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-lime-soft/50 blur-3xl" />
           <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center">
             <Avatar person={person} size={104} />
@@ -140,7 +140,7 @@ function PersonDetail() {
 
 function InfoCard({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
       <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-navy">
         <span className="text-brand">{icon}</span> {title}
       </div>

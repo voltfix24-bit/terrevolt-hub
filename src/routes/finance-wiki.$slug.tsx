@@ -91,7 +91,7 @@ function FinanceClientPage() {
       </Link>
 
       {isLoading || !client ? (
-        <div className="h-96 animate-pulse rounded-3xl bg-muted/50" />
+        <div className="h-96 animate-pulse rounded-xl bg-muted/50" />
       ) : (
         <ClientView client={client} />
       )}
@@ -136,10 +136,10 @@ function ClientView({ client }: { client: FinanceClient }) {
   return (
     <>
       {/* Hero */}
-      <div className="mb-6 overflow-hidden rounded-3xl border border-brand/30 bg-gradient-to-br from-pastel/50 via-card to-lime-soft/40 p-6 shadow-sm md:p-8">
+      <div className="mb-6 overflow-hidden rounded-xl border border-brand/30 bg-gradient-to-br from-pastel/50 via-card to-lime-soft/40 p-6 shadow-sm md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-brand-foreground shadow-sm">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-brand text-brand-foreground shadow-sm">
               <Wallet className="h-6 w-6" />
             </div>
             <div>
@@ -204,7 +204,7 @@ function ClientView({ client }: { client: FinanceClient }) {
           return (
             <div
               key={key}
-              className="rounded-2xl border border-border bg-card p-5 shadow-sm"
+              className="rounded-lg border border-border bg-card p-5 shadow-sm"
             >
               <div className="mb-2 flex items-center gap-2">
                 <Icon className="h-4 w-4 text-brand" />
@@ -238,7 +238,7 @@ function ClientView({ client }: { client: FinanceClient }) {
       </div>
 
       {/* Related documents */}
-      <div className="mt-8 rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <div className="mt-8 rounded-lg border border-border bg-card p-5 shadow-sm">
         <div className="mb-3 flex items-center gap-2">
           <BookOpen className="h-4 w-4 text-brand" />
           <h3 className="text-sm font-semibold text-navy">Gerelateerde documenten</h3>
@@ -272,7 +272,7 @@ function ClientView({ client }: { client: FinanceClient }) {
       </div>
 
       {/* CTA */}
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand/30 bg-pastel/40 p-5">
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-brand/30 bg-pastel/40 p-5">
         <div className="text-sm text-navy">
           Twijfel je over een specifiek geval? Vraag het aan de Vraagbaak.
         </div>

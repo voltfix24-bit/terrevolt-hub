@@ -89,7 +89,7 @@ function Page() {
         {isLoading ? (
           <div className="text-sm text-muted-foreground">Laden…</div>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">
             Geen partnerportalen gevonden.
           </div>
         ) : (
@@ -106,7 +106,7 @@ function Page() {
                       href={p.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group flex items-start gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
+                      className="group flex items-start gap-3 rounded-lg border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
                     >
                       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-navy">
                         <Icon name={p.icon} size={20} />
