@@ -187,7 +187,7 @@ function DocumentsPage() {
                           )}
                           {effectiveStatus(a) !== "active" && (
                             <span
-                              className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium ${statusColor(effectiveStatus(a))}`}
+                              className={`mt-1 block w-fit rounded-full px-2 py-0.5 text-[11px] font-medium ${statusColor(effectiveStatus(a))}`}
                             >
                               {statusLabel(effectiveStatus(a))}
                             </span>
