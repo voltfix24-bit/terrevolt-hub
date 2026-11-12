@@ -163,15 +163,27 @@ function SettingsPage() {
         </div>
 
 
-        <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-border bg-card p-1.5 shadow-sm">
+        <label className="mb-5 block md:hidden">
+          <span className="mb-1 block text-xs font-medium text-muted-foreground">Onderdeel</span>
+          <select
+            value={tab}
+            onChange={(e) => setTab(e.target.value as TabId)}
+            className="h-11 w-full rounded-lg border border-border bg-card px-3 text-navy"
+          >
+            {TABS.map((t) => (
+              <option key={t.id} value={t.id}>{t.label}</option>
+            ))}
+          </select>
+        </label>
+        <div className="mb-6 hidden flex-wrap gap-1 rounded-lg border border-border bg-card p-1.5 shadow-sm md:flex">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
               className={[
-                "rounded-xl px-3.5 py-2 text-sm font-medium transition-colors",
+                "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 tab === t.id
-                  ? "bg-brand text-brand-foreground shadow-sm"
+                  ? "bg-navy text-brand-foreground"
                   : "text-foreground/70 hover:bg-accent hover:text-foreground",
               ].join(" ")}
             >
