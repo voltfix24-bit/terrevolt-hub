@@ -9,71 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VraagbaakRouteImport } from './routes/vraagbaak'
-import { Route as SmoelenboekRouteImport } from './routes/smoelenboek'
-import { Route as SharepointRouteImport } from './routes/sharepoint'
-import { Route as PartnerportalenRouteImport } from './routes/partnerportalen'
-import { Route as NieuwsRouteImport } from './routes/nieuws'
-import { Route as KennisbankRouteImport } from './routes/kennisbank'
-import { Route as InstellingenRouteImport } from './routes/instellingen'
-import { Route as FinanceWikiRouteImport } from './routes/finance-wiki'
-import { Route as DocumentenRouteImport } from './routes/documenten'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as ApplicatiesRouteImport } from './routes/applicaties'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SmoelenboekIdRouteImport } from './routes/smoelenboek.$id'
-import { Route as KennisbankSlugRouteImport } from './routes/kennisbank.$slug'
+import { Route as ApplicatiesRouteImport } from './routes/applicaties'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DocumentenRouteImport } from './routes/documenten'
+import { Route as FinanceWikiRouteImport } from './routes/finance-wiki'
+import { Route as InstellingenRouteImport } from './routes/instellingen'
+import { Route as KennisbankRouteImport } from './routes/kennisbank'
+import { Route as NieuwsRouteImport } from './routes/nieuws'
+import { Route as PartnerportalenRouteImport } from './routes/partnerportalen'
+import { Route as SharepointRouteImport } from './routes/sharepoint'
+import { Route as SmoelenboekRouteImport } from './routes/smoelenboek'
+import { Route as VraagbaakRouteImport } from './routes/vraagbaak'
 import { Route as FinanceWikiSlugRouteImport } from './routes/finance-wiki.$slug'
+import { Route as KennisbankSlugRouteImport } from './routes/kennisbank.$slug'
+import { Route as SmoelenboekIdRouteImport } from './routes/smoelenboek.$id'
 import { Route as KennisbankSlugArticleSlugRouteImport } from './routes/kennisbank.$slug.$articleSlug'
 
-const VraagbaakRoute = VraagbaakRouteImport.update({
-  id: '/vraagbaak',
-  path: '/vraagbaak',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SmoelenboekRoute = SmoelenboekRouteImport.update({
-  id: '/smoelenboek',
-  path: '/smoelenboek',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SharepointRoute = SharepointRouteImport.update({
-  id: '/sharepoint',
-  path: '/sharepoint',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PartnerportalenRoute = PartnerportalenRouteImport.update({
-  id: '/partnerportalen',
-  path: '/partnerportalen',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NieuwsRoute = NieuwsRouteImport.update({
-  id: '/nieuws',
-  path: '/nieuws',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KennisbankRoute = KennisbankRouteImport.update({
-  id: '/kennisbank',
-  path: '/kennisbank',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InstellingenRoute = InstellingenRouteImport.update({
-  id: '/instellingen',
-  path: '/instellingen',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinanceWikiRoute = FinanceWikiRouteImport.update({
-  id: '/finance-wiki',
-  path: '/finance-wiki',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DocumentenRoute = DocumentenRouteImport.update({
-  id: '/documenten',
-  path: '/documenten',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApplicatiesRoute = ApplicatiesRouteImport.update({
@@ -81,25 +36,70 @@ const ApplicatiesRoute = ApplicatiesRouteImport.update({
   path: '/applicaties',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SmoelenboekIdRoute = SmoelenboekIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => SmoelenboekRoute,
+const DocumentenRoute = DocumentenRouteImport.update({
+  id: '/documenten',
+  path: '/documenten',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceWikiRoute = FinanceWikiRouteImport.update({
+  id: '/finance-wiki',
+  path: '/finance-wiki',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstellingenRoute = InstellingenRouteImport.update({
+  id: '/instellingen',
+  path: '/instellingen',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KennisbankRoute = KennisbankRouteImport.update({
+  id: '/kennisbank',
+  path: '/kennisbank',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NieuwsRoute = NieuwsRouteImport.update({
+  id: '/nieuws',
+  path: '/nieuws',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnerportalenRoute = PartnerportalenRouteImport.update({
+  id: '/partnerportalen',
+  path: '/partnerportalen',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SharepointRoute = SharepointRouteImport.update({
+  id: '/sharepoint',
+  path: '/sharepoint',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SmoelenboekRoute = SmoelenboekRouteImport.update({
+  id: '/smoelenboek',
+  path: '/smoelenboek',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VraagbaakRoute = VraagbaakRouteImport.update({
+  id: '/vraagbaak',
+  path: '/vraagbaak',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinanceWikiSlugRoute = FinanceWikiSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => FinanceWikiRoute,
 } as any)
 const KennisbankSlugRoute = KennisbankSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => KennisbankRoute,
 } as any)
-const FinanceWikiSlugRoute = FinanceWikiSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => FinanceWikiRoute,
+const SmoelenboekIdRoute = SmoelenboekIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => SmoelenboekRoute,
 } as any)
 const KennisbankSlugArticleSlugRoute =
   KennisbankSlugArticleSlugRouteImport.update({
@@ -237,74 +237,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/vraagbaak': {
-      id: '/vraagbaak'
-      path: '/vraagbaak'
-      fullPath: '/vraagbaak'
-      preLoaderRoute: typeof VraagbaakRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/smoelenboek': {
-      id: '/smoelenboek'
-      path: '/smoelenboek'
-      fullPath: '/smoelenboek'
-      preLoaderRoute: typeof SmoelenboekRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sharepoint': {
-      id: '/sharepoint'
-      path: '/sharepoint'
-      fullPath: '/sharepoint'
-      preLoaderRoute: typeof SharepointRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/partnerportalen': {
-      id: '/partnerportalen'
-      path: '/partnerportalen'
-      fullPath: '/partnerportalen'
-      preLoaderRoute: typeof PartnerportalenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/nieuws': {
-      id: '/nieuws'
-      path: '/nieuws'
-      fullPath: '/nieuws'
-      preLoaderRoute: typeof NieuwsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kennisbank': {
-      id: '/kennisbank'
-      path: '/kennisbank'
-      fullPath: '/kennisbank'
-      preLoaderRoute: typeof KennisbankRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/instellingen': {
-      id: '/instellingen'
-      path: '/instellingen'
-      fullPath: '/instellingen'
-      preLoaderRoute: typeof InstellingenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/finance-wiki': {
-      id: '/finance-wiki'
-      path: '/finance-wiki'
-      fullPath: '/finance-wiki'
-      preLoaderRoute: typeof FinanceWikiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/documenten': {
-      id: '/documenten'
-      path: '/documenten'
-      fullPath: '/documenten'
-      preLoaderRoute: typeof DocumentenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/applicaties': {
@@ -314,19 +251,82 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApplicatiesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/smoelenboek/$id': {
-      id: '/smoelenboek/$id'
-      path: '/$id'
-      fullPath: '/smoelenboek/$id'
-      preLoaderRoute: typeof SmoelenboekIdRouteImport
-      parentRoute: typeof SmoelenboekRoute
+    '/documenten': {
+      id: '/documenten'
+      path: '/documenten'
+      fullPath: '/documenten'
+      preLoaderRoute: typeof DocumentenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance-wiki': {
+      id: '/finance-wiki'
+      path: '/finance-wiki'
+      fullPath: '/finance-wiki'
+      preLoaderRoute: typeof FinanceWikiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instellingen': {
+      id: '/instellingen'
+      path: '/instellingen'
+      fullPath: '/instellingen'
+      preLoaderRoute: typeof InstellingenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kennisbank': {
+      id: '/kennisbank'
+      path: '/kennisbank'
+      fullPath: '/kennisbank'
+      preLoaderRoute: typeof KennisbankRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nieuws': {
+      id: '/nieuws'
+      path: '/nieuws'
+      fullPath: '/nieuws'
+      preLoaderRoute: typeof NieuwsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partnerportalen': {
+      id: '/partnerportalen'
+      path: '/partnerportalen'
+      fullPath: '/partnerportalen'
+      preLoaderRoute: typeof PartnerportalenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sharepoint': {
+      id: '/sharepoint'
+      path: '/sharepoint'
+      fullPath: '/sharepoint'
+      preLoaderRoute: typeof SharepointRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/smoelenboek': {
+      id: '/smoelenboek'
+      path: '/smoelenboek'
+      fullPath: '/smoelenboek'
+      preLoaderRoute: typeof SmoelenboekRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/vraagbaak': {
+      id: '/vraagbaak'
+      path: '/vraagbaak'
+      fullPath: '/vraagbaak'
+      preLoaderRoute: typeof VraagbaakRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finance-wiki/$slug': {
+      id: '/finance-wiki/$slug'
+      path: '/$slug'
+      fullPath: '/finance-wiki/$slug'
+      preLoaderRoute: typeof FinanceWikiSlugRouteImport
+      parentRoute: typeof FinanceWikiRoute
     }
     '/kennisbank/$slug': {
       id: '/kennisbank/$slug'
@@ -335,12 +335,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KennisbankSlugRouteImport
       parentRoute: typeof KennisbankRoute
     }
-    '/finance-wiki/$slug': {
-      id: '/finance-wiki/$slug'
-      path: '/$slug'
-      fullPath: '/finance-wiki/$slug'
-      preLoaderRoute: typeof FinanceWikiSlugRouteImport
-      parentRoute: typeof FinanceWikiRoute
+    '/smoelenboek/$id': {
+      id: '/smoelenboek/$id'
+      path: '/$id'
+      fullPath: '/smoelenboek/$id'
+      preLoaderRoute: typeof SmoelenboekIdRouteImport
+      parentRoute: typeof SmoelenboekRoute
     }
     '/kennisbank/$slug/$articleSlug': {
       id: '/kennisbank/$slug/$articleSlug'
@@ -417,3 +417,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
