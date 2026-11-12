@@ -64,6 +64,15 @@ function Page() {
   const expired = isExpired(article);
   const sectionForArticle = sections.find((s) => s.id === article.section_id) ?? section;
   const isPdf = (article.file_url || "").toLowerCase().includes(".pdf");
+  // Desktop-only PDF preview; decided after mount so phones never load the iframe.
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 768px)");
+    const on = () => setShowPdfPreview(mql.matches);
+    on();
+    mql.addEventListener("change", on);
+    return () => mql.removeEventListener("change", on);
+  }, []);
 
   return (
     <HubLayout>
