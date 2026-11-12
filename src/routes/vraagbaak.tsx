@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -51,6 +51,9 @@ export const Route = createFileRoute("/vraagbaak")({
           "Doorzoek interne kennis, procedures en documenten in de TerreVolt Intranet.",
       },
     ],
+  }),
+  validateSearch: (s: Record<string, unknown>): { q?: string } => ({
+    q: typeof s.q === "string" && s.q.trim() ? s.q.slice(0, 2000) : undefined,
   }),
   component: VraagbaakPage,
 });
@@ -111,12 +114,23 @@ function VraagbaakPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const ask = useServerFn(askVraagbaak);
-  const { session } = useSession();
+  const { session, loading: sessionLoading } = useSession();
+  const { q: initialQ } = Route.useSearch();
+  const lastAutoQ = useRef<string | null>(null);
   const [needsLogin, setNeedsLogin] = useState(false);
   const { data: recent = [] } = useVraagbaakRecent(6);
   const bookmark = useSaveBookmark();
   const feedback = useFeedbackMutation();
   const qc = useQueryClient();
+
+  // Query handed over from the global search bar (?q=...) — fill in and run once per value.
+  useEffect(() => {
+    if (!initialQ || sessionLoading || lastAutoQ.current === initialQ) return;
+    lastAutoQ.current = initialQ;
+    setQuestion(initialQ);
+    void submit(initialQ);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQ, sessionLoading]);
 
   const toggleSource = (t: KbChunkSource) => {
     setSourceFilter((prev) =>
