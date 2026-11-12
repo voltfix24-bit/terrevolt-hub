@@ -3,7 +3,10 @@ import { Pin } from "lucide-react";
 
 export function NewsCard({ item }: { item: NewsArticle }) {
   return (
-    <article id={item.id} className="group flex scroll-mt-20 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-colors hover:border-brand/50">
+    <article
+      id={item.id}
+      className="group flex scroll-mt-20 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-colors hover:border-brand/50"
+    >
       <div className="relative aspect-[16/10] overflow-hidden bg-accent">
         {item.cover_image ? (
           <img
@@ -32,9 +35,7 @@ export function NewsCard({ item }: { item: NewsArticle }) {
           {item.title}
         </h3>
         <p className="mt-1.5 line-clamp-3 text-sm text-foreground/70">{item.summary}</p>
-        {item.author && (
-          <p className="mt-3 text-xs text-muted-foreground">Door {item.author}</p>
-        )}
+        {item.author && <p className="mt-3 text-xs text-muted-foreground">Door {item.author}</p>}
       </div>
     </article>
   );

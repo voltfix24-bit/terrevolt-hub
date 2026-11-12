@@ -9,7 +9,14 @@ const tileMap: Record<Application["accent"], string> = {
   navy: "bg-navy text-brand-foreground",
 };
 
-export function AppCard({ app, compact }: { app: Application; large?: boolean; compact?: boolean }) {
+export function AppCard({
+  app,
+  compact,
+}: {
+  app: Application;
+  large?: boolean;
+  compact?: boolean;
+}) {
   const isExternal = /^https?:\/\//i.test(app.url);
   const extra = app.new_tab || isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {};
   return (
@@ -18,7 +25,9 @@ export function AppCard({ app, compact }: { app: Application; large?: boolean; c
       {...extra}
       className="group flex h-full min-w-0 items-start gap-3 rounded-lg border border-border bg-card p-3.5 shadow-sm transition-colors hover:border-brand/50 sm:p-4"
     >
-      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tileMap[app.accent]}`}>
+      <div
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tileMap[app.accent]}`}
+      >
         <Icon name={app.icon} size={20} />
       </div>
       <div className="min-w-0 flex-1">

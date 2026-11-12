@@ -22,8 +22,7 @@ function toPascal(name: string) {
  */
 export function Icon({ name, className, size = 20, strokeWidth = 1.75 }: Props) {
   const key = toPascal(name);
-  const Comp =
-    ((Lucide as unknown as Record<string, LucideIcon>)[key] ??
-      Lucide.Circle) as LucideIcon;
+  const Comp = ((Lucide as unknown as Record<string, LucideIcon>)[key] ??
+    Lucide.Circle) as LucideIcon;
   return <Comp className={className} size={size} strokeWidth={strokeWidth} />;
 }

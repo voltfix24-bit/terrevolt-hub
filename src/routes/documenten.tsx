@@ -19,9 +19,15 @@ export const Route = createFileRoute("/documenten")({
   head: () => ({
     meta: [
       { title: "Documenten — TerreVolt Intranet" },
-      { name: "description", content: "Overzicht van alle documenten uit de kennisbank en SharePoint-ingangen." },
+      {
+        name: "description",
+        content: "Overzicht van alle documenten uit de kennisbank en SharePoint-ingangen.",
+      },
       { property: "og:title", content: "Documenten — TerreVolt Intranet" },
-      { property: "og:description", content: "Zoek en open interne documenten en SharePoint-mappen." },
+      {
+        property: "og:description",
+        content: "Zoek en open interne documenten en SharePoint-mappen.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -69,7 +75,9 @@ function DocumentsPage() {
   );
 
   const usedTypes = useMemo(() => {
-    const set = new Set((articles.data ?? []).filter((a) => a.file_url || a.external_url).map((a) => a.document_type));
+    const set = new Set(
+      (articles.data ?? []).filter((a) => a.file_url || a.external_url).map((a) => a.document_type),
+    );
     return KB_DOCUMENT_TYPES.filter((t) => set.has(t));
   }, [articles.data]);
 
@@ -102,7 +110,9 @@ function DocumentsPage() {
           >
             <option value="">Alle secties</option>
             {sections.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
             ))}
           </select>
           <select
@@ -113,7 +123,9 @@ function DocumentsPage() {
           >
             <option value="">Alle typen</option>
             {usedTypes.map((t) => (
-              <option key={t} value={t}>{documentTypeLabel(t)}</option>
+              <option key={t} value={t}>
+                {documentTypeLabel(t)}
+              </option>
             ))}
           </select>
         </div>
@@ -122,7 +134,9 @@ function DocumentsPage() {
           <section className="min-w-0">
             <h2 className="mb-2 text-sm font-semibold text-navy">
               Kennisbankdocumenten{" "}
-              {!articles.isLoading && <span className="font-normal text-muted-foreground">({docs.length})</span>}
+              {!articles.isLoading && (
+                <span className="font-normal text-muted-foreground">({docs.length})</span>
+              )}
             </h2>
             {articles.isLoading ? (
               <div className="space-y-2">
@@ -136,7 +150,9 @@ function DocumentsPage() {
               </div>
             ) : docs.length === 0 ? (
               <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                {term || type || section ? "Geen documenten gevonden met deze filters." : "Er zijn nog geen documenten."}
+                {term || type || section
+                  ? "Geen documenten gevonden met deze filters."
+                  : "Er zijn nog geen documenten."}
               </div>
             ) : (
               <ul className="space-y-2">
@@ -144,7 +160,10 @@ function DocumentsPage() {
                   const sec = a.section_id ? sectionById.get(a.section_id) : undefined;
                   const href = a.file_url || a.external_url;
                   return (
-                    <li key={a.id} className="flex min-w-0 flex-col gap-2 rounded-lg border border-border bg-card p-3 shadow-sm sm:flex-row sm:items-center">
+                    <li
+                      key={a.id}
+                      className="flex min-w-0 flex-col gap-2 rounded-lg border border-border bg-card p-3 shadow-sm sm:flex-row sm:items-center"
+                    >
                       <div className="flex min-w-0 flex-1 items-start gap-3">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-secondary text-navy">
                           <Icon name={documentTypeIcon(a.document_type)} size={17} />
@@ -159,10 +178,15 @@ function DocumentsPage() {
                               {a.title}
                             </Link>
                           ) : (
-                            <span className="break-words font-medium leading-snug text-navy">{a.title}</span>
+                            <span className="break-words font-medium leading-snug text-navy">
+                              {a.title}
+                            </span>
                           )}
                           <div className="mt-0.5 flex flex-wrap gap-x-2 text-xs text-muted-foreground">
-                            <span>{documentTypeLabel(a.document_type)}{a.version ? ` v${a.version}` : ""}</span>
+                            <span>
+                              {documentTypeLabel(a.document_type)}
+                              {a.version ? ` v${a.version}` : ""}
+                            </span>
                             {sec && <span>· {sec.name}</span>}
                             {a.client && <span>· {a.client}</span>}
                             <span>· {formatKbDate(a.updated_at)}</span>
@@ -174,11 +198,19 @@ function DocumentsPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() =>
-                          void logAudit(a.file_url ? "document.download" : "document.open", { targetType: "kb_article", targetId: a.id, metadata: { title: a.title } })
+                          void logAudit(a.file_url ? "document.download" : "document.open", {
+                            targetType: "kb_article",
+                            targetId: a.id,
+                            metadata: { title: a.title },
+                          })
                         }
                         className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 self-start rounded-md border border-border px-3 text-sm font-medium text-navy hover:bg-secondary sm:self-auto"
                       >
-                        {a.file_url ? <Download className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
+                        {a.file_url ? (
+                          <Download className="h-4 w-4" />
+                        ) : (
+                          <ExternalLink className="h-4 w-4" />
+                        )}
                         {a.file_url ? "Openen" : "Link"}
                       </a>
                     </li>
@@ -223,7 +255,10 @@ function DocumentsPage() {
                 ))}
               </ul>
             )}
-            <Link to="/sharepoint" className="mt-2 inline-block text-sm font-medium text-brand hover:underline">
+            <Link
+              to="/sharepoint"
+              className="mt-2 inline-block text-sm font-medium text-brand hover:underline"
+            >
               Naar SharePoint-overzicht
             </Link>
           </aside>

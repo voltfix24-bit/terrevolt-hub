@@ -16,13 +16,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-export function PermissionGate({
-  roles,
-  permissions,
-  check,
-  deniedMessage,
-  children,
-}: Props) {
+export function PermissionGate({ roles, permissions, check, deniedMessage, children }: Props) {
   const perms = usePerms();
 
   if (!perms.ready) {
@@ -40,7 +34,9 @@ export function PermissionGate({
     allowed = check(perms);
   } else {
     const roleOk = roles ? perms.hasRole(...roles) : false;
-    const permOk = permissions ? permissions.some((p) => perms.canManage(p) || perms.hasPermission(p)) : false;
+    const permOk = permissions
+      ? permissions.some((p) => perms.canManage(p) || perms.hasPermission(p))
+      : false;
     allowed = perms.isAdmin || roleOk || permOk;
   }
 

@@ -11,15 +11,25 @@ import { useSession, useCurrentRole } from "@/lib/auth";
 import { useActiveApplications } from "@/lib/applications";
 import { usePublishedNews, formatNewsDate } from "@/lib/news";
 import { useKbArticles, useKbSections, isExpired, formatKbDate } from "@/lib/knowledge";
-import { useFavoriteSharePointLinks, useFavoriteSharePointFolders, useSharePointMutations } from "@/lib/sharepoint";
+import {
+  useFavoriteSharePointLinks,
+  useFavoriteSharePointFolders,
+  useSharePointMutations,
+} from "@/lib/sharepoint";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Startpagina — TerreVolt Intranet" },
-      { name: "description", content: "Het centrale startpunt voor TerreVolt medewerkers: tools, kennis en nieuws." },
+      {
+        name: "description",
+        content: "Het centrale startpunt voor TerreVolt medewerkers: tools, kennis en nieuws.",
+      },
       { property: "og:title", content: "Startpagina — TerreVolt Intranet" },
-      { property: "og:description", content: "Snel naar interne tools, kennisbank, documenten en het laatste nieuws." },
+      {
+        property: "og:description",
+        content: "Snel naar interne tools, kennisbank, documenten en het laatste nieuws.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -36,7 +46,15 @@ function computeGreeting() {
   return "Goedenavond";
 }
 
-function Panel({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
+function Panel({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
   return (
     <section className="min-w-0 rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -50,7 +68,10 @@ function Panel({ title, action, children }: { title: string; action?: ReactNode;
 
 function MoreLink({ to, children }: { to: string; children: ReactNode }) {
   return (
-    <Link to={to} className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-brand hover:underline">
+    <Link
+      to={to}
+      className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-brand hover:underline"
+    >
       {children} <ArrowRight className="h-3.5 w-3.5" />
     </Link>
   );
@@ -113,7 +134,10 @@ function Dashboard() {
   const recentKb = useMemo(
     () =>
       (articles.data ?? [])
-        .filter((a) => a.status === "active" && !isExpired(a) && a.section_id && sectionSlug.has(a.section_id))
+        .filter(
+          (a) =>
+            a.status === "active" && !isExpired(a) && a.section_id && sectionSlug.has(a.section_id),
+        )
         .slice()
         .sort((a, b) => (b.updated_at > a.updated_at ? 1 : -1))
         .slice(0, 5),
@@ -128,7 +152,9 @@ function Dashboard() {
       <div className="mx-auto max-w-6xl space-y-5">
         {/* Header */}
         <header className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-brand">TerreVolt Intranet</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand">
+            TerreVolt Intranet
+          </p>
           <h1 className="mt-1 break-words text-2xl font-semibold tracking-tight text-navy sm:text-3xl">
             {greeting}
             {displayName ? `, ${displayName}` : ""}
@@ -151,16 +177,33 @@ function Dashboard() {
             </ul>
           )}
           {quickLinks.error && (
-            <p className="mt-2 text-sm text-destructive">Snelkoppelingen konden niet geladen worden.</p>
+            <p className="mt-2 text-sm text-destructive">
+              Snelkoppelingen konden niet geladen worden.
+            </p>
           )}
         </header>
 
         {/* Information entry points */}
         <nav aria-label="Informatie" className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           {[
-            { to: "/vraagbaak", icon: Search, title: "Vraagbaak", text: "Stel een vraag over alles in het intranet" },
-            { to: "/kennisbank", icon: BookOpen, title: "Kennisbank", text: "Procedures, eisen en werkinstructies" },
-            { to: "/documenten", icon: FileText, title: "Documenten", text: "Alle bestanden en SharePoint-ingangen" },
+            {
+              to: "/vraagbaak",
+              icon: Search,
+              title: "Vraagbaak",
+              text: "Stel een vraag over alles in het intranet",
+            },
+            {
+              to: "/kennisbank",
+              icon: BookOpen,
+              title: "Kennisbank",
+              text: "Procedures, eisen en werkinstructies",
+            },
+            {
+              to: "/documenten",
+              icon: FileText,
+              title: "Documenten",
+              text: "Alle bestanden en SharePoint-ingangen",
+            },
           ].map((e) => (
             <Link
               key={e.to}
@@ -221,10 +264,18 @@ function Dashboard() {
                       <div className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                         <span>{formatNewsDate(n.publish_date)}</span>
                         {n.category && <span>· {n.category}</span>}
-                        {n.important && <span className="font-medium text-brand">· Belangrijk</span>}
+                        {n.important && (
+                          <span className="font-medium text-brand">· Belangrijk</span>
+                        )}
                       </div>
-                      <div className="mt-0.5 break-words font-medium leading-snug text-navy">{n.title}</div>
-                      {n.summary && <p className="mt-0.5 line-clamp-2 text-sm text-foreground/70">{n.summary}</p>}
+                      <div className="mt-0.5 break-words font-medium leading-snug text-navy">
+                        {n.title}
+                      </div>
+                      {n.summary && (
+                        <p className="mt-0.5 line-clamp-2 text-sm text-foreground/70">
+                          {n.summary}
+                        </p>
+                      )}
                     </Link>
                   </li>
                 ))}
@@ -232,7 +283,10 @@ function Dashboard() {
             )}
           </Panel>
 
-          <Panel title="Recent bijgewerkte kennis" action={<MoreLink to="/kennisbank">Kennisbank</MoreLink>}>
+          <Panel
+            title="Recent bijgewerkte kennis"
+            action={<MoreLink to="/kennisbank">Kennisbank</MoreLink>}
+          >
             {articles.isLoading ? (
               <Skeleton rows={4} />
             ) : articles.error ? (
@@ -248,7 +302,9 @@ function Dashboard() {
                       params={{ slug: sectionSlug.get(a.section_id!)!.slug, articleSlug: a.slug }}
                       className="block min-w-0 hover:text-brand"
                     >
-                      <div className="break-words text-sm font-medium leading-snug text-navy">{a.title}</div>
+                      <div className="break-words text-sm font-medium leading-snug text-navy">
+                        {a.title}
+                      </div>
                       <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                         <Clock className="h-3 w-3" />
                         <span>{formatKbDate(a.updated_at)}</span>
@@ -292,7 +348,10 @@ function Dashboard() {
             )}
           </Panel>
 
-          <Panel title="SharePoint-favorieten" action={<MoreLink to="/sharepoint">SharePoint</MoreLink>}>
+          <Panel
+            title="SharePoint-favorieten"
+            action={<MoreLink to="/sharepoint">SharePoint</MoreLink>}
+          >
             {sp.length === 0 ? (
               <StateBox kind="empty">Nog geen favorieten ingesteld.</StateBox>
             ) : (

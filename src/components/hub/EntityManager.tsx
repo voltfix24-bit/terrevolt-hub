@@ -77,7 +77,13 @@ export function EntityManager<T extends Row>({
       </div>
 
       {adding && draft && (
-        <EditorCard fields={fields} draft={draft} setDraft={setDraft} onSave={save} onCancel={cancel} />
+        <EditorCard
+          fields={fields}
+          draft={draft}
+          setDraft={setDraft}
+          onSave={save}
+          onCancel={cancel}
+        />
       )}
 
       <div className="space-y-2">
@@ -195,7 +201,9 @@ function EditorCard({
                   className="w-full rounded-xl border border-border bg-background p-2.5 outline-none focus:ring-2 focus:ring-brand/40"
                 >
                   {f.options.map((o) => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
                   ))}
                 </select>
               </label>

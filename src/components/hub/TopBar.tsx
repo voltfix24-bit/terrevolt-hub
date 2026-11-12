@@ -101,7 +101,9 @@ export function TopBar({ onOpenMobileNav }: { onOpenMobileNav?: () => void }) {
               <div className="px-3 py-2">
                 <div className="truncate text-sm font-medium text-navy">{displayName}</div>
                 <div className="truncate text-xs text-muted-foreground">{user.email}</div>
-                {role && <div className="mt-0.5 text-xs text-muted-foreground">{roleLabel(role.role)}</div>}
+                {role && (
+                  <div className="mt-0.5 text-xs text-muted-foreground">{roleLabel(role.role)}</div>
+                )}
               </div>
               <div className="my-1 h-px bg-border" />
               <button

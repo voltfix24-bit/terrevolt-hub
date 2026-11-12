@@ -88,7 +88,10 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
         </div>
       </Link>
 
-      <nav aria-label="Hoofdmenu" className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-3 pb-6">
+      <nav
+        aria-label="Hoofdmenu"
+        className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-3 pb-6"
+      >
         {groups.map((g) => {
           const visible = g.items.filter((i) => !i.show || i.show(perms));
           if (visible.length === 0) return null;
@@ -128,7 +131,11 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="border-t border-sidebar-border px-5 py-4 pb-safe text-xs text-muted-foreground">
         Iets niet gevonden?{" "}
-        <Link to="/vraagbaak" onClick={onNavigate} className="font-medium text-navy underline-offset-2 hover:underline">
+        <Link
+          to="/vraagbaak"
+          onClick={onNavigate}
+          className="font-medium text-navy underline-offset-2 hover:underline"
+        >
           Vraag het de Vraagbaak
         </Link>
       </div>
@@ -153,7 +160,10 @@ export function MobileSidebar({
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="flex h-dvh w-72 max-w-[85vw] flex-col gap-0 bg-sidebar p-0">
+      <SheetContent
+        side="left"
+        className="flex h-dvh w-72 max-w-[85vw] flex-col gap-0 bg-sidebar p-0"
+      >
         <SheetTitle className="sr-only">Menu</SheetTitle>
         <NavContent onNavigate={() => onOpenChange(false)} />
       </SheetContent>
