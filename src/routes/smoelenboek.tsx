@@ -240,8 +240,41 @@ function ProfileCard({ person, admin, onEdit }: { person: Person; admin: boolean
 
 function PeopleList({ people, admin, onEdit }: { people: Person[]; admin: boolean; onEdit: (p: Person) => void }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <table className="w-full text-sm">
+    <>
+    <ul className="space-y-2 lg:hidden">
+      {people.map((p) => (
+        <li key={p.id} className="rounded-xl border border-border bg-card p-3 shadow-sm">
+          <div className="flex min-w-0 items-start gap-3">
+            <Link to="/smoelenboek/$id" params={{ id: p.id }} className="flex min-w-0 flex-1 items-center gap-3">
+              <Avatar person={p} size={40} />
+              <div className="min-w-0">
+                <div className="break-words font-medium text-navy">{p.full_name}</div>
+                <div className="break-words text-xs text-muted-foreground">
+                  {[p.job_title || p.person_type, p.department, p.location].filter(Boolean).join(" · ")}
+                </div>
+              </div>
+            </Link>
+            <StatusBadge status={p.status} />
+          </div>
+          {(p.phone || p.email) && (
+            <div className="mt-2 space-y-0.5 text-xs text-foreground/80">
+              {p.phone && <div className="break-all">{p.phone}</div>}
+              {p.email && <div className="break-all">{p.email}</div>}
+            </div>
+          )}
+          <div className="mt-2 flex flex-wrap items-center justify-end gap-1">
+            <QuickActions person={p} />
+            {admin && (
+              <button onClick={() => onEdit(p)} className="rounded-lg p-2 hover:bg-accent" title="Bewerken" aria-label="Bewerken">
+                <Pencil className="h-4 w-4 text-foreground/70" />
+              </button>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
+    <div className="hidden overflow-hidden rounded-2xl border border-border bg-card shadow-sm lg:block">
+      <table className="w-full table-fixed text-sm">
         <thead className="bg-accent/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
           <tr>
             <th className="px-4 py-3">Naam</th>
@@ -266,7 +299,7 @@ function PeopleList({ people, admin, onEdit }: { people: Person[]; admin: boolea
               <td className="px-4 py-3 text-foreground/80">{p.job_title || p.person_type}</td>
               <td className="px-4 py-3 text-foreground/80">{p.department}</td>
               <td className="px-4 py-3 text-foreground/80">{p.phone}</td>
-              <td className="px-4 py-3 text-foreground/80">{p.email}</td>
+              <td className="break-all px-4 py-3 text-foreground/80">{p.email}</td>
               <td className="px-4 py-3 text-foreground/80">{p.location}</td>
               <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
               <td className="px-4 py-3">
@@ -284,6 +317,7 @@ function PeopleList({ people, admin, onEdit }: { people: Person[]; admin: boolea
         </tbody>
       </table>
     </div>
+    </>
   );
 }
 
