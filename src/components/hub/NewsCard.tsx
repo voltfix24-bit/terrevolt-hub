@@ -3,7 +3,7 @@ import { Pin } from "lucide-react";
 
 export function NewsCard({ item }: { item: NewsArticle }) {
   return (
-    <article className="group flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-colors hover:border-brand/50">
+    <article id={item.id} className="group flex scroll-mt-20 flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm transition-colors hover:border-brand/50">
       <div className="relative aspect-[16/10] overflow-hidden bg-accent">
         {item.cover_image ? (
           <img
