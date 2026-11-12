@@ -174,7 +174,7 @@ function DocumentsPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() =>
-                          void logAudit(a.file_url ? "document.download" : "document.open", "kb_article", a.id)
+                          void logAudit(a.file_url ? "document.download" : "document.open", { targetType: "kb_article", targetId: a.id, metadata: { title: a.title } })
                         }
                         className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 self-start rounded-md border border-border px-3 text-sm font-medium text-navy hover:bg-secondary sm:self-auto"
                       >
