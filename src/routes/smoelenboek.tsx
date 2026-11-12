@@ -501,7 +501,7 @@ function PersonEditor({ person, onClose }: { person: Person | null; onClose: () 
           </Field>
         </div>
 
-        <div className="mt-5 flex items-center justify-between">
+        <div className="sticky bottom-0 -mx-4 mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-border bg-card px-4 pt-3 sm:static sm:mx-0 sm:border-0 sm:px-0 sm:pt-0">
           {person ? (
             <Button variant="ghost" onClick={del} className="text-rose-600 gap-2">
               <Trash2 className="h-4 w-4" /> Archiveren
