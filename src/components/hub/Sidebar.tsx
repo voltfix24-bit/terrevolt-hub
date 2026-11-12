@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import logo from "@/assets/terrevolt-logo.png.asset.json";
 import {
-  LayoutDashboard,
+  Home,
   AppWindow,
   Newspaper,
   BookOpen,
@@ -9,12 +9,12 @@ import {
   ExternalLink,
   Cloud,
   Settings,
-  Sparkles,
+  Search,
   Wallet,
   Users,
   type LucideIcon,
 } from "lucide-react";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { usePerms, type Perms } from "@/lib/auth";
 
 type NavItem = {
@@ -24,74 +24,113 @@ type NavItem = {
   show?: (p: Perms) => boolean;
 };
 
-const items: NavItem[] = [
-  { label: "Dashboard", to: "/", icon: LayoutDashboard },
-  { label: "Vraagbaak", to: "/vraagbaak", icon: Sparkles },
-  { label: "Applicaties", to: "/applicaties", icon: AppWindow },
-  { label: "Nieuws", to: "/nieuws", icon: Newspaper },
-  { label: "Kennisbank", to: "/kennisbank", icon: BookOpen },
-  {
-    label: "Finance Wiki",
-    to: "/finance-wiki",
-    icon: Wallet,
-    show: (p) => p.canViewFinance,
-  },
-  { label: "Smoelenboek", to: "/smoelenboek", icon: Users },
-  { label: "SharePoint", to: "/sharepoint", icon: Cloud },
-  { label: "Documenten", to: "/documenten", icon: FileText },
-  { label: "Partnerportalen", to: "/partnerportalen", icon: ExternalLink },
-  {
-    label: "Instellingen",
-    to: "/instellingen",
-    icon: Settings,
-    show: (p) =>
-      p.isAdmin || p.hasPermission("manage_settings") || p.hasPermission("manage_users"),
-  },
+type NavGroup = { label: string; items: NavItem[] };
 
+const groups: NavGroup[] = [
+  {
+    label: "Start",
+    items: [
+      { label: "Startpagina", to: "/", icon: Home },
+      { label: "Vraagbaak", to: "/vraagbaak", icon: Search },
+      { label: "Nieuws", to: "/nieuws", icon: Newspaper },
+    ],
+  },
+  {
+    label: "Werkplek",
+    items: [
+      { label: "Applicaties", to: "/applicaties", icon: AppWindow },
+      { label: "Partnerportalen", to: "/partnerportalen", icon: ExternalLink },
+    ],
+  },
+  {
+    label: "Informatie",
+    items: [
+      { label: "Kennisbank", to: "/kennisbank", icon: BookOpen },
+      { label: "Documenten", to: "/documenten", icon: FileText },
+      { label: "SharePoint", to: "/sharepoint", icon: Cloud },
+      { label: "Finance", to: "/finance-wiki", icon: Wallet, show: (p) => p.canViewFinance },
+    ],
+  },
+  {
+    label: "Organisatie",
+    items: [{ label: "Collega's", to: "/smoelenboek", icon: Users }],
+  },
+  {
+    label: "Beheer",
+    items: [
+      {
+        label: "Instellingen",
+        to: "/instellingen",
+        icon: Settings,
+        show: (p) =>
+          p.isAdmin || p.hasPermission("manage_settings") || p.hasPermission("manage_users"),
+      },
+    ],
+  },
 ];
+
+/** Active when the path equals the item or is one of its sub-pages. */
+export function isNavActive(pathname: string, to: string): boolean {
+  if (to === "/") return pathname === "/";
+  return pathname === to || pathname.startsWith(`${to}/`);
+}
 
 function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const perms = usePerms();
-  const visible = items.filter((i) => !i.show || i.show(perms));
   return (
     <>
-      <div className="flex items-center gap-2 px-6 py-6">
-        <img src={logo.url} alt="TerreVolt" className="h-9 w-9 object-contain" />
-        <div className="leading-tight">
+      <Link to="/" onClick={onNavigate} className="flex items-center gap-2.5 px-5 py-5">
+        <img src={logo.url} alt="" className="h-8 w-8 shrink-0 object-contain" />
+        <div className="min-w-0 leading-tight">
           <div className="font-semibold text-navy">TerreVolt</div>
           <div className="text-xs text-muted-foreground">Intranet</div>
         </div>
-      </div>
+      </Link>
 
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-2">
-        {visible.map((item) => {
-          const active = pathname === item.to;
-          const Icon = item.icon;
+      <nav aria-label="Hoofdmenu" className="min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-3 pb-6">
+        {groups.map((g) => {
+          const visible = g.items.filter((i) => !i.show || i.show(perms));
+          if (visible.length === 0) return null;
           return (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={onNavigate}
-              className={[
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                active
-                  ? "bg-brand text-brand-foreground shadow-sm"
-                  : "text-foreground/70 hover:bg-accent hover:text-foreground",
-              ].join(" ")}
-            >
-              <Icon className="h-4 w-4" />
-              {item.label}
-            </Link>
+            <div key={g.label}>
+              <div className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {g.label}
+              </div>
+              <ul className="space-y-0.5">
+                {visible.map((item) => {
+                  const active = isNavActive(pathname, item.to);
+                  const Icon = item.icon;
+                  return (
+                    <li key={item.to}>
+                      <Link
+                        to={item.to}
+                        onClick={onNavigate}
+                        aria-current={active ? "page" : undefined}
+                        className={[
+                          "flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                          active
+                            ? "bg-navy text-brand-foreground"
+                            : "text-foreground/75 hover:bg-secondary hover:text-foreground",
+                        ].join(" ")}
+                      >
+                        <Icon className={`h-4 w-4 shrink-0 ${active ? "text-pastel" : ""}`} />
+                        <span className="truncate">{item.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           );
         })}
       </nav>
 
-      <div className="m-3 rounded-2xl bg-gradient-to-br from-pastel to-lime-soft p-4">
-        <div className="text-sm font-semibold text-navy">Hulp nodig?</div>
-        <p className="mt-1 text-xs text-navy/70">
-          Bekijk de kennisbank of neem contact op met IT.
-        </p>
+      <div className="border-t border-sidebar-border px-5 py-4 pb-safe text-xs text-muted-foreground">
+        Iets niet gevonden?{" "}
+        <Link to="/vraagbaak" onClick={onNavigate} className="font-medium text-navy underline-offset-2 hover:underline">
+          Vraag het de Vraagbaak
+        </Link>
       </div>
     </>
   );
@@ -99,7 +138,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
 
 export function Sidebar() {
   return (
-    <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
+    <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar md:flex">
       <NavContent />
     </aside>
   );
@@ -114,10 +153,8 @@ export function MobileSidebar({
 }) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="left"
-        className="flex w-72 max-w-[85vw] flex-col bg-sidebar p-0"
-      >
+      <SheetContent side="left" className="flex h-dvh w-72 max-w-[85vw] flex-col gap-0 bg-sidebar p-0">
+        <SheetTitle className="sr-only">Menu</SheetTitle>
         <NavContent onNavigate={() => onOpenChange(false)} />
       </SheetContent>
     </Sheet>
