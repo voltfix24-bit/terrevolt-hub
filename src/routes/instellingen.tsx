@@ -163,15 +163,27 @@ function SettingsPage() {
         </div>
 
 
-        <div className="mb-6 flex flex-wrap gap-1 rounded-2xl border border-border bg-card p-1.5 shadow-sm">
+        <label className="mb-5 block md:hidden">
+          <span className="mb-1 block text-xs font-medium text-muted-foreground">Onderdeel</span>
+          <select
+            value={tab}
+            onChange={(e) => setTab(e.target.value as TabId)}
+            className="h-11 w-full rounded-lg border border-border bg-card px-3 text-navy"
+          >
+            {TABS.map((t) => (
+              <option key={t.id} value={t.id}>{t.label}</option>
+            ))}
+          </select>
+        </label>
+        <div className="mb-6 hidden flex-wrap gap-1 rounded-lg border border-border bg-card p-1.5 shadow-sm md:flex">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
               className={[
-                "rounded-xl px-3.5 py-2 text-sm font-medium transition-colors",
+                "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 tab === t.id
-                  ? "bg-brand text-brand-foreground shadow-sm"
+                  ? "bg-navy text-brand-foreground"
                   : "text-foreground/70 hover:bg-accent hover:text-foreground",
               ].join(" ")}
             >
@@ -566,7 +578,7 @@ function RolesTab() {
   };
   return (
     <>
-      <div className="mb-4 rounded-2xl border border-border bg-card/60 p-4 text-sm text-foreground/70">
+      <div className="mb-4 rounded-lg border border-border bg-card/60 p-4 text-sm text-foreground/70">
         <p className="font-medium text-navy">Rolbeheer</p>
         <p className="mt-1">
           Wijs één van vijf rollen toe aan een gebruiker:{" "}
@@ -632,7 +644,7 @@ function AccessTab() {
 
   return (
     <>
-      <div className="mb-4 rounded-2xl border border-border bg-card/60 p-4 text-sm text-foreground/70">
+      <div className="mb-4 rounded-lg border border-border bg-card/60 p-4 text-sm text-foreground/70">
         <p className="font-medium text-navy">Toegang & extra rechten</p>
         <p className="mt-1">
           Zet gebruikers actief/inactief en ken extra module-rechten toe. Admins hebben automatisch
@@ -640,34 +652,26 @@ function AccessTab() {
         </p>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
-        <table className="min-w-full text-sm">
-          <thead className="bg-accent/40 text-left text-xs uppercase text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 font-medium">Gebruiker</th>
-              <th className="px-4 py-3 font-medium">Rol</th>
-              <th className="px-4 py-3 font-medium">Actief</th>
-              {APP_PERMISSIONS.map((p) => (
-                <th key={p.value} className="px-3 py-3 font-medium" title={p.description}>
-                  {p.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {roles.map((u) => {
-              const userPerms = permByUser.get(u.user_id) ?? new Set<AppPermission>();
-              return (
-                <tr key={u.id} className="border-t border-border/60">
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-navy">
-                      {u.display_name || u.email || "Onbekend"}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{u.email}</div>
-                  </td>
-                  <td className="px-4 py-3">
+      {roles.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-border bg-card/50 p-6 text-center text-sm text-muted-foreground">
+          Nog geen gebruikers. Voeg ze eerst toe via het tabblad "Rollen".
+        </div>
+      ) : (
+        <ul className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+          {roles.map((u) => {
+            const userPerms = permByUser.get(u.user_id) ?? new Set<AppPermission>();
+            const who = u.display_name || u.email || "Onbekend";
+            return (
+              <li key={u.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                <div className="min-w-0">
+                  <div className="break-words font-medium text-navy">{who}</div>
+                  <div className="break-all text-xs text-muted-foreground">{u.email}</div>
+                </div>
+                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <label className="block text-xs text-muted-foreground">
+                    Rol
                     <select
-                      className="rounded-lg border border-border bg-background px-2 py-1.5 text-xs"
+                      className="mt-1 block w-full rounded-lg border border-border bg-background px-2 py-2"
                       value={u.role}
                       onChange={(e) =>
                         update.mutate({
@@ -682,50 +686,44 @@ function AccessTab() {
                         </option>
                       ))}
                     </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    <label className="inline-flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={u.active}
-                        onChange={(e) =>
-                          update.mutate({ id: u.id, patch: { active: e.target.checked } })
-                        }
-                      />
-                      <span className="text-xs text-muted-foreground">
-                        {u.active ? "Ja" : "Nee"}
-                      </span>
-                    </label>
-                  </td>
-                  {APP_PERMISSIONS.map((p) => {
-                    const has = userPerms.has(p.value);
-                    return (
-                      <td key={p.value} className="px-3 py-3 text-center">
-                        <input
-                          type="checkbox"
-                          checked={has}
-                          onChange={() => toggle(u.user_id, p.value, has)}
-                          aria-label={`${p.label} voor ${u.display_name || u.email}`}
-                        />
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-            {roles.length === 0 && (
-              <tr>
-                <td
-                  colSpan={3 + APP_PERMISSIONS.length}
-                  className="px-4 py-8 text-center text-sm text-muted-foreground"
-                >
-                  Nog geen gebruikers. Voeg ze eerst toe via het tabblad "Rollen".
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+                  </label>
+                  <label className="flex items-center gap-2 self-end rounded-lg border border-border px-3 py-2 text-sm">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4"
+                      checked={u.active}
+                      onChange={(e) =>
+                        update.mutate({ id: u.id, patch: { active: e.target.checked } })
+                      }
+                    />
+                    Actief account
+                  </label>
+                </div>
+                <fieldset className="mt-3">
+                  <legend className="text-xs text-muted-foreground">Extra rechten</legend>
+                  <div className="mt-1 grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                    {APP_PERMISSIONS.map((p) => {
+                      const has = userPerms.has(p.value);
+                      return (
+                        <label key={p.value} className="flex min-w-0 items-center gap-2 rounded-md px-1 py-1 text-sm hover:bg-accent/40" title={p.description}>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 shrink-0"
+                            checked={has}
+                            onChange={() => toggle(u.user_id, p.value, has)}
+                            aria-label={`${p.label} voor ${who}`}
+                          />
+                          <span className="min-w-0 break-words">{p.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 }
@@ -937,7 +935,7 @@ function KbArticlesTab() {
       </div>
 
       {sections.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-border bg-card/50 p-6 text-sm text-muted-foreground">
+        <div className="rounded-lg border border-dashed border-border bg-card/50 p-6 text-sm text-muted-foreground">
           Maak eerst een hoofdsectie aan op het tabblad "KB secties".
         </div>
       )}
@@ -986,7 +984,7 @@ function KbArticlesTab() {
 
       <div className="space-y-2">
         {visible.length === 0 && !adding && (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
             Geen kennisitems.
           </div>
         )}
@@ -995,7 +993,7 @@ function KbArticlesTab() {
           return (
             <div
               key={a.id}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm"
+              className="flex items-center gap-3 rounded-lg border border-border bg-card p-4 shadow-sm"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -1133,7 +1131,7 @@ function ArticleEditor({
   const subCats = categories;
 
   return (
-    <div className="space-y-5 rounded-2xl border border-brand/40 bg-card p-5 shadow-sm">
+    <div className="space-y-5 rounded-lg border border-brand/40 bg-card p-5 shadow-sm">
       {/* Basics */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Field label="Titel" full>
@@ -1416,13 +1414,13 @@ function ArticleEditor({
                   placeholder="Naam"
                   value={att.label}
                   onChange={(e) => setAttachment(i, { label: e.target.value })}
-                  className="min-w-[140px] flex-1 rounded-lg border border-border bg-background p-2 text-sm outline-none focus:ring-2 focus:ring-brand/40"
+                  className="w-full min-w-0 flex-1 sm:min-w-[140px] rounded-lg border border-border bg-background p-2 text-sm outline-none focus:ring-2 focus:ring-brand/40"
                 />
                 <input
                   placeholder="https://…"
                   value={att.url}
                   onChange={(e) => setAttachment(i, { url: e.target.value })}
-                  className="min-w-[200px] flex-[2] rounded-lg border border-border bg-background p-2 text-sm outline-none focus:ring-2 focus:ring-brand/40"
+                  className="w-full min-w-0 flex-[2] sm:min-w-[200px] rounded-lg border border-border bg-background p-2 text-sm outline-none focus:ring-2 focus:ring-brand/40"
                 />
                 <button
                   onClick={() => removeAttachment(i)}
@@ -1593,7 +1591,7 @@ function SearchIndexTab() {
       <PdfExtractionCard />
       <VraagbaakCacheCard />
 
-      <details className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+      <details className="rounded-lg border border-border bg-card p-5 shadow-sm">
         <summary className="cursor-pointer text-sm font-medium text-navy">
           Geavanceerd: volledige herindexering
         </summary>
@@ -1738,7 +1736,7 @@ function ReindexQueueCard({
   const items = failedQ.data ?? [];
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="text-sm">
           <div className="font-medium text-navy">Automatische verwerking</div>
@@ -1906,7 +1904,7 @@ function VraagbaakCacheCard() {
 
   const s = stats.data;
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
           <div className="text-sm font-semibold text-navy">Vraagbaak cache</div>
@@ -2116,7 +2114,7 @@ function PdfExtractionCard() {
   const s = statsQuery.data;
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-navy">PDF-extractie</h3>
@@ -2210,7 +2208,7 @@ function AuditLogTab() {
 
   if (!perms.isAdmin) {
     return (
-      <div className="rounded-2xl border border-border bg-card p-6 text-sm text-muted-foreground">
+      <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
         Alleen admins kunnen het audit-log inzien.
       </div>
     );
@@ -2222,55 +2220,34 @@ function AuditLogTab() {
         Laatste {logs.length} gevoelige acties. Schrijven gebeurt server-side via{" "}
         <code>log_audit()</code>; niemand kan logs aanpassen of verwijderen.
       </div>
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
-            <tr>
-              <th className="px-3 py-2">Tijd</th>
-              <th className="px-3 py-2">Gebruiker</th>
-              <th className="px-3 py-2">Actie</th>
-              <th className="px-3 py-2">Doel</th>
-              <th className="px-3 py-2">Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading && (
-              <tr>
-                <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
-                  Laden…
-                </td>
-              </tr>
-            )}
-            {!isLoading && logs.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-3 py-6 text-center text-muted-foreground">
-                  Nog geen audit-records.
-                </td>
-              </tr>
-            )}
-            {logs.map((l) => (
-              <tr key={l.id} className="border-t border-border align-top">
-                <td className="px-3 py-2 whitespace-nowrap text-xs text-muted-foreground">
-                  {new Date(l.created_at).toLocaleString("nl-NL")}
-                </td>
-                <td className="px-3 py-2 text-xs">{l.actor_email ?? "—"}</td>
-                <td className="px-3 py-2 text-xs font-medium text-navy">{l.action}</td>
-                <td className="px-3 py-2 text-xs">
+      {isLoading && <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">Laden…</div>}
+      {!isLoading && logs.length === 0 && (
+        <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground">Nog geen audit-records.</div>
+      )}
+      {logs.length > 0 && (
+        <ul className="divide-y divide-border rounded-xl border border-border bg-card">
+          {logs.map((l) => (
+            <li key={l.id} className="grid grid-cols-1 gap-1 px-3 py-3 text-xs md:grid-cols-[11rem_minmax(0,12rem)_minmax(0,10rem)_minmax(0,1fr)] md:gap-3">
+              <div className="text-muted-foreground">{new Date(l.created_at).toLocaleString("nl-NL")}</div>
+              <div className="min-w-0 break-all">{l.actor_email ?? "—"}</div>
+              <div className="min-w-0 break-words font-medium text-navy">
+                {l.action}
+                <div className="font-normal text-muted-foreground">
                   {l.target_type ?? "—"}
                   {l.target_id ? ` · ${l.target_id.slice(0, 8)}` : ""}
-                </td>
-                <td className="px-3 py-2 text-xs">
-                  {Object.keys(l.metadata ?? {}).length ? (
-                    <code className="text-[11px]">{JSON.stringify(l.metadata)}</code>
-                  ) : (
-                    "—"
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                </div>
+              </div>
+              <div className="min-w-0">
+                {Object.keys(l.metadata ?? {}).length ? (
+                  <code className="block whitespace-pre-wrap break-all text-[11px]">{JSON.stringify(l.metadata)}</code>
+                ) : (
+                  "—"
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

@@ -22,13 +22,16 @@ export function PeopleSearchWidget() {
   }, [people, q]);
 
   return (
-    <div className="rounded-3xl border border-border bg-gradient-to-br from-card via-card to-lime-soft/30 p-5 shadow-sm">
+    <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-semibold text-navy">
-          <Users className="h-4 w-4 text-brand" /> Snel collega zoeken
+          <Users className="h-4 w-4 text-brand" /> Collega zoeken
         </div>
-        <Link to="/smoelenboek" className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline">
-          Smoelenboek <ArrowUpRight className="h-3 w-3" />
+        <Link
+          to="/smoelenboek"
+          className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+        >
+          Alle collega's <ArrowUpRight className="h-3 w-3" />
         </Link>
       </div>
 
@@ -57,7 +60,11 @@ export function PeopleSearchWidget() {
                 className="group flex items-center gap-3 rounded-xl px-2 py-2 hover:bg-accent/60"
               >
                 {p.photo_url ? (
-                  <img src={p.photo_url} alt={p.full_name} className="h-9 w-9 rounded-full object-cover border border-border" />
+                  <img
+                    src={p.photo_url}
+                    alt={p.full_name}
+                    className="h-9 w-9 rounded-full object-cover border border-border"
+                  />
                 ) : (
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-pastel text-xs font-semibold text-navy">
                     {initials(p.full_name)}
@@ -66,7 +73,8 @@ export function PeopleSearchWidget() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-medium text-navy">{p.full_name}</div>
                   <div className="truncate text-xs text-muted-foreground">
-                    {p.job_title || p.person_type}{p.phone && ` · ${p.phone}`}
+                    {p.job_title || p.person_type}
+                    {p.phone && ` · ${p.phone}`}
                   </div>
                 </div>
                 <ArrowUpRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />

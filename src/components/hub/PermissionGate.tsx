@@ -16,13 +16,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-export function PermissionGate({
-  roles,
-  permissions,
-  check,
-  deniedMessage,
-  children,
-}: Props) {
+export function PermissionGate({ roles, permissions, check, deniedMessage, children }: Props) {
   const perms = usePerms();
 
   if (!perms.ready) {
@@ -40,7 +34,9 @@ export function PermissionGate({
     allowed = check(perms);
   } else {
     const roleOk = roles ? perms.hasRole(...roles) : false;
-    const permOk = permissions ? permissions.some((p) => perms.canManage(p) || perms.hasPermission(p)) : false;
+    const permOk = permissions
+      ? permissions.some((p) => perms.canManage(p) || perms.hasPermission(p))
+      : false;
     allowed = perms.isAdmin || roleOk || permOk;
   }
 
@@ -48,7 +44,7 @@ export function PermissionGate({
     return (
       <HubLayout>
         <div className="mx-auto max-w-md py-20 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-pastel">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-pastel">
             <Lock className="h-6 w-6 text-navy" />
           </div>
           <h2 className="mt-4 text-xl font-semibold text-navy">Geen toegang</h2>

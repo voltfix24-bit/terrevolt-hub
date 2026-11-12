@@ -2,7 +2,6 @@
 @source "../src";
 @import "tw-animate-css";
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -50,7 +49,7 @@
 }
 
 :root {
-  --radius: 1rem;
+  --radius: 0.625rem;
 
   /* Brand */
   --brand: oklch(0.72 0.16 148);          /* #52B96F TerreVolt Green */
@@ -122,4 +121,43 @@
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
   }
+}
+
+/* ---------- Mobile foundations ----------
+ * Vertical document scroll only, no pinch/double-tap zoom, no iOS focus zoom.
+ * touch-action pan-y on the root restricts gestures for the whole tree;
+ * nested vertical scroll areas (menu, dialogs) keep working. */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    touch-action: pan-y;
+  }
+  body {
+    touch-action: pan-y;
+    overflow-wrap: break-word;
+    min-width: 0;
+  }
+  img, video, svg, canvas, iframe {
+    max-width: 100%;
+  }
+  pre, code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  button, a, [role="button"], label {
+    touch-action: manipulation;
+  }
+}
+
+/* iOS Safari zooms on focus when font-size < 16px. Unlayered + !important so
+ * it wins over text-sm/text-xs utilities on any form control. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+  font-size: 16px !important;
+}
+
+@utility pb-safe {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }

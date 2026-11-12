@@ -95,7 +95,7 @@ function SmoelenboekPage() {
         />
 
         {/* Search + view toggle */}
-        <div className="rounded-3xl border border-border bg-card p-5 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <div className="relative flex-1">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -141,11 +141,11 @@ function SmoelenboekPage() {
         </div>
 
         {isLoading ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-12 text-center text-sm text-muted-foreground">
             Laden…
           </div>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-12 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-12 text-center text-sm text-muted-foreground">
             Geen profielen gevonden met deze filters.
           </div>
         ) : view === "grid" ? (
@@ -189,7 +189,7 @@ function FilterSelect({
 
 function ProfileCard({ person, admin, onEdit }: { person: Person; admin: boolean; onEdit: () => void }) {
   return (
-    <div className="group relative flex flex-col rounded-3xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40">
+    <div className="group relative flex flex-col rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md hover:border-brand/40">
       <Link to="/smoelenboek/$id" params={{ id: person.id }} className="flex items-start gap-4">
         <Avatar person={person} size={56} />
         <div className="min-w-0 flex-1">
@@ -240,8 +240,41 @@ function ProfileCard({ person, admin, onEdit }: { person: Person; admin: boolean
 
 function PeopleList({ people, admin, onEdit }: { people: Person[]; admin: boolean; onEdit: (p: Person) => void }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-      <table className="w-full text-sm">
+    <>
+    <ul className="space-y-2 lg:hidden">
+      {people.map((p) => (
+        <li key={p.id} className="rounded-xl border border-border bg-card p-3 shadow-sm">
+          <div className="flex min-w-0 items-start gap-3">
+            <Link to="/smoelenboek/$id" params={{ id: p.id }} className="flex min-w-0 flex-1 items-center gap-3">
+              <Avatar person={p} size={40} />
+              <div className="min-w-0">
+                <div className="break-words font-medium text-navy">{p.full_name}</div>
+                <div className="break-words text-xs text-muted-foreground">
+                  {[p.job_title || p.person_type, p.department, p.location].filter(Boolean).join(" · ")}
+                </div>
+              </div>
+            </Link>
+            <StatusBadge status={p.status} />
+          </div>
+          {(p.phone || p.email) && (
+            <div className="mt-2 space-y-0.5 text-xs text-foreground/80">
+              {p.phone && <div className="break-all">{p.phone}</div>}
+              {p.email && <div className="break-all">{p.email}</div>}
+            </div>
+          )}
+          <div className="mt-2 flex flex-wrap items-center justify-end gap-1">
+            <QuickActions person={p} />
+            {admin && (
+              <button onClick={() => onEdit(p)} className="rounded-lg p-2 hover:bg-accent" title="Bewerken" aria-label="Bewerken">
+                <Pencil className="h-4 w-4 text-foreground/70" />
+              </button>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
+    <div className="hidden overflow-hidden rounded-lg border border-border bg-card shadow-sm lg:block">
+      <table className="w-full table-fixed text-sm">
         <thead className="bg-accent/40 text-left text-xs uppercase tracking-wide text-muted-foreground">
           <tr>
             <th className="px-4 py-3">Naam</th>
@@ -266,7 +299,7 @@ function PeopleList({ people, admin, onEdit }: { people: Person[]; admin: boolea
               <td className="px-4 py-3 text-foreground/80">{p.job_title || p.person_type}</td>
               <td className="px-4 py-3 text-foreground/80">{p.department}</td>
               <td className="px-4 py-3 text-foreground/80">{p.phone}</td>
-              <td className="px-4 py-3 text-foreground/80">{p.email}</td>
+              <td className="break-all px-4 py-3 text-foreground/80">{p.email}</td>
               <td className="px-4 py-3 text-foreground/80">{p.location}</td>
               <td className="px-4 py-3"><StatusBadge status={p.status} /></td>
               <td className="px-4 py-3">
@@ -284,6 +317,7 @@ function PeopleList({ people, admin, onEdit }: { people: Person[]; admin: boolea
         </tbody>
       </table>
     </div>
+    </>
   );
 }
 
@@ -301,7 +335,7 @@ export function Avatar({ person, size = 40 }: { person: Person; size?: number })
   return (
     <div
       style={{ width: size, height: size, fontSize: size * 0.35 }}
-      className="flex items-center justify-center rounded-full bg-gradient-to-br from-pastel to-lime-soft font-semibold text-navy"
+      className="flex items-center justify-center rounded-full bg-pastel font-semibold text-navy"
     >
       {initials(person.full_name)}
     </div>
@@ -406,11 +440,11 @@ function PersonEditor({ person, onClose }: { person: Person | null; onClose: () 
 
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-navy/40 p-4">
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-card p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-navy/40 p-3 sm:items-center sm:p-4" role="dialog" aria-modal="true">
+      <div className="max-h-[calc(100dvh-1.5rem)] w-full max-w-2xl overflow-y-auto overscroll-contain rounded-xl bg-card p-4 pb-safe shadow-xl sm:p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-navy">{person ? "Profiel bewerken" : "Nieuw profiel"}</h2>
-          <button onClick={onClose} className="rounded-lg p-1.5 hover:bg-accent"><X className="h-4 w-4" /></button>
+          <button onClick={onClose} aria-label="Sluiten" className="rounded-lg p-2 hover:bg-accent"><X className="h-5 w-5" /></button>
         </div>
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -467,7 +501,7 @@ function PersonEditor({ person, onClose }: { person: Person | null; onClose: () 
           </Field>
         </div>
 
-        <div className="mt-5 flex items-center justify-between">
+        <div className="sticky bottom-0 -mx-4 mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-border bg-card px-4 pt-3 sm:static sm:mx-0 sm:border-0 sm:px-0 sm:pt-0">
           {person ? (
             <Button variant="ghost" onClick={del} className="text-rose-600 gap-2">
               <Trash2 className="h-4 w-4" /> Archiveren

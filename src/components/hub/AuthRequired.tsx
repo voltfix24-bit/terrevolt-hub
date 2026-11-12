@@ -47,7 +47,7 @@ export function AuthRequired({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="max-w-md text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-muted">
             <Lock className="h-6 w-6 text-navy" />
           </div>
           <h1 className="mt-4 text-xl font-semibold text-navy">Account inactief</h1>
@@ -69,7 +69,7 @@ export function AuthRequired({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <div className="max-w-md text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-muted">
             <Lock className="h-6 w-6 text-navy" />
           </div>
           <h1 className="mt-4 text-xl font-semibold text-navy">Nog geen toegang</h1>

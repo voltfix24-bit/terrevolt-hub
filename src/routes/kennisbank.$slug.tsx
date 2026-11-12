@@ -73,7 +73,7 @@ function Page() {
         </Link>
 
         <div className="mb-8 flex items-start gap-4">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand text-brand-foreground shadow-sm">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg bg-brand text-brand-foreground shadow-sm">
             <Icon name={section?.icon ?? "book-open"} size={26} />
           </div>
           <div className="min-w-0">
@@ -92,7 +92,7 @@ function Page() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder={`Zoek in ${section?.name ?? "deze sectie"}…`}
-            className="w-full rounded-2xl border border-border bg-card py-3 pl-11 pr-4 text-sm shadow-sm outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
+            className="w-full rounded-lg border border-border bg-card py-3 pl-11 pr-4 text-sm shadow-sm outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/20"
           />
         </div>
 
@@ -126,7 +126,7 @@ function Page() {
         </div>
 
         {list.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">
+          <div className="rounded-lg border border-dashed border-border bg-card/50 p-10 text-center text-sm text-muted-foreground">
             Geen kennisitems in deze sectie.
           </div>
         ) : (() => {
@@ -177,7 +177,7 @@ function Page() {
           return (
             <div className="space-y-4">
               {ungrouped.length > 0 && (
-                <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                <ul className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                   {ungrouped.map(renderArticle)}
                 </ul>
               )}
@@ -185,7 +185,7 @@ function Page() {
                 const inCat = list.filter((a) => a.category_id === c.id);
                 const isOpen = openCats[c.id] ?? (!!q || sectionCats.length === 1);
                 return (
-                  <div key={c.id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                  <div key={c.id} className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                     <button
                       type="button"
                       onClick={() => setOpenCats((s) => ({ ...s, [c.id]: !isOpen }))}

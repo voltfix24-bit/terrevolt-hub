@@ -45,7 +45,7 @@ function SharePointPage() {
         />
 
         {/* Base URL */}
-        <section className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+        <section className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-navy">
               <Icon name="globe" size={20} />
@@ -179,7 +179,7 @@ function ItemSection({
           ) : (
             <article
               key={item.id}
-              className="group relative flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
+              className="group relative flex flex-col gap-3 rounded-lg border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-navy">
@@ -243,7 +243,7 @@ function ItemSection({
           ),
         )}
         {items.length === 0 && !adding && (
-          <div className="sm:col-span-2 lg:col-span-3 rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
+          <div className="sm:col-span-2 lg:col-span-3 rounded-lg border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">
             Nog niets toegevoegd.
           </div>
         )}
@@ -284,7 +284,7 @@ function ItemForm({
   });
 
   return (
-    <div className="mb-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
+    <div className="mb-5 rounded-lg border border-border bg-card p-5 shadow-sm">
       <div className="grid gap-4 sm:grid-cols-2">
         <Labeled label="Naam">
           <input

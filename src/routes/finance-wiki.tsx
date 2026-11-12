@@ -46,7 +46,7 @@ function FinanceWikiPage() {
         subtitle="Per klant gestructureerde instructies: factuuradres, referenties, bijlagen, BTW, G-rekening en betaaltermijn. De Vraagbaak gebruikt deze pagina's als bron."
       />
 
-      <div className="mb-6 flex items-center gap-3 rounded-2xl border border-brand/30 bg-gradient-to-br from-pastel/40 via-card to-lime-soft/30 p-4 shadow-sm">
+      <div className="mb-6 flex items-center gap-3 rounded-lg border border-brand/30 bg-card p-4 shadow-sm">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand text-brand-foreground">
           <Sparkles className="h-5 w-5" />
         </div>
@@ -67,7 +67,7 @@ function FinanceWikiPage() {
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-40 animate-pulse rounded-3xl bg-muted/50" />
+            <div key={i} className="h-40 animate-pulse rounded-xl bg-muted/50" />
           ))}
         </div>
       ) : (
@@ -79,10 +79,10 @@ function FinanceWikiPage() {
                 key={c.id}
                 to="/finance-wiki/$slug"
                 params={{ slug: c.slug }}
-                className="group flex flex-col gap-3 rounded-3xl border border-border bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
+                className="group flex flex-col gap-3 rounded-xl border border-border bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-pastel text-brand">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-pastel text-brand">
                     <Wallet className="h-5 w-5" />
                   </div>
                   <ArrowUpRight className="h-4 w-4 text-muted-foreground transition group-hover:text-brand" />
